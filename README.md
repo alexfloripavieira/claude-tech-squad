@@ -25,6 +25,7 @@ Short version:
 See [USAGE-BOUNDARIES.md](docs/USAGE-BOUNDARIES.md).
 See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for installation scopes, Claude commands, and prompt examples.
 See [EXECUTION-TRACE.md](docs/EXECUTION-TRACE.md) for how to interpret visible agent execution.
+See [OPERATIONAL-PLAYBOOK.md](docs/OPERATIONAL-PLAYBOOK.md) for common execution scenarios such as features, audits, refactors, incidents, and release work.
 
 ## What This Repository Contains
 

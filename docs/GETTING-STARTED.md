@@ -139,6 +139,7 @@ And the final result should include an `Agent Execution Log` summarizing which a
 Depending on the Claude UI, you may or may not see each subagent rendered as an independent visual process. The progress lines above are the authoritative execution trace.
 
 For a full interpretation guide, including healthy patterns, blocked patterns, and what to do when the trace looks wrong, see [EXECUTION-TRACE.md](EXECUTION-TRACE.md).
+For scenario-based usage, see [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md).
 
 ## Prompt Patterns That Work Well
 
