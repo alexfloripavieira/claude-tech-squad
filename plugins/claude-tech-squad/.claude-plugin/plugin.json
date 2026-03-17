@@ -1,0 +1,8 @@
+{
+  "name": "claude-tech-squad",
+  "description": "Complete technology squad plugin for Claude Code. Orchestrates product, delivery, architecture, UX, frontend, backend, data, AI, integration, DevOps, CI/CD, QA, security, observability, docs, Jira, Confluence, and release.",
+  "version": "2.0.0",
+  "author": {
+    "name": "alexfloripavieira"
+  }
+}

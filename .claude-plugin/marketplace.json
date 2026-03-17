@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "alexfloripavieira-plugins",
+  "owner": {
+    "name": "alexfloripavieira"
+  },
+  "plugins": [
+    {
+      "name": "claude-tech-squad",
+      "description": "Generic full technology squad plugin — product, PO, business analysis, architecture, UX, frontend, backend, data, AI, integration, DevOps, CI/CD, QA, security, observability, docs, Jira, Confluence, SRE, and release.",
+      "version": "2.0.0",
+      "source": "./plugins/claude-tech-squad"
+    }
+  ]
+}
