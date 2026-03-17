@@ -23,6 +23,7 @@ Short version:
 - `claude-tech-squad` runs the squad
 
 See [USAGE-BOUNDARIES.md](docs/USAGE-BOUNDARIES.md).
+See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for installation scopes, Claude commands, and prompt examples.
 
 ## What This Repository Contains
 
@@ -87,6 +88,21 @@ See [USAGE-BOUNDARIES.md](docs/USAGE-BOUNDARIES.md).
 /claude-tech-squad:discovery describe the feature or initiative
 /claude-tech-squad:implement
 /claude-tech-squad:squad describe the full delivery request
+```
+
+## Install Modes
+
+Global for your user:
+
+```bash
+claude plugin marketplace add alexfloripavieira/claude-tech-squad
+claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
+```
+
+Only for the current project:
+
+```bash
+claude plugin install -s project claude-tech-squad@alexfloripavieira-plugins
 ```
 
 ## Validation and Release

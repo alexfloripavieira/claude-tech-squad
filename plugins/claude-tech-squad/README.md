@@ -15,6 +15,7 @@ Generic Claude Code plugin for end-to-end software delivery with a complete spec
 - product-specific artifacts outside the repository being worked on
 
 For those, use `claude-config`.
+For install scopes and prompt examples, see [GETTING-STARTED.md](../../docs/GETTING-STARTED.md).
 
 ## Commands
 
