@@ -16,6 +16,7 @@ Generic Claude Code plugin for end-to-end software delivery with a complete spec
 
 For those, use `claude-config`.
 For install scopes and prompt examples, see [GETTING-STARTED.md](../../docs/GETTING-STARTED.md).
+For visible execution interpretation, see [EXECUTION-TRACE.md](../../docs/EXECUTION-TRACE.md).
 
 ## Commands
 
@@ -41,3 +42,5 @@ Expect output such as:
 - `[Agent Done] Backend Dev | Status: completed | Output: endpoints and tests updated`
 
 Final outputs also include an `Agent Execution Log`.
+
+Use [EXECUTION-TRACE.md](../../docs/EXECUTION-TRACE.md) to interpret these lines during real runs.

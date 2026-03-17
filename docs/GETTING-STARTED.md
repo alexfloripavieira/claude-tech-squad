@@ -7,6 +7,7 @@ This guide explains:
 - how to install it globally or locally in Claude Code
 - which commands to run
 - example prompts for real delivery work
+- how to interpret visible squad execution
 
 ## What `claude-tech-squad` Is
 
@@ -136,6 +137,8 @@ You should expect lines like:
 And the final result should include an `Agent Execution Log` summarizing which agents ran, their status, and their outputs.
 
 Depending on the Claude UI, you may or may not see each subagent rendered as an independent visual process. The progress lines above are the authoritative execution trace.
+
+For a full interpretation guide, including healthy patterns, blocked patterns, and what to do when the trace looks wrong, see [EXECUTION-TRACE.md](EXECUTION-TRACE.md).
 
 ## Prompt Patterns That Work Well
 

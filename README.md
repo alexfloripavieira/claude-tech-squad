@@ -24,6 +24,7 @@ Short version:
 
 See [USAGE-BOUNDARIES.md](docs/USAGE-BOUNDARIES.md).
 See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for installation scopes, Claude commands, and prompt examples.
+See [EXECUTION-TRACE.md](docs/EXECUTION-TRACE.md) for how to interpret visible agent execution.
 
 ## What This Repository Contains
 
@@ -50,6 +51,8 @@ You should see:
 - a final `Agent Execution Log` in the result
 
 This gives you proof of orchestration even if the Claude UI does not render each subagent call as a separate visual process.
+
+If you want to know how to read these lines and what counts as healthy or blocked execution, see [EXECUTION-TRACE.md](docs/EXECUTION-TRACE.md).
 
 ## Specialist Roster
 
