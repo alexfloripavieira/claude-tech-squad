@@ -1,24 +1,42 @@
 # claude-tech-squad
 
-Standalone Claude Code plugin repository for a complete generic technology squad.
+Installable Claude Code plugin for a complete software delivery squad.
+
+This repository is the execution layer. It provides the specialist team and workflows that run inside a real repository.
+
+## Use This Repository For
+
+- discovery, scope shaping, and release slicing
+- architecture and implementation planning
+- coordinated delivery across backend, frontend, data, platform, QA, security, docs, and release
+- Jira and Confluence handoff support
+
+## Use `claude-config` For
+
+- machine-level and user-level baseline setup
+- reusable global commands, skills, rules, and templates
+- portable defaults shared across repositories
+
+Short version:
+
+- `claude-config` installs the environment
+- `claude-tech-squad` runs the squad
+
+See [USAGE-BOUNDARIES.md](docs/USAGE-BOUNDARIES.md).
 
 ## What This Repository Contains
 
+- one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
-- one marketplace manifest for Claude Code plugin installation
-- a full specialist squad for software delivery across product, architecture, implementation, quality, operations, and release
+- a complete specialist roster for software delivery
 
-## Plugin
+## Commands
 
-`claude-tech-squad` is a generic squad plugin for any development repository.
+- `/claude-tech-squad:discovery`
+- `/claude-tech-squad:implement`
+- `/claude-tech-squad:squad`
 
-### Commands
-
-- `/claude-tech-squad:discovery` - Product definition, business analysis, prioritization, feasibility, architecture, specialist design notes, and quality baselines
-- `/claude-tech-squad:implement` - Multi-track implementation, review, automated and integration testing, specialist quality reviews, docs, and Jira/Confluence updates
-- `/claude-tech-squad:squad` - Full flow from discovery through release, reliability, and delivery artifact preparation
-
-### Specialist Squad
+## Specialist Roster
 
 - PM
 - PO
@@ -52,7 +70,7 @@ Standalone Claude Code plugin repository for a complete generic technology squad
 - Observability Engineer
 - Analytics Engineer
 - Docs Writer
-- Jira & Confluence Specialist
+- Jira and Confluence Specialist
 - SRE
 - Release
 
@@ -66,13 +84,14 @@ Standalone Claude Code plugin repository for a complete generic technology squad
 ## Usage
 
 ```bash
-/claude-tech-squad:discovery build an internal admin dashboard for subscription management
+/claude-tech-squad:discovery describe the feature or initiative
 /claude-tech-squad:implement
-
-/claude-tech-squad:squad add SSO login with audit trail and admin controls
+/claude-tech-squad:squad describe the full delivery request
 ```
 
-## Notes
+## Validation and Release
 
-- This repository is independent from the original `claude-squad` clone used as a reference.
-- The plugin is generic and does not contain project-specific assumptions.
+- Validation workflow: [validate.yml](.github/workflows/validate.yml)
+- Validation script: [validate.sh](scripts/validate.sh)
+- Release process: [RELEASING.md](docs/RELEASING.md)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
