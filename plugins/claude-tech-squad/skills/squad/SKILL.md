@@ -11,6 +11,26 @@ Run the complete workflow with the full technology squad. This command is best w
 
 Do not assume the stack, the conventions, or the product domain. Discover them from the repository and validate technical decisions against current documentation.
 
+## Operator Visibility Contract
+
+This end-to-end workflow must surface the squad orchestration in the terminal output, even when the UI does not show each tool call separately.
+
+For the full run, emit these plain-text progress lines:
+
+- `[Phase Start] <phase-name>`
+- `[Agent Start] <role> | <subagent_type> | <objective>`
+- `[Agent Done] <role> | Status: completed | Output: <one-line summary>`
+- `[Agent Blocked] <role> | Waiting on: <missing input or approval>`
+- `[Agent Retry] <role> | Reason: <review or validation failure>`
+
+When a set of specialists is run in parallel, emit:
+
+- `[Agent Batch Start] <phase-name> | Agents: <comma-separated roles>`
+- one `Agent Start` / `Agent Done` line per agent
+- `[Agent Batch Done] <phase-name> | Outcome: <one-line summary>`
+
+Maintain an `Agent Execution Log` throughout the workflow and include it in the final output.
+
 ---
 
 ## Phase 1: Discovery
@@ -117,6 +137,11 @@ Produce reliability guardrails, rollout advice, and rollback concerns.
 
 ```
 ## Squad Complete
+
+### Agent Execution Log
+- Phase: [...]
+- Role: [...] | Subagent: [...] | Status: [...] | Output: [...]
+- Role: [...] | Subagent: [...] | Status: [...] | Output: [...]
 
 ### Product
 - User story: [...]

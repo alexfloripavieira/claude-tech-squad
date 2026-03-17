@@ -7,6 +7,29 @@ description: Run build and quality for any software project based on a prior dis
 
 Run implementation and quality validation using the Discovery & Blueprint Document produced by `/discovery`.
 
+## Operator Visibility Contract
+
+This workflow must expose the build and quality orchestration in the terminal output.
+
+For every agent handoff, emit these plain-text progress lines:
+
+- `[Phase Start] <phase-name>`
+- `[Agent Start] <role> | <subagent_type> | <objective>`
+- `[Agent Done] <role> | Status: completed | Output: <one-line summary>`
+- `[Agent Blocked] <role> | Waiting on: <missing input, failing check, or user decision>`
+
+When multiple implementation or quality agents run in parallel, emit:
+
+- `[Agent Batch Start] <phase-name> | Agents: <comma-separated roles>`
+- one `Agent Start` / `Agent Done` line per agent
+- `[Agent Batch Done] <phase-name> | Outcome: <one-line summary>`
+
+Also emit explicit retry lines when a loop occurs:
+
+- `[Agent Retry] <role> | Reason: <review or validation failure>`
+
+Do not silently move from build to quality, or from one agent to another, without these lines.
+
 ## Required Input
 
 This command expects:
@@ -244,6 +267,11 @@ If PM rejects the result or any critical specialist review fails:
 
 ```
 ## Implementation Complete
+
+### Agent Execution Log
+- Phase: [...]
+- Role: [...] | Subagent: [...] | Status: [...] | Output: [...]
+- Role: [...] | Subagent: [...] | Status: [...] | Output: [...]
 
 ### Build
 - Workstreams executed: [...]

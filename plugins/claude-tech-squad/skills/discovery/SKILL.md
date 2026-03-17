@@ -11,6 +11,26 @@ Run the planning phases before implementation. This command is generic and adapt
 
 All technical decisions must be grounded in the repository's real stack, conventions, and current documentation via context7.
 
+## Operator Visibility Contract
+
+This workflow must make agent activity visible in the terminal output.
+
+For every agent handoff, emit these plain-text progress lines:
+
+- `[Phase Start] <phase-name>`
+- `[Agent Start] <role> | <subagent_type> | <objective>`
+- `[Agent Done] <role> | Status: completed | Output: <one-line summary>`
+- `[Agent Blocked] <role> | Waiting on: <missing input or user decision>`
+
+When multiple specialists run in parallel, emit:
+
+- `[Agent Batch Start] <phase-name> | Agents: <comma-separated roles>`
+- one `Agent Start` / `Agent Done` line per agent
+- `[Agent Batch Done] <phase-name> | Outcome: <one-line summary>`
+
+Do not silently switch phases or invoke agents without printing the handoff line first.
+If the UI suppresses tool-level detail, these visibility lines are still mandatory in the assistant output.
+
 ## Step 0: Repository Recon
 
 Before invoking any agent:
@@ -269,6 +289,11 @@ Do not enter build mode until the user explicitly confirms.
 
 ```
 ## Discovery & Blueprint Document
+
+### 0. Agent Execution Log
+- Phase: [...]
+- Role: [...] | Subagent: [...] | Status: [...] | Output: [...]
+- Role: [...] | Subagent: [...] | Status: [...] | Output: [...]
 
 ### 1. Product Definition
 [Final PM output]

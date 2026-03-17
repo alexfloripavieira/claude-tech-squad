@@ -37,6 +37,20 @@ See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for installation scopes, Claud
 - `/claude-tech-squad:implement`
 - `/claude-tech-squad:squad`
 
+## Visible Orchestration
+
+The workflows are designed to make squad execution visible in the Claude output.
+
+You should see:
+
+- phase transitions such as `[Phase Start] Discovery`
+- explicit handoffs such as `[Agent Start] PM | claude-tech-squad:pm | ...`
+- completion lines such as `[Agent Done] Reviewer | Status: completed | ...`
+- batch execution lines for parallel specialist work
+- a final `Agent Execution Log` in the result
+
+This gives you proof of orchestration even if the Claude UI does not render each subagent call as a separate visual process.
+
 ## Specialist Roster
 
 - PM

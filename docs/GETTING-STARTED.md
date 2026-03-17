@@ -120,6 +120,23 @@ Example:
 Add SSO login, audit events, admin controls, automated coverage, documentation, and release artifacts.
 ```
 
+## What Visible Agent Execution Looks Like
+
+The plugin is written to expose orchestration in the Claude output, not just in the internal workflow.
+
+You should expect lines like:
+
+```text
+[Phase Start] Discovery
+[Agent Start] PM | claude-tech-squad:pm | First-pass product analysis
+[Agent Done] PM | Status: completed | Output: scope options and open questions
+[Agent Batch Start] Specialist Design Bench | Agents: Backend Architect, Frontend Architect
+```
+
+And the final result should include an `Agent Execution Log` summarizing which agents ran, their status, and their outputs.
+
+Depending on the Claude UI, you may or may not see each subagent rendered as an independent visual process. The progress lines above are the authoritative execution trace.
+
 ## Prompt Patterns That Work Well
 
 Good inputs usually include:

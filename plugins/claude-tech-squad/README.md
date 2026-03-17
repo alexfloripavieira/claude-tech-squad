@@ -29,3 +29,15 @@ For install scopes and prompt examples, see [GETTING-STARTED.md](../../docs/GETT
 - specialist bench, not specialist noise
 - validate decisions against current docs and real stack evidence
 - finish through review, docs, and release impact, not just implementation
+
+## Visible Execution
+
+The plugin workflows emit explicit progress lines for phase changes, agent handoffs, retries, and batch execution.
+
+Expect output such as:
+
+- `[Phase Start] Build`
+- `[Agent Start] Backend Dev | claude-tech-squad:backend-dev | Implement backend slice`
+- `[Agent Done] Backend Dev | Status: completed | Output: endpoints and tests updated`
+
+Final outputs also include an `Agent Execution Log`.
