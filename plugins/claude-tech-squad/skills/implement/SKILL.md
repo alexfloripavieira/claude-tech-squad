@@ -7,6 +7,16 @@ description: Run build and quality for any software project based on a prior dis
 
 Run implementation and quality validation using the Discovery & Blueprint Document produced by `/discovery`.
 
+## TDD Execution Rule
+
+If the discovery package came from `/squad`, or if the package explicitly marks TDD as required, treat TDD as mandatory for code changes.
+
+That means:
+
+- implementation starts from failing tests, not from direct production code edits
+- the TDD Delivery Plan becomes the default execution sequence
+- exceptions must be stated explicitly when the repository or task makes tests-first execution impossible
+
 ## Operator Visibility Contract
 
 This workflow must expose the build and quality orchestration in the terminal output.
@@ -153,7 +163,7 @@ Relevant baselines:
 MANDATORY:
 - Verify framework or platform APIs via context7 before using them
 - Follow the repo's existing conventions
-- Start from the failing tests and cycle order defined in the TDD delivery plan when applicable
+- Start from the failing tests and cycle order defined in the TDD delivery plan
 - Implement only your assigned slice
 - Add or update tests, configs, or validation for your logic when applicable
 ```
@@ -364,6 +374,7 @@ If PM rejects the result or any critical specialist review fails:
 - Tech lead coordination: completed
 - Design guardrails: completed / refreshed
 - TDD cycle plan: completed / refreshed
+- Delivery mode: TDD-first / exception declared
 - Review status: APPROVED / CHANGES REQUESTED
 - Continuous quality: PASS / FAIL
 

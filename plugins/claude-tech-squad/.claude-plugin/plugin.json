@@ -1,7 +1,7 @@
 {
   "name": "claude-tech-squad",
-  "description": "Complete generic technology squad plugin for Claude Code. Orchestrates discovery, design principles, TDD-guided implementation, QA, security, documentation, Jira and Confluence, and release.",
-  "version": "2.3.0",
+  "description": "Complete generic technology squad plugin for Claude Code. Orchestrates discovery, design principles, TDD-first implementation, QA, security, documentation, Jira and Confluence, and release.",
+  "version": "2.4.0",
   "author": {
     "name": "alexfloripavieira"
   }

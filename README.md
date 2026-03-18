@@ -7,7 +7,7 @@ This repository is the execution layer. It provides the specialist team and work
 ## Use This Repository For
 
 - discovery, scope shaping, and release slicing
-- architecture, TDD-guided implementation planning, and execution coordination
+- architecture, TDD-first implementation planning, and execution coordination
 - coordinated delivery across backend, frontend, data, platform, QA, security, docs, and release
 - Jira and Confluence handoff support
 
@@ -100,6 +100,10 @@ Testing split:
 - Test Planner defines the coverage contract
 - TDD Specialist defines the red-green-refactor delivery cycles
 - QA validates acceptance criteria, regressions, and behavior after the cycles pass
+
+Default squad mode:
+
+- when you use `/claude-tech-squad:squad` for code changes, the delivery model is TDD-first by default
 
 Design split:
 

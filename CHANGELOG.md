@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.4.0
+
+- made `/claude-tech-squad:squad` TDD-first by default for code changes
+- required the Test Plan and TDD Delivery Plan to be ready before build starts in squad flows
+- made TDD exceptions explicit in squad and implementation reporting
+- updated docs to explain the new default behavior
+
 ## 2.3.0
 
 - added `tdd-specialist` to drive development from failing tests and red-green-refactor cycles

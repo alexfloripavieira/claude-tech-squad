@@ -1,6 +1,6 @@
 ---
 name: squad
-description: Run the full technology squad workflow end-to-end with the full specialist bench: discovery, blueprint, design-principles and TDD-guided implementation, quality, documentation, Jira/Confluence, reliability, and release preparation.
+description: Run the full technology squad workflow end-to-end with the full specialist bench: discovery, blueprint, design-principles and TDD-first implementation, quality, documentation, Jira/Confluence, reliability, and release preparation.
 ---
 
 # /squad — Full Technology Squad
@@ -10,6 +10,24 @@ Run the complete workflow with the full technology squad. This command is best w
 ## Core Principle
 
 Do not assume the stack, the conventions, or the product domain. Discover them from the repository and validate technical decisions against current documentation.
+
+## TDD Default Mode
+
+When `/squad` is used for work that changes code, TDD is the default development strategy.
+
+That means:
+
+- do not start implementation before the Test Plan and TDD Delivery Plan are both ready
+- implementation agents should begin from failing tests whenever the repository has a viable test stack
+- use red-green-refactor cycles as the normal execution model, not as an optional extra
+
+TDD may be relaxed only when one of these is true:
+
+- the task is documentation-only, release-only, or otherwise non-code
+- the current repository genuinely has no viable automated test path for the slice
+- an external constraint makes tests-first impossible for a specific step
+
+If TDD is relaxed, the workflow must say so explicitly in the output and explain why.
 
 ## Operator Visibility Contract
 
@@ -64,7 +82,7 @@ Follow the exact `/discovery` blueprint process:
 9. Quality, governance, and operations baselines
 10. User confirms the final blueprint
 
-Do not proceed until the user explicitly confirms the blueprint.
+Do not proceed until the user explicitly confirms the blueprint, including the TDD-first delivery approach for code changes.
 
 ---
 
@@ -88,6 +106,12 @@ Follow the exact `/implement` build process:
 6. Run `claude-tech-squad:reviewer`
 7. Run continuous quality agents
 8. Loop on build issues until approved or blocked
+
+Additional `/squad` rule:
+
+- treat tests-first execution as mandatory for code changes
+- if an implementation agent starts without a failing-test target, send the work back through the TDD Specialist first
+- make any TDD exception visible in the `Agent Execution Log`
 
 ---
 
@@ -164,6 +188,7 @@ Produce reliability guardrails, rollout advice, and rollback concerns.
 
 ### Delivery
 - Workstreams executed: [...]
+- Delivery mode: TDD-first / exception declared
 - Review: APPROVED / CHANGES REQUESTED
 - Continuous quality: PASS / FAIL
 - Full QA: PASS / FAIL

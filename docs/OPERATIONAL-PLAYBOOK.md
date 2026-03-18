@@ -12,6 +12,10 @@ Choose the lightest command that still matches the real delivery scope:
 - `/claude-tech-squad:implement` for execution after approval
 - `/claude-tech-squad:squad` for end-to-end or audit-style work
 
+Default behavior note:
+
+- `/claude-tech-squad:squad` is TDD-first by default for code changes
+
 ## Scenario 1: New Feature
 
 Use:
@@ -102,6 +106,11 @@ When:
 - you want the full path from discovery to release preparation
 - the task spans multiple specialties and approvals
 
+Default execution mode:
+
+- tests-first
+- red-green-refactor cycles before direct implementation
+
 Prompt example:
 
 ```text
@@ -112,6 +121,7 @@ Add SSO login with audit trail, admin approval flow, automated coverage, documen
 Healthy output:
 
 - discovery, blueprint, build, quality, and release phases
+- a TDD-first delivery stance or an explicit exception
 - visible orchestration across specialists
 - final squad report and `Agent Execution Log`
 

@@ -18,7 +18,7 @@ It is not a general config pack. It is the specialist team you run inside a real
 Use it for:
 
 - discovery and scope clarification
-- architecture, TDD-guided implementation planning, and implementation coordination
+- architecture, TDD-first implementation planning, and implementation coordination
 - multi-specialist delivery
 - test, review, documentation, Jira/Confluence, and release follow-through
 
@@ -126,6 +126,8 @@ Use the approved discovery package and implement the next delivery slice with TD
 
 Use when you want the full path from idea to release in one workflow.
 
+For code changes, this command is TDD-first by default.
+
 Example:
 
 ```text
@@ -182,3 +184,8 @@ Recommended setup:
 2. install `claude-tech-squad` as your execution plugin
 3. use the plugin for complex delivery
 4. use `claude-config` commands and skills for narrower support tasks
+
+Rule of thumb:
+
+- `/claude-tech-squad:implement` can be driven by the approved package
+- `/claude-tech-squad:squad` should assume tests-first execution for code changes unless it explicitly declares an exception

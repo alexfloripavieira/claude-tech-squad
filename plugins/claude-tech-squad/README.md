@@ -9,6 +9,7 @@ Generic Claude Code plugin for end-to-end software delivery with a complete spec
 - you need specialists selected according to the actual repository and feature
 - you want TDD cycle planning separated cleanly from QA acceptance validation
 - you want explicit structural guidance for SOLID, Clean Architecture, Ports and Adapters, and Hexagonal-style boundaries
+- you want `/squad` to run code delivery in TDD-first mode by default
 
 ## Do Not Use This Plugin For
 
