@@ -1,6 +1,6 @@
 ---
 name: discovery
-description: Run discovery and blueprint for any software project with a full specialist squad. Produces product definition, prioritization, business analysis, architecture, specialist design notes, quality baselines, and delivery artifacts guidance.
+description: Run discovery and blueprint for any software project with a full specialist squad. Produces product definition, prioritization, business analysis, architecture, specialist design notes, test and TDD delivery guidance, quality baselines, and delivery artifacts guidance.
 ---
 
 # /discovery — Discovery & Blueprint
@@ -239,7 +239,30 @@ Focus only on your slice. Validate framework usage via context7. Ask only the qu
 
 If specialist design agents raise blocking questions, present them to the user and resolve them before continuing.
 
-### Step 2.4: Test Planner
+### Step 2.4: Design Principles Specialist
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:design-principles-specialist"`.
+
+Prompt:
+```
+You are the Design Principles Specialist agent. Follow your instructions exactly.
+
+Confirmed product package:
+[Insert PM, Business Analyst, and PO outputs]
+
+Confirmed architecture package:
+- Planner output: [Insert Planner output]
+- Architect output: [Insert Architect output]
+- Tech Lead output: [Insert Tech Lead output]
+- Specialist notes: [Insert relevant specialist notes]
+
+MANDATORY:
+- Read the current repo structure before prescribing abstractions
+- Apply SOLID, Clean Architecture, Ports and Adapters, and Hexagonal Architecture pragmatically
+- Define structural guardrails that improve maintainability and testability without fighting the real codebase
+```
+
+### Step 2.5: Test Planner
 
 Use the Agent tool with `subagent_type: "claude-tech-squad:test-planner"`.
 
@@ -260,7 +283,34 @@ Read the real test setup in the repo and validate testing APIs via context7.
 Produce the full test plan.
 ```
 
-### Step 2.5: Quality, Governance, and Operations Baselines
+### Step 2.6: TDD Specialist
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:tdd-specialist"`.
+
+Prompt:
+```
+You are the TDD Specialist agent. Follow the TDD Specialist instructions exactly.
+
+Confirmed PM output:
+[Insert PM output]
+
+Confirmed architecture package:
+- Planner output: [Insert Planner output]
+- Architect output: [Insert Architect output]
+- Tech Lead output: [Insert Tech Lead output]
+- Specialist notes: [Insert relevant specialist notes]
+
+Confirmed Test Plan:
+[Insert Test Plan]
+
+MANDATORY:
+- Read the real test setup in the repo
+- Validate testing APIs and patterns via context7
+- Convert the plan into concrete red-green-refactor cycles
+- Define the first failing tests, minimal implementation target, and refactor checkpoint for each cycle
+```
+
+### Step 2.7: Quality, Governance, and Operations Baselines
 
 Run the relevant specialists for baseline review:
 
@@ -344,7 +394,10 @@ Do not enter build mode until the user explicitly confirms.
 #### DBA
 [If present]
 
-### 8. Quality, Governance, and Operations Baselines
+### 8. Design Principles Guardrails
+[Design Principles Specialist output]
+
+### 9. Quality, Governance, and Operations Baselines
 #### Security
 [If present]
 
@@ -369,16 +422,19 @@ Do not enter build mode until the user explicitly confirms.
 #### Jira / Confluence
 [If present]
 
-### 9. Test Plan
+### 10. Test Plan
 [Test Planner output]
 
-### 10. Stack & Conventions Observed
+### 11. TDD Delivery Plan
+[TDD Specialist output]
+
+### 12. Stack & Conventions Observed
 - Stack: [...]
 - Repo conventions: [...]
 - CI / deploy clues: [...]
 - Design assets / specs: [...]
 
-### 11. Delivery Workstreams
+### 13. Delivery Workstreams
 - Backend: [...]
 - Frontend: [...]
 - Data: [...]

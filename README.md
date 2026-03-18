@@ -7,7 +7,7 @@ This repository is the execution layer. It provides the specialist team and work
 ## Use This Repository For
 
 - discovery, scope shaping, and release slicing
-- architecture and implementation planning
+- architecture, TDD-guided implementation planning, and execution coordination
 - coordinated delivery across backend, frontend, data, platform, QA, security, docs, and release
 - Jira and Confluence handoff support
 
@@ -76,7 +76,9 @@ If you want to know how to read these lines and what counts as healthy or blocke
 - DevOps
 - CI/CD
 - DBA
+- Design Principles Specialist
 - Test Planner
+- TDD Specialist
 - Test Automation Engineer
 - Integration QA
 - QA
@@ -92,6 +94,18 @@ If you want to know how to read these lines and what counts as healthy or blocke
 - Jira and Confluence Specialist
 - SRE
 - Release
+
+Testing split:
+
+- Test Planner defines the coverage contract
+- TDD Specialist defines the red-green-refactor delivery cycles
+- QA validates acceptance criteria, regressions, and behavior after the cycles pass
+
+Design split:
+
+- Architect defines the overall system shape
+- Tech Lead defines delivery sequencing and ownership
+- Design Principles Specialist protects structural boundaries, dependency direction, and testability
 
 ## Install
 

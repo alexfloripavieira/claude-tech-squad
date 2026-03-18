@@ -18,9 +18,21 @@ It is not a general config pack. It is the specialist team you run inside a real
 Use it for:
 
 - discovery and scope clarification
-- architecture and implementation planning
+- architecture, TDD-guided implementation planning, and implementation coordination
 - multi-specialist delivery
 - test, review, documentation, Jira/Confluence, and release follow-through
+
+Testing split:
+
+- Test Planner defines what must be covered
+- TDD Specialist defines how development should proceed through failing tests and small cycles
+- QA validates the implemented behavior against acceptance criteria and regressions
+
+Design split:
+
+- Architect defines the overall system shape
+- Tech Lead decides sequencing and ownership
+- Design Principles Specialist applies SOLID, Clean Architecture, Ports and Adapters, and Hexagonal-style guardrails pragmatically
 
 If you need baseline commands, skills, rules, and templates, use `claude-config`.
 
@@ -107,7 +119,7 @@ Example:
 
 ```text
 /claude-tech-squad:implement
-Use the approved discovery package and implement the next delivery slice.
+Use the approved discovery package and implement the next delivery slice with TDD cycles where applicable.
 ```
 
 ### `/claude-tech-squad:squad`
@@ -159,7 +171,7 @@ Create an internal billing admin surface for support operators. It needs invoice
 
 ```text
 /claude-tech-squad:squad
-Build a webhook reliability improvement package with idempotency, retries, dead-letter visibility, tests, docs, and release notes.
+Build a webhook reliability improvement package with idempotency, retries, dead-letter visibility, TDD-friendly failing tests, stronger ports-and-adapters boundaries, docs, and release notes.
 ```
 
 ## How It Relates To `claude-config`

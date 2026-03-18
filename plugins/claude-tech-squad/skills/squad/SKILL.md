@@ -1,6 +1,6 @@
 ---
 name: squad
-description: Run the full technology squad workflow end-to-end with the full specialist bench: discovery, blueprint, implementation, quality, documentation, Jira/Confluence, reliability, and release preparation.
+description: Run the full technology squad workflow end-to-end with the full specialist bench: discovery, blueprint, design-principles and TDD-guided implementation, quality, documentation, Jira/Confluence, reliability, and release preparation.
 ---
 
 # /squad — Full Technology Squad
@@ -58,9 +58,11 @@ Follow the exact `/discovery` blueprint process:
 3. User resolves overall design questions
 4. Relevant specialist design agents
 5. User resolves specialist design questions if any
-6. Test Planner
-7. Quality, governance, and operations baselines
-8. User confirms the final blueprint
+6. Design Principles Specialist
+7. Test Planner
+8. TDD Specialist
+9. Quality, governance, and operations baselines
+10. User confirms the final blueprint
 
 Do not proceed until the user explicitly confirms the blueprint.
 
@@ -71,7 +73,9 @@ Do not proceed until the user explicitly confirms the blueprint.
 Follow the exact `/implement` build process:
 
 1. Run Tech Lead coordination
-2. Run relevant implementation agents:
+2. Run Design Principles Specialist guardrail planning
+3. Run TDD Specialist cycle planning
+4. Run relevant implementation agents:
    - `claude-tech-squad:backend-dev`
    - `claude-tech-squad:frontend-dev`
    - `claude-tech-squad:platform-dev`
@@ -80,9 +84,10 @@ Follow the exact `/implement` build process:
    - `claude-tech-squad:devops`
    - `claude-tech-squad:ci-cd`
    - `claude-tech-squad:dba`
-3. Run `claude-tech-squad:reviewer`
-4. Run continuous quality agents
-5. Loop on build issues until approved or blocked
+5. Run Design Principles Specialist structural review
+6. Run `claude-tech-squad:reviewer`
+7. Run continuous quality agents
+8. Loop on build issues until approved or blocked
 
 ---
 
@@ -152,8 +157,10 @@ Produce reliability guardrails, rollout advice, and rollback concerns.
 - Overall design: [...]
 - Tech lead plan: completed
 - Specialist notes: [summary]
+- Design guardrails: completed
 - Quality baselines: completed
 - Test plan: completed
+- TDD delivery plan: completed
 
 ### Delivery
 - Workstreams executed: [...]

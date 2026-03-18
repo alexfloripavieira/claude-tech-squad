@@ -41,8 +41,10 @@ This command expects:
 - Overall architecture
 - Tech Lead execution plan
 - Relevant specialist notes
+- Design principles guardrails
 - Quality and operations baselines
 - Test plan
+- TDD delivery plan
 
 If the discovery document is not already available in the conversation, ask the user to provide it.
 
@@ -65,7 +67,56 @@ Use the confirmed discovery document to determine:
 - what the write boundaries are
 ```
 
-### Step 3.1: Relevant Implementation Agents
+### Step 3.1: Design Principles Specialist — Implementation Guardrails
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:design-principles-specialist"`.
+
+Prompt:
+```
+You are the Design Principles Specialist agent in build mode.
+
+Architecture package:
+- Overall architecture: [Insert Architect output]
+- Tech Lead execution plan: [Insert Tech Lead output]
+- Relevant specialist notes: [Insert relevant notes only]
+
+Existing design guardrails:
+[Insert Design Principles guardrails]
+
+MANDATORY:
+- Recheck the current repository structure before prescribing boundaries
+- Refine the implementation guardrails only where needed
+- Keep the guidance pragmatic and testability-oriented
+```
+
+### Step 3.2: TDD Specialist — Execution-Ready Cycles
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:tdd-specialist"`.
+
+Prompt:
+```
+You are the TDD Specialist agent in build mode.
+
+Use the confirmed discovery document to refresh the TDD delivery plan for the current implementation pass.
+
+Architecture package:
+- Overall architecture: [Insert Architect output]
+- Tech Lead execution plan: [Insert Tech Lead output]
+- Relevant specialist notes: [Insert relevant notes only]
+
+Test plan:
+[Insert Test Plan]
+
+Existing TDD delivery plan:
+[Insert TDD delivery plan]
+
+MANDATORY:
+- Reconfirm the real test stack in the repo before prescribing cycles
+- Keep the cycles small and implementation-ready
+- Tell each implementation agent which failing tests should lead their slice
+```
+
+### Step 3.3: Relevant Implementation Agents
 
 Run only the implementation agents needed by the architecture:
 
@@ -88,9 +139,13 @@ Architecture package:
 - Overall architecture: [Insert Architect output]
 - Tech Lead execution plan: [Insert Tech Lead output]
 - Relevant specialist notes: [Insert relevant notes only]
+- Design principles guardrails: [Insert Design Principles guardrails]
 
 Test plan:
 [Insert Test Plan]
+
+TDD delivery plan:
+[Insert TDD delivery plan]
 
 Relevant baselines:
 [Insert security / privacy / performance / observability / analytics / compliance notes as needed]
@@ -98,11 +153,35 @@ Relevant baselines:
 MANDATORY:
 - Verify framework or platform APIs via context7 before using them
 - Follow the repo's existing conventions
+- Start from the failing tests and cycle order defined in the TDD delivery plan when applicable
 - Implement only your assigned slice
 - Add or update tests, configs, or validation for your logic when applicable
 ```
 
-### Step 3.2: Reviewer — Code Review
+### Step 3.4: Design Principles Specialist — Structural Review
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:design-principles-specialist"`.
+
+Prompt:
+```
+You are the Design Principles Specialist agent in review mode.
+
+Review the implemented change set against the agreed design guardrails.
+
+Architecture package:
+- Overall architecture: [Insert Architect output]
+- Tech Lead execution plan: [Insert Tech Lead output]
+- Design guardrails: [Insert Design Principles guardrails]
+
+Focus on:
+- dependency direction
+- boundary leaks
+- cohesion and coupling
+- ports / adapters seams where relevant
+- testability and refactor safety
+```
+
+### Step 3.5: Reviewer — Code Review
 
 Use the Agent tool with `subagent_type: "claude-tech-squad:reviewer"`.
 
@@ -120,16 +199,20 @@ Focus on:
 - regressions
 - complexity
 - missing tests
+- drift from the agreed TDD delivery plan when TDD is part of the delivery strategy
+- critical structural issues raised by the Design Principles Specialist
 - doc compliance for unfamiliar APIs
 ```
 
 If the reviewer requests changes:
 
 1. Route issues back to the appropriate implementation agent.
-2. Re-run review.
-3. Repeat up to 3 cycles before asking the user.
+2. Re-run the Design Principles Specialist first if the requested changes alter boundaries or dependency flow.
+3. Re-run the TDD Specialist first if the requested changes materially alter cycle order or failing-test scope.
+4. Re-run review.
+5. Repeat up to 3 cycles before asking the user.
 
-### Step 3.3: Continuous Quality Validation
+### Step 3.6: Continuous Quality Validation
 
 Run the relevant quality implementers:
 
@@ -154,9 +237,11 @@ Report pass/fail with concrete evidence and distinguish code bugs from test issu
 If continuous quality fails:
 
 1. Route failures to the responsible implementation agent.
-2. Re-run Reviewer.
-3. Re-run the affected quality agents.
-4. Repeat up to 3 cycles before asking the user.
+2. Re-run the Design Principles Specialist if the fix changes boundaries or adapter seams.
+3. Re-run the TDD Specialist if the failure requires reshaping the cycle plan.
+4. Re-run Reviewer.
+5. Re-run the affected quality agents.
+6. Repeat up to 3 cycles before asking the user.
 
 ---
 
@@ -277,6 +362,8 @@ If PM rejects the result or any critical specialist review fails:
 - Workstreams executed: [...]
 - Files changed: [...]
 - Tech lead coordination: completed
+- Design guardrails: completed / refreshed
+- TDD cycle plan: completed / refreshed
 - Review status: APPROVED / CHANGES REQUESTED
 - Continuous quality: PASS / FAIL
 

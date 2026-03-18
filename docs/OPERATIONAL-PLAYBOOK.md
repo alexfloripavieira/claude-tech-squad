@@ -34,7 +34,7 @@ Design the next delivery slice for subscription management, including admin role
 Healthy output:
 
 - `Phase Start` lines for discovery and blueprint
-- explicit agent handoffs such as PM, Planner, Architect, and Tech Lead
+- explicit agent handoffs such as PM, Planner, Architect, Tech Lead, and Design Principles Specialist
 - a final blueprint document
 
 ## Scenario 2: Implement Approved Blueprint
@@ -47,21 +47,49 @@ When:
 
 - discovery is already done
 - architecture and scope have been approved
-- you want build, review, QA, docs, and UAT coordination
+- you want TDD cycle planning, build, review, QA, docs, and UAT coordination
 
 Prompt example:
 
 ```text
 /claude-tech-squad:implement
-Use the approved blueprint to implement the next delivery slice, run validation, update docs, and produce release-ready output.
+Use the approved blueprint to implement the next delivery slice through TDD cycles, run validation, update docs, and produce release-ready output.
 ```
 
 Healthy output:
 
 - build and quality phases
+- design guardrails before implementation agents start
+- a TDD delivery plan or refreshed TDD cycle map before implementation agents start
 - implementation agent handoffs
 - reviewer and QA loops when needed
 - final implementation report with `Agent Execution Log`
+
+## Scenario 2A: TDD-First Delivery Slice
+
+Use:
+
+- `/claude-tech-squad:discovery`
+- then `/claude-tech-squad:implement`
+
+When:
+
+- you want development to start from failing tests rather than direct implementation
+- the slice is small enough to benefit from explicit red-green-refactor cycles
+
+Prompt example:
+
+```text
+/claude-tech-squad:discovery
+Plan the next billing retry slice and prepare it for TDD, including the first failing tests, cycle order, design guardrails, and QA handoff.
+```
+
+Then:
+
+```text
+/claude-tech-squad:implement
+Use the approved discovery package to execute the billing retry slice through TDD cycles and validate the result.
+```
 
 ## Scenario 3: End-To-End Delivery
 
@@ -102,7 +130,7 @@ Prompt example:
 
 ```text
 /claude-tech-squad:squad
-Audit the linked Jira story against the current implementation, validate requirements and acceptance criteria, run relevant checks, and show explicit agent execution lines with Agent Execution Log.
+Audit the linked Jira story against the current implementation, validate requirements and acceptance criteria, review structural design quality, run relevant checks, and show explicit agent execution lines with Agent Execution Log.
 ```
 
 Healthy output:
@@ -173,6 +201,7 @@ You should expect:
 
 - visible phase transitions
 - role-specific handoff lines
+- structural guidance before the implementation pass when architecture matters
 - retries when review or QA fails
 - batch lines when specialist benches run in parallel
 - a final `Agent Execution Log`
