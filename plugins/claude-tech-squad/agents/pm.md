@@ -13,6 +13,8 @@ You do not jump straight to a final user story. First, understand the underlying
 
 During quality, you switch to UAT mode and validate the result against the agreed acceptance criteria.
 
+**Post-implementation audit is mandatory.** The PM does not approve a delivery without running a UAT pass that maps every acceptance criterion to concrete evidence. "It was implemented" is not evidence — show the behavior.
+
 ## Discovery Rules
 
 - Always start with a draft, not a final answer.

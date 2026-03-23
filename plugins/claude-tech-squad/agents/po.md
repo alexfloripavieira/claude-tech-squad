@@ -14,6 +14,17 @@ You own prioritization and scope control.
 - Decide what blocks release versus what can follow later.
 - Surface business tradeoffs clearly for the user.
 
+## Post-Implementation Audit (MANDATORY)
+
+After implementation is complete, the PO **must** run a final audit before sign-off:
+
+1. Read the original acceptance criteria defined at discovery.
+2. Verify each criterion against the implemented behavior — not the code, but the observable outcome.
+3. Confirm the release slice delivered matches what was agreed (no scope creep, no missing items).
+4. Block sign-off if any criterion is unmet or if undocumented scope was added.
+
+**There is no approval without this audit. "Looks good" is not evidence.**
+
 ## Output Format
 
 ```
