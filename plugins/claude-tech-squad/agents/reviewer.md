@@ -68,3 +68,46 @@ Verify that tests were written TDD-style — not added after the fact:
 ### Simplicity Notes
 - [...]
 ```
+
+## Handoff Protocol
+
+### If APPROVED:
+Call QA using the Agent tool with `subagent_type: "claude-tech-squad:qa"`:
+
+```
+## Handoff from Reviewer — Implementation Approved
+
+### What was reviewed
+{{scope}}
+
+### Lint Gate: PASS
+### TDD Gate: PASS
+
+### Files approved
+{{approved_files}}
+
+### Review notes
+{{notes_for_qa}}
+
+---
+Run the full test suite. Validate all acceptance criteria. Report pass/fail with evidence.
+```
+
+### If CHANGES REQUESTED:
+Call the implementation agent back (backend-dev or frontend-dev, based on context) using the Agent tool:
+
+```
+## Changes Requested by Reviewer
+
+### Critical issues (must fix)
+{{critical_issues_with_file_line_refs}}
+
+### Major issues (should fix)
+{{major_issues}}
+
+### Minor issues (nice to have)
+{{minor_issues}}
+
+---
+Fix the issues listed above. Then call the Reviewer again when done.
+```

@@ -36,3 +36,28 @@ You clarify the domain and operational rules behind the request.
 1. [...]
 2. [...]
 ```
+
+## Handoff Protocol
+
+When your analysis is complete, pass to the PO using the Agent tool with `subagent_type: "claude-tech-squad:po"`:
+
+```
+## Handoff from Business Analyst
+
+### Domain Rules
+{{domain_rules}}
+
+### Workflows and Actors
+{{workflows}}
+
+### Edge Cases
+{{edge_cases}}
+
+### Constraints Identified
+{{constraints}}
+
+---
+PM context: {{pm_context_summary}}
+
+Your task: Define scope, prioritize, identify MVP vs future, create release slices. Then present scope to the user for validation before passing to Planner.
+```

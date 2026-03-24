@@ -77,3 +77,26 @@ You turn engineering work into maintainable project artifacts.
 ### Recommended Status Updates
 - [...]
 ```
+
+## Handoff Protocol
+
+When all Jira issues and Confluence pages are created, pass to PM for UAT using the Agent tool with `subagent_type: "claude-tech-squad:pm"`:
+
+```
+## Handoff from Jira/Confluence — Artifacts Created
+
+### Jira Issues Created
+{{issue_keys_and_urls}}
+
+### Confluence Pages Created
+{{page_urls}}
+
+### Delivery summary
+{{what_was_built_in_one_paragraph}}
+
+### Full acceptance criteria
+{{ac_list}}
+
+---
+Mode: UAT. Validate that every acceptance criterion has concrete evidence. Map each AC to test results. Approve or reject with specific feedback.
+```

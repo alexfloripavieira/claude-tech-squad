@@ -51,114 +51,19 @@ Maintain an `Agent Execution Log` throughout the workflow and include it in the 
 
 ---
 
-## Phase 1: Discovery
+## Execution
 
-Follow the exact `/discovery` process:
+### Step 1 — Discovery Chain
+Follow the same execution as `/discovery`. The chain runs: PM → BA → PO [Gate] → Planner [Gate] → Architect → TechLead [Gate] → Specialists → Design Principles → Test Planner → TDD Specialist [Final Gate].
 
-1. Repository recon
-2. PM first pass
-3. Business analysis
-4. PO prioritization
-5. User answers product and domain questions
-6. Planner feasibility
-7. User resolves feasibility tradeoffs
+### Step 2 — Build Chain
+After you confirm the blueprint, Tech Lead starts the build chain: TDD Specialist → Implementation batch → Reviewer → QA → Quality bench → Docs → Jira/Confluence → PM [UAT Gate].
 
-Do not proceed until requirements are confirmed.
+### Step 3 — Release Chain
+After UAT approval, invoke Release using the Agent tool with `subagent_type: "claude-tech-squad:release"` with the full delivery package. Release will call SRE for final reliability sign-off.
 
----
-
-## Phase 2: Blueprint
-
-Follow the exact `/discovery` blueprint process:
-
-1. Overall Architect
-2. Tech Lead execution plan
-3. User resolves overall design questions
-4. Relevant specialist design agents
-5. User resolves specialist design questions if any
-6. Design Principles Specialist
-7. Test Planner
-8. TDD Specialist
-9. Quality, governance, and operations baselines
-10. User confirms the final blueprint
-
-Do not proceed until the user explicitly confirms the blueprint, including the TDD-first delivery approach for code changes.
-
----
-
-## Phase 3: Build
-
-Follow the exact `/implement` build process:
-
-1. Run Tech Lead coordination
-2. Run Design Principles Specialist guardrail planning
-3. Run TDD Specialist cycle planning
-4. Run relevant implementation agents:
-   - `claude-tech-squad:backend-dev`
-   - `claude-tech-squad:frontend-dev`
-   - `claude-tech-squad:platform-dev`
-   - `claude-tech-squad:integration-engineer`
-   - `claude-tech-squad:ai-engineer`
-   - `claude-tech-squad:devops`
-   - `claude-tech-squad:ci-cd`
-   - `claude-tech-squad:dba`
-5. Run Design Principles Specialist structural review
-6. Run `claude-tech-squad:reviewer`
-7. Run continuous quality agents
-8. Loop on build issues until approved or blocked
-
-Additional `/squad` rule:
-
-- treat tests-first execution as mandatory for code changes
-- if an implementation agent starts without a failing-test target, send the work back through the TDD Specialist first
-- make any TDD exception visible in the `Agent Execution Log`
-
----
-
-## Phase 4: Quality
-
-Follow the exact `/implement` quality process:
-
-1. Full QA and integration validation
-2. Specialist quality reviews
-3. Documentation and Jira/Confluence updates
-4. PM UAT
-5. Loop on critical issues until approved or blocked
-
----
-
-## Phase 5: Release
-
-### Step 5.1: Release Plan
-
-Use the Agent tool with `subagent_type: "claude-tech-squad:release"`.
-
-Prompt:
-```
-You are the Release agent.
-
-Review the implemented change set and prepare a release plan.
-
-Use the architecture package, QA reports, specialist reviews, docs update plan, Jira / Confluence pack, and UAT result as inputs.
-
-MANDATORY:
-- Validate CI/CD and deployment tooling against current docs when relevant
-- Inventory env vars, migrations, breaking changes, and rollback steps
-- Produce a concrete release plan
-```
-
-### Step 5.2: Reliability Sign-Off
-
-Use the Agent tool with `subagent_type: "claude-tech-squad:sre"`.
-
-Prompt:
-```
-You are the SRE agent.
-
-Review the release plan, observability findings, performance review, and operational changes.
-
-Produce reliability guardrails, rollout advice, and rollback concerns.
-```
+### Step 4 — SRE Sign-off
+After Release, invoke SRE using the Agent tool with `subagent_type: "claude-tech-squad:sre"` for final go/no-go.
 
 ---
 

@@ -37,3 +37,29 @@ You define what must be tested before implementation is considered done.
 ### Pass Criteria
 - [...]
 ```
+
+## Handoff Protocol
+
+When your test plan is complete, pass to TDD Specialist using the Agent tool with `subagent_type: "claude-tech-squad:tdd-specialist"`:
+
+```
+## Handoff from Test Planner
+
+### Test Contract
+{{test_plan_by_ac}}
+
+### Unit Tests Required
+{{unit_tests}}
+
+### Integration Tests Required
+{{integration_tests}}
+
+### E2E Tests Required
+{{e2e_tests}}
+
+### Full context
+{{blueprint_package}}
+
+---
+Your task: Convert this test plan into executable red-green-refactor cycles. Define the first failing tests. Produce the TDD Delivery Plan. Then present the full Blueprint to the user for final confirmation before implementation begins.
+```

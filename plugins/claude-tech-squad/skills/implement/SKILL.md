@@ -60,301 +60,45 @@ If the discovery document is not already available in the conversation, ask the 
 
 ---
 
-## Phase 3: Build
+## Execution
 
-### Step 3.0: Tech Lead — Build Coordination
+### Step 1 — Validate Blueprint
+Ensure a Discovery & Blueprint Document exists (from `/discovery` or provided by user). If not present, ask the user to run `/discovery` first or provide the blueprint.
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:techlead"`.
+### Step 2 — Start the Build Chain
+Invoke Tech Lead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
 
-Prompt:
 ```
-You are the Tech Lead agent.
+## Implement Start
 
-Use the confirmed discovery document to determine:
-- which implementation agents are needed
-- what order they should run in
-- which ones can run in parallel safely
-- what the write boundaries are
-```
+### Blueprint
+{{full_blueprint_document}}
 
-### Step 3.1: Design Principles Specialist — Implementation Guardrails
+### Architecture package
+{{architecture_decisions}}
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:design-principles-specialist"`.
+### Test Plan
+{{test_plan}}
 
-Prompt:
-```
-You are the Design Principles Specialist agent in build mode.
-
-Architecture package:
-- Overall architecture: [Insert Architect output]
-- Tech Lead execution plan: [Insert Tech Lead output]
-- Relevant specialist notes: [Insert relevant notes only]
-
-Existing design guardrails:
-[Insert Design Principles guardrails]
-
-MANDATORY:
-- Recheck the current repository structure before prescribing boundaries
-- Refine the implementation guardrails only where needed
-- Keep the guidance pragmatic and testability-oriented
-```
-
-### Step 3.2: TDD Specialist — Execution-Ready Cycles
-
-Use the Agent tool with `subagent_type: "claude-tech-squad:tdd-specialist"`.
-
-Prompt:
-```
-You are the TDD Specialist agent in build mode.
-
-Use the confirmed discovery document to refresh the TDD delivery plan for the current implementation pass.
-
-Architecture package:
-- Overall architecture: [Insert Architect output]
-- Tech Lead execution plan: [Insert Tech Lead output]
-- Relevant specialist notes: [Insert relevant notes only]
-
-Test plan:
-[Insert Test Plan]
-
-Existing TDD delivery plan:
-[Insert TDD delivery plan]
-
-MANDATORY:
-- Reconfirm the real test stack in the repo before prescribing cycles
-- Keep the cycles small and implementation-ready
-- Tell each implementation agent which failing tests should lead their slice
-```
-
-### Step 3.3: Relevant Implementation Agents
-
-Run only the implementation agents needed by the architecture:
-
-- `claude-tech-squad:backend-dev`
-- `claude-tech-squad:frontend-dev`
-- `claude-tech-squad:platform-dev`
-- `claude-tech-squad:integration-engineer`
-- `claude-tech-squad:ai-engineer`
-- `claude-tech-squad:devops`
-- `claude-tech-squad:ci-cd`
-- `claude-tech-squad:dba`
-
-They may run in parallel when their write scopes are independent.
-
-Prompt template:
-```
-You are the [implementation-agent]. Follow your instructions exactly.
-
-Architecture package:
-- Overall architecture: [Insert Architect output]
-- Tech Lead execution plan: [Insert Tech Lead output]
-- Relevant specialist notes: [Insert relevant notes only]
-- Design principles guardrails: [Insert Design Principles guardrails]
-
-Test plan:
-[Insert Test Plan]
-
-TDD delivery plan:
-[Insert TDD delivery plan]
-
-Relevant baselines:
-[Insert security / privacy / performance / observability / analytics / compliance notes as needed]
-
-MANDATORY:
-- Verify framework or platform APIs via context7 before using them
-- Follow the repo's existing conventions
-- Start from the failing tests and cycle order defined in the TDD delivery plan
-- Implement only your assigned slice
-- Add or update tests, configs, or validation for your logic when applicable
-```
-
-### Step 3.4: Design Principles Specialist — Structural Review
-
-Use the Agent tool with `subagent_type: "claude-tech-squad:design-principles-specialist"`.
-
-Prompt:
-```
-You are the Design Principles Specialist agent in review mode.
-
-Review the implemented change set against the agreed design guardrails.
-
-Architecture package:
-- Overall architecture: [Insert Architect output]
-- Tech Lead execution plan: [Insert Tech Lead output]
-- Design guardrails: [Insert Design Principles guardrails]
-
-Focus on:
-- dependency direction
-- boundary leaks
-- cohesion and coupling
-- ports / adapters seams where relevant
-- testability and refactor safety
-```
-
-### Step 3.5: Reviewer — Code Review
-
-Use the Agent tool with `subagent_type: "claude-tech-squad:reviewer"`.
-
-Prompt:
-```
-You are the Reviewer agent in build mode.
-
-Review all code and config changes made by the implementation agents.
-
-Architecture package:
-[Insert architecture package]
-
-Focus on:
-- correctness
-- regressions
-- complexity
-- missing tests
-- drift from the agreed TDD delivery plan when TDD is part of the delivery strategy
-- critical structural issues raised by the Design Principles Specialist
-- doc compliance for unfamiliar APIs
-```
-
-If the reviewer requests changes:
-
-1. Route issues back to the appropriate implementation agent.
-2. Re-run the Design Principles Specialist first if the requested changes alter boundaries or dependency flow.
-3. Re-run the TDD Specialist first if the requested changes materially alter cycle order or failing-test scope.
-4. Re-run review.
-5. Repeat up to 3 cycles before asking the user.
-
-### Step 3.6: Continuous Quality Validation
-
-Run the relevant quality implementers:
-
-- `claude-tech-squad:test-automation-engineer`
-- `claude-tech-squad:integration-qa`
-- `claude-tech-squad:qa`
-
-Prompt:
-```
-You are the [quality-agent] in build mode.
-
-Test plan:
-[Insert Test Plan]
-
-Architecture package:
-[Insert relevant architecture and implementation context]
-
-Implement and run the validation relevant to your quality slice.
-Report pass/fail with concrete evidence and distinguish code bugs from test issues.
-```
-
-If continuous quality fails:
-
-1. Route failures to the responsible implementation agent.
-2. Re-run the Design Principles Specialist if the fix changes boundaries or adapter seams.
-3. Re-run the TDD Specialist if the failure requires reshaping the cycle plan.
-4. Re-run Reviewer.
-5. Re-run the affected quality agents.
-6. Repeat up to 3 cycles before asking the user.
+### TDD Delivery Plan
+{{tdd_delivery_plan}}
 
 ---
-
-## Phase 4: Quality
-
-### Step 4.1: Full Validation
-
-Run:
-
-- `claude-tech-squad:integration-qa`
-- `claude-tech-squad:qa`
-
-Prompt:
-```
-You are the [quality-agent] in quality mode.
-
-PM acceptance criteria:
-[Insert PM output]
-
-Test plan:
-[Insert Test Plan]
-
-Run the full validation pass relevant to your slice:
-- required automated tests
-- integration and end-to-end validation
-- regression checks
-- manual validation items from the plan
-- acceptance criteria mapping
+Mode: BUILD. Coordinate the full implementation chain:
+1. Call TDD Specialist to produce failing tests
+2. Launch implementation agents in parallel (backend-dev, frontend-dev, etc.)
+3. Each implementation agent will call Reviewer when done
+4. Reviewer will call QA when approved
+5. QA will call you when tests pass
+6. You then launch quality review bench in parallel
+7. After quality reviews, chain continues: docs-writer → jira-confluence → pm (UAT gate)
 ```
 
-### Step 4.2: Specialist Quality Reviews
+### Step 3 — UAT Gate
+The chain will pause at PM UAT for your approval. Review the UAT report and approve or provide feedback.
 
-Run the relevant specialists:
-
-- `claude-tech-squad:security-reviewer`
-- `claude-tech-squad:privacy-reviewer`
-- `claude-tech-squad:compliance-reviewer`
-- `claude-tech-squad:accessibility-reviewer`
-- `claude-tech-squad:performance-engineer`
-- `claude-tech-squad:observability-engineer`
-- `claude-tech-squad:analytics-engineer`
-
-Prompt:
-```
-You are the [specialist] agent in quality mode.
-
-Review all code and config changes for the risks owned by your specialty.
-
-Architecture package:
-[Insert architecture package]
-
-Relevant baselines from discovery:
-[Insert relevant baseline outputs]
-```
-
-### Step 4.3: Docs and Delivery Artifacts
-
-Run:
-
-- `claude-tech-squad:docs-writer`
-- `claude-tech-squad:jira-confluence-specialist`
-
-Prompt:
-```
-You are the [docs-agent].
-
-Review the implemented changes and identify the required documentation or delivery artifact delta.
-
-Architecture package:
-[Insert architecture package]
-
-Quality findings:
-- QA reports: [Insert QA summaries]
-- Specialist reviews: [Insert specialist review summaries]
-```
-
-### Step 4.4: PM — UAT
-
-Use the Agent tool with `subagent_type: "claude-tech-squad:pm"`.
-
-Prompt:
-```
-You are the PM agent in UAT mode.
-
-Original user story and acceptance criteria:
-[Insert PM output]
-
-QA reports:
-[Insert QA report summaries]
-
-Critical specialist reviews:
-[Insert specialist review summaries]
-
-Validate whether the delivered result solves the original problem and produce the UAT report.
-```
-
-### Quality Gate
-
-If PM rejects the result or any critical specialist review fails:
-
-1. Route fixes to the responsible implementation agent.
-2. Re-run Reviewer, the affected quality agents, the affected specialist reviews, and PM validation.
-3. Repeat up to 2 cycles before asking the user.
+### Step 4 — Release (for /squad only)
+After UAT approval, invoke Release and SRE for release sign-off.
 
 ---
 

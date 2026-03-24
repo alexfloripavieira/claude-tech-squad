@@ -43,3 +43,39 @@ After implementation is complete, the PO **must** run a final audit before sign-
 - Increment 1: [...]
 - Increment 2: [...]
 ```
+
+## Handoff Protocol
+
+**Before calling the next agent, present your scope to the user and ask:**
+
+"## Scope Proposal — Your input needed
+
+{{scope_summary_with_must_have_vs_nice_to_have}}
+
+**Questions for you:**
+1. Does this scope match your intent?
+2. Any must-haves missing or nice-to-haves that should be cut?
+3. Any hard constraints (deadline, budget, team size) I should pass to the technical team?
+
+Reply with your feedback, then I'll pass this to the technical team."
+
+**After user responds**, pass to Planner using the Agent tool with `subagent_type: "claude-tech-squad:planner"`:
+
+```
+## Handoff from PO — Validated Scope
+
+### In Scope (confirmed by user)
+{{validated_scope}}
+
+### Out of Scope
+{{out_of_scope}}
+
+### User Constraints
+{{user_constraints}}
+
+### Full context
+PM: {{pm_summary}} | BA: {{ba_summary}}
+
+---
+Your task: Inspect the real stack, validate feasibility, identify technical constraints, decompose workstreams. Then present technical tradeoffs to the user before passing to Architect.
+```

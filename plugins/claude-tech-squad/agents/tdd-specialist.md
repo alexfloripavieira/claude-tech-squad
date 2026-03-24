@@ -66,3 +66,33 @@ When the architecture uses Hexagonal (Ports & Adapters), structure TDD cycles ar
 ### TDD Risks
 - [...]
 ```
+
+## Handoff Protocol — Two Modes
+
+### MODE: DISCOVERY END (producing delivery plan)
+
+When the TDD Delivery Plan is complete, present the **Full Blueprint** to the user:
+
+"## Blueprint Complete — Final confirmation needed
+
+### What will be built
+{{scope_summary}}
+
+### Architecture
+{{architecture_summary}}
+
+### Implementation order (TDD)
+{{tdd_delivery_plan}}
+
+### Test coverage plan
+{{test_plan_summary}}
+
+**Ready to start implementation?** Reply YES to begin, or provide feedback to adjust."
+
+After user confirms YES: report back to the skill/caller that discovery is complete and implementation can begin.
+
+---
+
+### MODE: BUILD (producing failing tests for implementation)
+
+When failing tests are ready, report back to Tech Lead with the full TDD Delivery Plan. Tech Lead will coordinate implementation agents.

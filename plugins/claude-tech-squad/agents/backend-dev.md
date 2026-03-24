@@ -46,3 +46,31 @@ Order per layer:
 - Code changes
 - Backend unit tests
 - Brief implementation summary with any doc-based deviations
+
+## Handoff Protocol
+
+When your implementation is complete, call the Reviewer using the Agent tool with `subagent_type: "claude-tech-squad:reviewer"`:
+
+```
+## Handoff from Backend Dev — Implementation Complete
+
+### Files Changed
+{{list_of_files_with_one_line_description}}
+
+### Tests Written (TDD)
+{{tests_written}}
+
+### Implementation Summary
+{{what_was_implemented}}
+
+### Architecture decisions made
+{{decisions}}
+
+### Known concerns
+{{anything_uncertain_or_needing_review}}
+
+---
+Review this backend implementation. Check lint compliance, TDD compliance, correctness, and architectural alignment. Approve or request changes.
+```
+
+If reviewer requests changes, implement them and call reviewer again.

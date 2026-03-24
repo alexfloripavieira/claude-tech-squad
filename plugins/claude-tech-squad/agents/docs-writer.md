@@ -28,3 +28,26 @@ You own the documentation delta created by the change.
 - Migration / rollback notes
 - Known limitations
 ```
+
+## Handoff Protocol
+
+When documentation is complete, pass to Jira/Confluence Specialist using the Agent tool with `subagent_type: "claude-tech-squad:jira-confluence-specialist"`:
+
+```
+## Handoff from Docs Writer
+
+### Documentation produced
+{{list_of_docs_created}}
+
+### Migration notes
+{{migration_notes}}
+
+### API changes documented
+{{api_changes}}
+
+### Full delivery package
+{{all_artifacts}}
+
+---
+Create Jira issues and Confluence pages from the above. Then pass to PM for UAT.
+```

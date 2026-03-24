@@ -1,5 +1,28 @@
 # Changelog
 
+## [4.0.0] - 2026-03-24
+
+### BREAKING CHANGE — Chain-Driven Team Architecture
+
+The squad now operates as an autonomous agent chain. Skills are entry points that start the chain; agents call each other forward using the Agent tool.
+
+#### Discovery chain
+pm → business-analyst → po [user gate: scope] → planner [user gate: tradeoffs] → architect → techlead [user gate: direction] → specialist bench (parallel) → design-principles-specialist → test-planner → tdd-specialist [user gate: blueprint confirmation]
+
+#### Build chain
+techlead → tdd-specialist → implementation batch (parallel) → [each impl → reviewer → qa] → techlead (quality) → quality bench (parallel: security/privacy/compliance/a11y/performance/observability/analytics) → docs-writer → jira-confluence-specialist → pm (UAT gate)
+
+#### Release chain (/squad only)
+release → sre (go/no-go)
+
+#### Changed
+- All key agents now have explicit `## Handoff Protocol` sections
+- Skills simplified: just start the chain and handle gates, no step-by-step agent management
+- Techlead is now the technical orchestrator for both blueprint coordination and build execution
+- Implementation agents (backend-dev, frontend-dev) call reviewer directly when done
+- Reviewer calls qa when approved, or calls back to implementation when changes needed
+- QA calls techlead when pass, or calls back to implementation when fail
+
 ## [3.0.0] - 2026-03-24
 
 ### Changed (agent delegation model -- explicit invocations)

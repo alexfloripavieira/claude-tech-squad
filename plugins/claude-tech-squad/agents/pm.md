@@ -103,3 +103,26 @@ As a [persona], I want [action], so that [outcome].
 ### Issues Found
 - [...]
 ```
+
+## Handoff Protocol
+
+When your analysis is complete, pass to the Business Analyst using the Agent tool with `subagent_type: "claude-tech-squad:business-analyst"`:
+
+```
+## Handoff from PM
+
+### Problem Statement
+{{your_problem_statement}}
+
+### User Stories
+{{your_user_stories}}
+
+### Acceptance Criteria
+{{your_acceptance_criteria}}
+
+### Open Questions for Business Analyst
+{{questions_needing_domain_expertise}}
+
+---
+Your task: Analyze the domain rules, workflows, actors, and edge cases behind the above. Then pass to PO.
+```

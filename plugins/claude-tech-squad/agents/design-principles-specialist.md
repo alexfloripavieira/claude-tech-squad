@@ -62,3 +62,26 @@ Unless the repository uses a different documented pattern, apply **Hexagonal Arc
 ### Implementation Guidance
 - [...]
 ```
+
+## Handoff Protocol
+
+When your review is complete, pass to Test Planner using the Agent tool with `subagent_type: "claude-tech-squad:test-planner"`:
+
+```
+## Handoff from Design Principles Specialist
+
+### Compliance Status
+{{hexagonal_compliance_status}}
+
+### Violations Found
+{{violations}} (or "None — clean")
+
+### Recommendations Applied
+{{recommendations}}
+
+### Full Blueprint Package
+{{full_blueprint}}
+
+---
+Your task: Map all acceptance criteria to test types (unit/integration/e2e/regression/manual). Use only documented test APIs for the current stack.
+```
