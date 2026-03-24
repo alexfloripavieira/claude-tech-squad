@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.2.1] - 2026-03-24
+
+### Fixed
+- `plugin.json`: removed `skills` and `agents` arrays that caused manifest validation error ("Invalid input") in Claude Code. Skills and agents are now auto-discovered from directory structure, matching the format used in prior versions.
+
 ## [4.2.0] - 2026-03-24
 
 ### Added
