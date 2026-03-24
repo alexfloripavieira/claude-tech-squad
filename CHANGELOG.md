@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.8.0] - 2026-03-24
+
+### Added
+- Agent `incident-manager`: orchestrates production incident response — triage, severity classification, specialist coordination, stakeholder communication, mitigation-first strategy, and post-mortem generation.
+- Agent `cost-optimizer`: cloud and application cost specialist — infrastructure rightsizing, API cost reduction, DB query cost analysis, storage lifecycle, and cost attribution.
+
+### Changed
+- Agent `devops`: upgraded from shallow consultant (4 responsibilities) to full specialist. Now covers: container strategy (Docker/Compose/K8s), IaC, secrets management, scaling and capacity planning, disaster recovery, and rollback planning. Added Bash/Read/Glob/Grep tools for real config inspection.
+
 ## [2.7.0] - 2026-03-24
 
 ### Added
