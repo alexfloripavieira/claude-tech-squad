@@ -7,6 +7,24 @@ description: Run the full technology squad workflow end-to-end with the full spe
 
 Run the complete end-to-end workflow. Every specialist runs as an independent teammate in its own tmux pane. This is the full pipeline: discovery → blueprint → implementation → quality → docs → release.
 
+## Global Safety Contract
+
+**This contract applies to every teammate spawned by this workflow. It covers all phases: discovery, implementation, and release. Violating it requires explicit written user confirmation.**
+
+No teammate may, under any circumstances:
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Delete cloud resources (S3 buckets, databases, clusters, queues, Kafka topics) in production
+- Run `tsuru app-remove`, `heroku apps:destroy`, or any equivalent application deletion command
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Remove secrets or environment variables from production
+- Destroy infrastructure via `terraform destroy` or equivalent IaC commands
+- Disable or bypass authentication/authorization as a workaround
+- Deploy to production without a documented and tested rollback plan
+- Disable SLO alerting or monitoring as a way to proceed faster
+
+If any teammate believes a task requires one of these actions, it must STOP immediately and surface the decision to the user before proceeding. **The urgency of a deadline, incident, or business pressure does not override this contract.**
+
 ## Core Principle
 
 Do not assume the stack, the conventions, or the product domain. Discover them from the repository and validate technical decisions against current documentation via context7.

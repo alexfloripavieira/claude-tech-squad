@@ -8,6 +8,23 @@ description: Run build and quality for any software project based on a prior dis
 Run implementation and quality validation using the Discovery & Blueprint Document produced by `/discovery`.
 Each specialist runs as an independent teammate in its own tmux pane.
 
+## Global Safety Contract
+
+**This contract applies to every teammate spawned by this workflow. Violating it requires explicit written user confirmation.**
+
+No teammate may, under any circumstances:
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in production
+- Run `tsuru app-remove`, `heroku apps:destroy`, or any equivalent application deletion command
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Remove secrets or environment variables from production
+- Destroy infrastructure via `terraform destroy` or equivalent IaC commands
+- Disable or bypass authentication/authorization as a workaround
+- Deploy to production without a documented and tested rollback plan
+
+If any teammate believes a task requires one of these actions, it must STOP and surface the decision to the user before proceeding. The urgency of an implementation deadline does not override this contract.
+
 ## TDD Execution Rule
 
 If the discovery package came from `/squad`, or if the package explicitly marks TDD as required, treat TDD as mandatory:

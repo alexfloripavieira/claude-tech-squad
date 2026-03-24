@@ -1,5 +1,46 @@
 # Changelog
 
+## [5.2.1] - 2026-03-24 — Safety Guardrails: Absolute Prohibitions across all dangerous agents
+
+### Added
+
+**Absolute Prohibitions blocks** added to every agent and orchestrator that can take destructive actions. Each block explicitly lists forbidden operations and requires written user confirmation before proceeding — regardless of incident urgency or business pressure.
+
+**Agents hardened:**
+- `dba`: DROP DATABASE, DROP TABLE, TRUNCATE, backup deletion, destructive migrations without rollback
+- `devops`: tsuru app-remove, cloud resource deletion (EC2, RDS, S3, clusters), rm -rf, terraform destroy, stopping prod services
+- `ci-cd`: merge without approved PR, force push to protected branches, disable quality gates, skip hooks with --no-verify
+- `release`: deploy without tested rollback plan, skip staging validation, merge without PR approval
+- `incident-manager`: all of the above, plus queue deletion and token revocation — explicitly states that incident urgency does not override these rules
+- `data-engineer`: DROP TABLE/DATABASE, S3/GCS bucket deletion, Kafka/Kinesis topic deletion, dbt --full-refresh on prod, disabling CDC streams
+- `backend-dev`: destructive migrations without rollback script, committing directly to main/develop, removing auth as a workaround, hardcoding secrets
+- `platform-dev`: purging message queues with unprocessed messages, terminating workers with active tasks, removing feature flags, deleting cron schedules
+- `sre`: approving deployment without rollback plan, disabling SLO alerting, approving unsafe migrations, silencing monitoring — explicitly states business pressure does not override these rules
+
+**Global Safety Contract** added to the 3 main skill orchestrators:
+- `skills/discovery/SKILL.md`
+- `skills/implement/SKILL.md`
+- `skills/squad/SKILL.md`
+
+The contract propagates to every teammate spawned by these workflows. It covers the same forbidden operations plus an explicit note: **no deadline, incident, or business pressure overrides this contract.**
+
+## [5.2.0] - 2026-03-24 — 3 Business Agents + Hardened Validation (59 total)
+
+### Added
+- `solutions-architect`: Customer-facing technical architect for enterprise integrations, pre-sales, RFPs, and PoCs. Distinct from internal architect.
+- `growth-engineer`: Experimentation infrastructure, A/B testing, feature flags, funnel instrumentation, and growth loop implementation. Distinct from analytics-engineer.
+- `developer-relations`: External developer community, SDK publishing, tutorials, technical content, and developer feedback loops. Distinct from tech-writer and devex-engineer.
+
+### Changed
+- `scripts/validate.sh`: Hardened from 6 checks to full validation — now validates version consistency between `marketplace.json` and `plugin.json`, all 10 required skills, all 58 required agents (by name), frontmatter (`name:` + `description:`) on every agent and skill file, and required documentation files. Outputs agent count on success.
+
+## [5.1.2] - 2026-03-24 — Documentation complete for v5.1
+
+### Changed
+- `docs/MANUAL.md`: updated from v4.1.0 to v5.1.1 — 55 agents, teammate mode setup, updated architecture diagrams, LLM/AI alternative flows in quick reference
+- `docs/EXECUTION-TRACE.md`: added teammate mode trace examples with `[Team Created]`, `[Teammate Spawned]`, `[Gate]`, `[Batch Spawned]`, `[Teammate Done]` terminology; added tmux troubleshooting section
+- `docs/OPERATIONAL-PLAYBOOK.md`: expanded from 7 to 15 scenarios — added RAG chatbot, multi-agent MCP, monitoring/observability dashboards, hybrid search, and mobile feature scenarios
+
 ## [5.1.1] - 2026-03-24 — Auto-update distribution pipeline
 
 ### Fixed
