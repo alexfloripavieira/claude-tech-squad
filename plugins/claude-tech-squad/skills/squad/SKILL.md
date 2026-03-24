@@ -5,65 +5,185 @@ description: Run the full technology squad workflow end-to-end with the full spe
 
 # /squad — Full Technology Squad
 
-Run the complete workflow with the full technology squad. This command is best when the user wants end-to-end delivery, but discovery and blueprint remain interactive for the decisions that require user input.
+Run the complete end-to-end workflow. Every specialist runs as an independent teammate in its own tmux pane. This is the full pipeline: discovery → blueprint → implementation → quality → docs → release.
 
 ## Core Principle
 
-Do not assume the stack, the conventions, or the product domain. Discover them from the repository and validate technical decisions against current documentation.
+Do not assume the stack, the conventions, or the product domain. Discover them from the repository and validate technical decisions against current documentation via context7.
 
 ## TDD Default Mode
 
-When `/squad` is used for work that changes code, TDD is the default development strategy.
+When `/squad` is used for code changes, TDD is the default strategy:
 
-That means:
+- Do not start implementation before the Test Plan and TDD Delivery Plan are ready
+- Implementation agents begin from failing tests
+- Use red-green-refactor cycles as the normal execution model
 
-- do not start implementation before the Test Plan and TDD Delivery Plan are both ready
-- implementation agents should begin from failing tests whenever the repository has a viable test stack
-- use red-green-refactor cycles as the normal execution model, not as an optional extra
+TDD may be relaxed only when:
+- The task is documentation-only or release-only
+- The repository genuinely has no viable automated test path
+- An external constraint makes tests-first impossible for a specific step
 
-TDD may be relaxed only when one of these is true:
+If TDD is relaxed, state so explicitly and explain why.
 
-- the task is documentation-only, release-only, or otherwise non-code
-- the current repository genuinely has no viable automated test path for the slice
-- an external constraint makes tests-first impossible for a specific step
+## Teammate Architecture
 
-If TDD is relaxed, the workflow must say so explicitly in the output and explain why.
+This workflow creates a single team that persists across all phases. Use the following tool sequence:
+
+1. `TeamCreate` — create the squad team (once, at start)
+2. `Agent` with `team_name` + `name` + `subagent_type` — spawn each specialist as a teammate
+3. `SendMessage` — communicate with running teammates
+4. `TaskCreate` + `TaskUpdate` — assign and track work per teammate
+
+**Do NOT use Agent without team_name** — that runs an inline subagent, not a visible teammate pane.
 
 ## Operator Visibility Contract
 
-This end-to-end workflow must surface the squad orchestration in the terminal output, even when the UI does not show each tool call separately.
+Emit these lines for every teammate action:
 
-For the full run, emit these plain-text progress lines:
-
+- `[Team Created] <team-name>`
 - `[Phase Start] <phase-name>`
-- `[Agent Start] <role> | <subagent_type> | <objective>`
-- `[Agent Done] <role> | Status: completed | Output: <one-line summary>`
-- `[Agent Blocked] <role> | Waiting on: <missing input or approval>`
-- `[Agent Retry] <role> | Reason: <review or validation failure>`
-
-When a set of specialists is run in parallel, emit:
-
-- `[Agent Batch Start] <phase-name> | Agents: <comma-separated roles>`
-- one `Agent Start` / `Agent Done` line per agent
-- `[Agent Batch Done] <phase-name> | Outcome: <one-line summary>`
-
-Maintain an `Agent Execution Log` throughout the workflow and include it in the final output.
+- `[Teammate Spawned] <role> | pane: <name>`
+- `[Teammate Done] <role> | Output: <one-line summary>`
+- `[Teammate Retry] <role> | Reason: <failure>`
+- `[Gate] <gate-name> | Waiting for user input`
+- `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
+- `[Phase Done] <phase-name> | Outcome: <summary>`
 
 ---
 
 ## Execution
 
-### Step 1 — Discovery Chain
-Follow the same execution as `/discovery`. The chain runs: PM → BA → PO [Gate] → Planner [Gate] → Architect → TechLead [Gate] → Specialists → Design Principles → Test Planner → TDD Specialist [Final Gate].
+### Step 1 — Repository Recon
 
-### Step 2 — Build Chain
-After you confirm the blueprint, Tech Lead starts the build chain: TDD Specialist → Implementation batch → Reviewer → QA → Quality bench → Docs → Jira/Confluence → PM [UAT Gate].
+Read the following files to understand the project:
+- README.md, CLAUDE.md, package.json, pyproject.toml, requirements.txt
+- List the main directories and identify the tech stack
+- Note any existing architecture patterns, conventions, or constraints
 
-### Step 3 — Release Chain
-After UAT approval, invoke Release using the Agent tool with `subagent_type: "claude-tech-squad:release"` with the full delivery package. Release will call SRE for final reliability sign-off.
+### Step 2 — Create Squad Team
 
-### Step 4 — SRE Sign-off
-After Release, invoke SRE using the Agent tool with `subagent_type: "claude-tech-squad:sre"` for final go/no-go.
+Call `TeamCreate` (fetch schema via ToolSearch if needed):
+- `name`: "squad"
+- `description`: "Full squad run for: {{user_request_one_line}}"
+
+Emit: `[Team Created] squad`
+
+---
+
+### PHASE 1: DISCOVERY
+
+Emit: `[Phase Start] discovery`
+
+Follow the same teammate sequence as `/discovery` Steps 3–13:
+
+**Sequential chain with gates:**
+1. Spawn `pm` → **Gate 1: Product Definition**
+2. Spawn `ba` with PM output
+3. Spawn `po` → **Gate 2: Scope Validation**
+4. Spawn `planner` → **Gate 3: Technical Tradeoffs**
+5. Spawn `architect`
+6. Spawn `techlead` → **Gate 4: Architecture Direction**
+7. Spawn specialist batch in parallel (from TechLead list)
+8. Spawn quality baseline batch in parallel
+9. Spawn `design-principles`
+10. Spawn `test-planner`
+11. Spawn `tdd-specialist` → **Gate 5: Blueprint Confirmation**
+
+Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-tech-squad:<role>", prompt=...)`
+
+All agents receive the full accumulated context from prior teammates.
+All agents end with: "Do NOT chain to other agents — the orchestrator handles sequencing."
+
+Emit: `[Phase Done] discovery | Blueprint confirmed`
+
+---
+
+### PHASE 2: IMPLEMENTATION
+
+Emit: `[Phase Start] implementation`
+
+**Sequential with parallel batches:**
+
+1. Spawn `tdd-impl` (tdd-specialist) — write first failing tests
+2. Spawn implementation batch in parallel:
+   - `backend-dev`, `frontend-dev`, `platform-dev` (only relevant ones)
+3. Spawn `reviewer` — review implementation
+   - If CHANGES REQUESTED: retry relevant impl agent(s)
+4. Spawn `qa` — run real tests against implementation
+   - If FAIL: retry relevant impl agent(s), then re-review and re-qa
+5. Spawn quality bench in parallel (after QA PASS):
+   - `security-rev`, `privacy-rev`, `perf-eng`, `access-rev`, `integ-qa`
+6. Spawn `docs-writer`
+7. Spawn `jira-confluence`
+8. Spawn `pm-uat` → **Gate 6: UAT Approval**
+
+Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-tech-squad:<role>", prompt=...)`
+
+Emit: `[Phase Done] implementation | UAT approved`
+
+---
+
+### PHASE 3: RELEASE
+
+Emit: `[Phase Start] release`
+
+After UAT approval, spawn Release and SRE:
+
+**Release Teammate:**
+
+```
+Agent(
+  team_name = <team>,
+  name = "release",
+  subagent_type = "claude-tech-squad:release",
+  prompt = """
+## Release Preparation
+
+### Full Delivery Package
+{{complete_implementation_summary}}
+
+### UAT Result
+{{pm_uat_output}}
+
+### Architecture and Breaking Changes
+{{architect_output}}
+
+---
+You are the Release specialist. Inventory all changes, validate CI/CD and deploy
+assumptions, define rollback steps, and identify required communication and monitoring.
+Return a release checklist with go/no-go recommendation.
+"""
+)
+```
+
+Emit: `[Teammate Spawned] release | pane: release`
+
+**SRE Teammate (after Release):**
+
+```
+Agent(
+  team_name = <team>,
+  name = "sre",
+  subagent_type = "claude-tech-squad:sre",
+  prompt = """
+## SRE Sign-off
+
+### Release Plan
+{{release_output}}
+
+### Architecture
+{{architect_output}}
+
+---
+You are the SRE specialist. Assess blast radius, SLO impact, rollback readiness,
+and canary/phased rollout strategy. Return a final go/no-go recommendation.
+"""
+)
+```
+
+Emit: `[Teammate Spawned] sre | pane: sre`
+Emit: `[Phase Done] release | SRE sign-off received`
 
 ---
 
@@ -73,9 +193,31 @@ After Release, invoke SRE using the Agent tool with `subagent_type: "claude-tech
 ## Squad Complete
 
 ### Agent Execution Log
-- Phase: [...]
-- Role: [...] | Subagent: [...] | Status: [...] | Output: [...]
-- Role: [...] | Subagent: [...] | Status: [...] | Output: [...]
+- Team: squad
+- Phase: discovery
+  - Teammate: pm | Status: completed
+  - Teammate: ba | Status: completed
+  - Teammate: po | Status: completed (Gate 2 passed)
+  - Teammate: planner | Status: completed (Gate 3 passed)
+  - Teammate: architect | Status: completed
+  - Teammate: techlead | Status: completed (Gate 4 passed)
+  - Batch: specialist-bench | Teammates: [...] | Status: completed
+  - Batch: quality-baseline | Teammates: [...] | Status: completed
+  - Teammate: design-principles | Status: completed
+  - Teammate: test-planner | Status: completed
+  - Teammate: tdd-specialist | Status: completed (Gate 5 passed)
+- Phase: implementation
+  - Teammate: tdd-impl | Status: failing tests written
+  - Batch: implementation | Teammates: [...] | Status: completed
+  - Teammate: reviewer | Status: APPROVED
+  - Teammate: qa | Status: PASS
+  - Batch: quality-bench | Teammates: [...] | Status: completed
+  - Teammate: docs-writer | Status: completed
+  - Teammate: jira-confluence | Status: completed
+  - Teammate: pm-uat | Status: APPROVED (Gate 6 passed)
+- Phase: release
+  - Teammate: release | Status: completed
+  - Teammate: sre | Status: GO
 
 ### Product
 - User story: [...]
@@ -94,17 +236,16 @@ After Release, invoke SRE using the Agent tool with `subagent_type: "claude-tech
 ### Delivery
 - Workstreams executed: [...]
 - Delivery mode: TDD-first / exception declared
-- Review: APPROVED / CHANGES REQUESTED
-- Continuous quality: PASS / FAIL
-- Full QA: PASS / FAIL
+- Review: APPROVED
+- QA: PASS
 - Specialist reviews: [summary]
-- Docs: updated / plan produced
-- Jira / Confluence: updated / pack produced
-- UAT: APPROVED / REJECTED
+- Docs: updated
+- Jira / Confluence: updated
+- UAT: APPROVED
 
 ### Release
 - Release plan: completed
-- SRE sign-off: completed
+- SRE sign-off: GO
 - Breaking changes: [...]
 - Rollback plan: defined
 
