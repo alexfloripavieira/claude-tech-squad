@@ -217,6 +217,26 @@ Only for the current project:
 claude plugin install -s project claude-tech-squad@alexfloripavieira-plugins
 ```
 
+## Safety Guardrails
+
+Every agent with execution authority carries an **Absolute Prohibitions** block. These are hard-coded constraints that cannot be overridden by incident urgency, deadlines, or business pressure.
+
+Forbidden without explicit written user confirmation (across all agents):
+
+- `DROP TABLE`, `DROP DATABASE`, `TRUNCATE` — any destructive SQL
+- `tsuru app-remove`, `heroku apps:destroy`, or any cloud resource deletion in production
+- Merging to `main`, `master`, or `develop` without an approved pull request
+- `git push --force` to any protected branch
+- Removing secrets or environment variables from production
+- Deploying to production without a documented and tested rollback plan
+- Disabling authentication, authorization, monitoring, or SLO alerting
+- Running chaos experiments in production without maintenance window, on-call, and abort procedure
+- Publishing to App Store or Play Store production track without a staged rollout
+
+Agents with Absolute Prohibitions: `dba`, `devops`, `ci-cd`, `release`, `incident-manager`, `data-engineer`, `backend-dev`, `frontend-dev`, `platform-dev`, `sre`, `chaos-engineer`, `security-engineer`, `cost-optimizer`, `ml-engineer`, `mobile-dev`, `techlead`.
+
+The three main skill orchestrators (`/discovery`, `/implement`, `/squad`) carry a **Global Safety Contract** that propagates these constraints to every teammate they spawn.
+
 ## Validation and Release
 
 - Validation workflow: [validate.yml](.github/workflows/validate.yml)

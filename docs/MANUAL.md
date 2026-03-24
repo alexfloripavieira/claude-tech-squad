@@ -1,6 +1,6 @@
 # Claude Tech Squad — Manual Técnico
 
-**Versão:** 5.2.0
+**Versão:** 5.2.2
 **Plugin:** `claude-tech-squad`
 
 ---
@@ -12,12 +12,13 @@
 3. [Teammate Mode — panes tmux por agente](#3-teammate-mode--panes-tmux-por-agente)
 4. [Skills disponíveis e quando usar cada uma](#4-skills-disponíveis-e-quando-usar-cada-uma)
 5. [Fluxo completo de cada skill](#5-fluxo-completo-de-cada-skill)
-6. [Os 55 agentes — papéis e especialidades](#6-os-55-agentes--papéis-e-especialidades)
+6. [Os 59 agentes — papéis e especialidades](#6-os-59-agentes--papéis-e-especialidades)
 7. [Arquitetura da esteira](#7-arquitetura-da-esteira)
 8. [Gates de usuário](#8-gates-de-usuário)
 9. [Visibilidade de execução](#9-visibilidade-de-execução)
 10. [Regras de uso](#10-regras-de-uso)
 11. [Referência rápida](#11-referência-rápida)
+12. [Absolute Prohibitions — guardrails de segurança](#12-absolute-prohibitions--guardrails-de-segurança)
 
 ---
 
@@ -580,3 +581,44 @@ Enterprise client: solutions-architect → integration-engineer → techlead
 Growth / A/B:      growth-engineer → analytics-engineer → techlead
 Dev community:     developer-relations → tech-writer → techlead
 ```
+
+---
+
+## 12. Absolute Prohibitions — guardrails de segurança
+
+Todos os agentes com autoridade de execução carregam um bloco de **Absolute Prohibitions** no pre-prompt. Essas restrições não podem ser sobrescritas por urgência de incidente, pressão de prazo ou pedido verbal.
+
+### Operações globalmente bloqueadas (todos os agentes)
+
+Exigem **confirmação escrita explícita do usuário** antes de qualquer execução:
+
+| Operação | Contexto |
+|---|---|
+| `DROP TABLE`, `DROP DATABASE`, `TRUNCATE` | qualquer ambiente |
+| `tsuru app-remove`, equivalentes PaaS/cloud | produção |
+| Deletar recursos cloud com dados (buckets S3/GCS, RDS, clusters) | produção |
+| Merge para `main`/`master`/`develop` sem PR aprovado | sempre |
+| `git push --force` em branch protegido | sempre |
+| Remover secrets ou env vars de produção | produção |
+| Deploy sem plano de rollback documentado e testado | produção |
+| Desabilitar autenticação/autorização como workaround | sempre |
+| Destruir infraestrutura (`terraform destroy`) | sempre |
+
+### Restrições por agente
+
+| Agente | Restrição crítica específica |
+|---|---|
+| `chaos-engineer` | Experimentos em produção exigem janela de manutenção + on-call + abort procedure. Staging é o padrão. |
+| `security-engineer` | Nunca revogar tokens sem substituto pronto. Nunca desabilitar auth ou CORS. WAF testado em staging antes. |
+| `cost-optimizer` | Nunca deletar buckets, databases ou instâncias para "economizar". Validar com DevOps/SRE antes. |
+| `ml-engineer` | Nunca promover modelo sem rollback. Nunca deletar versão servindo tráfego. Mesmo padrão de um deploy. |
+| `mobile-dev` | Nunca submeter direto para produção na App Store/Play Store. Staged rollout obrigatório. |
+| `sre` | GO sem rollback documentado é proibido. Pressão de negócio não sobrescreve o NO-GO. |
+| `incident-manager` | Urgência do incidente não sobrescreve nenhuma restrição. Propor mitigação menos destrutiva primeiro. |
+| `techlead` | Como autoridade de execução, intercepta e bloqueia qualquer especialista que solicite operação proibida. |
+
+### Global Safety Contract
+
+Os três orchestradores principais (`/discovery`, `/implement`, `/squad`) carregam um **Global Safety Contract** que propaga automaticamente todas essas restrições para cada teammate que spawnam.
+
+O contrato é lido por todos os agentes independentemente de operarem como inline subagent ou como teammate em pane tmux separado.
