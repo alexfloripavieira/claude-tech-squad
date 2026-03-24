@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.0.0] - 2026-03-24
+
+### Changed (agent delegation model -- explicit invocations)
+- `incident-manager`: all specialist agent invocations now use explicit `Agent tool with subagent_type:` pattern. Agents are invoked in parallel with structured prompts for each specialist.
+- `cost-optimizer`: DBA invocation now uses explicit `Agent tool with subagent_type: "claude-tech-squad:dba"` with cost-focused prompt.
+- `devops`, `sre`, `observability-engineer`, `analytics-engineer`, `platform-dev`: out-of-scope delegation now uses explicit user-facing language ("tell the user: this requires agent X") instead of ambiguous "call X" text.
+
+### Design principle enforced
+Each agent either (a) invokes another agent explicitly via Agent tool when it is an orchestrator, or (b) tells the user explicitly which agent to invoke when the request is outside its scope. No agent silently absorbs work that belongs to another.
+
 ## [2.9.0] - 2026-03-24
 
 ### Changed (scope deduplication — each agent owns exactly one specialty)

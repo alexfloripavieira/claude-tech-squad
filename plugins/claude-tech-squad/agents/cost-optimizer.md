@@ -42,12 +42,20 @@ When asked to analyze infrastructure costs:
 4. Propose rightsizing with specific numbers: "reduce from 2GB to 512MB based on observed usage patterns"
 
 ### Database Cost Analysis
-For database-related costs, call `claude-tech-squad:dba` with the cost context. Your focus is on:
-- Storage costs: oversized databases, missing archival policies, backups retained longer than needed
-- Connection costs: connection pool waste, idle connections, unnecessary read replicas
-- Cloud DB tier: is the current tier right-sized for actual usage?
 
-**Do NOT analyze query performance or index strategy — that is the `dba` agent's responsibility.**
+Database query performance is owned by the `dba` agent. For database cost concerns, invoke the DBA using the Agent tool with `subagent_type: "claude-tech-squad:dba"`:
+
+```
+Cost context: I am analyzing database-related costs. Please assess:
+1. Storage usage: are there tables with unbounded growth or missing archival policies?
+2. Connection pool: are there idle connections or connection leaks?
+3. Read replica usage: is the current replica configuration right-sized for actual read load?
+4. Backup retention: is retention period longer than the RTO/RPO requires?
+
+Focus on cost-relevant findings only, not on query optimization.
+```
+
+Incorporate the DBA's findings into your cost report under "Database Costs".
 
 ### API and External Service Costs
 When asked to analyze API costs:

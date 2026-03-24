@@ -43,18 +43,37 @@ Classify severity. For SEV-1/SEV-2, announce immediately that a war room is need
 
 ### Phase 2 — Mobilize
 
-Based on the affected system, invoke specialist agents in parallel:
+Based on the affected system, invoke specialist agents **in parallel** using the Agent tool:
 
-- **For infrastructure issues:** invoke `claude-tech-squad:devops`
-- **For application errors/logs:** invoke `claude-tech-squad:observability-engineer`
-- **For database issues:** invoke `claude-tech-squad:dba`
-- **For security events:** invoke `claude-tech-squad:security-reviewer`
-- **For reliability assessment:** invoke `claude-tech-squad:sre`
+**For infrastructure issues** — use the Agent tool with `subagent_type: "claude-tech-squad:devops"`:
+```
+Incident context: {{symptom}}, started {{time}}, recent changes: {{recent_changes}}.
+Assess: (1) impact in your infrastructure domain, (2) immediate mitigation options, (3) your confidence level.
+```
 
-Prompt each with the incident context and ask for:
-1. Their assessment of impact in their domain
-2. Immediate mitigation options (stop the bleeding)
-3. Confidence level in their assessment
+**For application errors/logs** — use the Agent tool with `subagent_type: "claude-tech-squad:observability-engineer"`:
+```
+Incident context: {{symptom}}, started {{time}}.
+Assess: (1) what signals (logs/metrics/traces) confirm or deny the issue, (2) immediate observability gaps, (3) your confidence level.
+```
+
+**For database issues** — use the Agent tool with `subagent_type: "claude-tech-squad:dba"`:
+```
+Incident context: {{symptom}}, started {{time}}.
+Assess: (1) database-level impact, (2) immediate mitigation options (read replica, connection pool, query kill), (3) your confidence level.
+```
+
+**For security events** — use the Agent tool with `subagent_type: "claude-tech-squad:security-reviewer"`:
+```
+Incident context: {{symptom}}, started {{time}}.
+Assess: (1) security impact, (2) whether data exposure occurred, (3) immediate containment actions.
+```
+
+**For reliability assessment** — use the Agent tool with `subagent_type: "claude-tech-squad:sre"`:
+```
+Incident context: {{symptom}}, started {{time}}.
+Assess: (1) blast radius, (2) SLO breach status, (3) rollback feasibility and steps.
+```
 
 ### Phase 3 — Mitigate First
 
@@ -71,9 +90,15 @@ Present options to the user ranked by: speed of execution × confidence of effec
 
 ### Phase 4 — Root Cause
 
-Once users are unblocked (or for SEV-3/SEV-4 where mitigation is not urgent):
+Once mitigation is in place, invoke the Tech Lead for root cause analysis using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
 
-Invoke `claude-tech-squad:techlead` for root cause analysis with full incident context.
+```
+Incident context: {{full_incident_context}}
+Mitigation applied: {{mitigation_steps}}
+Specialist findings: {{phase2_outputs}}
+
+Perform root cause analysis: identify the exact cause, the contributing factors, and the permanent fix strategy.
+```
 
 ### Phase 5 — Resolution
 
