@@ -114,3 +114,18 @@ Each agent either (a) invokes another agent explicitly via Agent tool when it is
 ## 2.0.0
 
 - expanded the plugin into a full specialist technology squad
+
+## [4.1.0] — Complete pipeline — all 40 agents with Handoff Protocol
+
+### Added
+- Handoff Protocol to all 25 remaining specialist agents
+- Architecture sub-chains: frontend-architect → ux-designer, data-architect → dba, api-designer → integration-engineer, backend-architect → ai-engineer (conditional)
+- Ops chain: platform-dev → devops → ci-cd → sre → release → techlead
+- Quality bench reporters: security-reviewer, privacy-reviewer, compliance-reviewer, accessibility-reviewer, performance-engineer, observability-engineer, analytics-engineer, integration-qa all report to techlead
+- incident-manager orchestrates parallel: sre + devops + observability-engineer on incident declaration; calls techlead for code fixes post-resolution
+- cost-optimizer calls dba for expensive queries; reports to sre or techlead
+- code-quality reports back to reviewer
+- test-automation-engineer reports to tdd-specialist or qa depending on caller
+
+### Result
+All 40 agents are now autonomous pipeline participants. No agent is a dead end.

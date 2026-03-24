@@ -76,3 +76,32 @@ For any new feature, decide:
 ### Risks
 - [Over-instrumentation / under-instrumentation risks]
 ```
+
+## Handoff Protocol
+
+You are called by **TechLead** in parallel during the QUALITY-COMPLETE bench.
+
+### On completion:
+Return your Analytics Note to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+
+```
+## Analytics Engineer Output
+
+### Instrumented Events
+{{event_name_properties_trigger_destination}}
+
+### Funnels and Dashboards
+{{funnels_defined_dashboards_updated}}
+
+### Success Metrics
+{{kpis_baselines_targets}}
+
+### PII Handling
+{{fields_masked_or_excluded}}
+
+### Gaps
+{{missing_events_or_measurements}}
+
+---
+Mode: QUALITY-COMPLETE — Analytics Note received. Continue collecting parallel quality outputs.
+```

@@ -71,3 +71,30 @@ Parse and categorize all tool findings by severity (Critical/High/Medium/Low) be
 ### Required Fixes
 - [...]
 ```
+
+## Handoff Protocol
+
+You are called by **TechLead** in parallel during the QUALITY-COMPLETE bench.
+
+### On completion:
+Return your Security Review to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+
+```
+## Security Reviewer Output
+
+### Automated Scan Results
+{{bandit_pip_audit_npm_audit_summary}}
+
+### Findings
+{{critical_major_minor_by_file_line}}
+
+### Required Fixes
+{{ordered_by_severity}}
+
+### Verdict
+- Blocking issues: [yes / no]
+- Cleared for release: [yes / no — reason]
+
+---
+Mode: QUALITY-COMPLETE — Security Review received. Continue collecting parallel quality outputs.
+```

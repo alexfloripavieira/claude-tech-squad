@@ -40,3 +40,28 @@ Focus only on the frontend slice of the design.
 1. [...]
 2. [...]
 ```
+
+## Handoff Protocol
+
+You are called by **TechLead** in parallel during the DISCOVERY specialist bench.
+
+### After completing your architecture note:
+Call **UX Designer** using the Agent tool with `subagent_type: "claude-tech-squad:ux-designer"`:
+
+```
+## Frontend Architecture → UX Designer
+
+### Components and screens
+{{component_list_and_routing}}
+
+### State and data flow
+{{state_management_api_calls}}
+
+### Frontend architecture context
+{{full_frontend_architecture_note}}
+
+---
+Define user flows, interaction states, microcopy, empty/error/loading states, and accessibility notes for these components. Report back to TechLead.
+```
+
+UX Designer outputs feed back to TechLead. TechLead collects all parallel specialist outputs before proceeding.

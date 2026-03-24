@@ -35,3 +35,38 @@ You own AI-specific design and implementation concerns.
 1. [...]
 2. [...]
 ```
+
+## Handoff Protocol
+
+You are called by **Backend Architect** or **TechLead** when AI/ML features are in scope.
+
+### On completion:
+Return your AI Engineering Note to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+
+```
+## AI Engineer Output
+
+### Model Integration Design
+{{model_provider_endpoint_auth}}
+
+### Prompt Contracts
+{{system_prompt_user_prompt_constraints}}
+
+### Tool Use / Function Calling
+{{tools_defined_schemas_examples}}
+
+### Retrieval Design (if RAG)
+{{embedding_model_index_similarity_threshold}}
+
+### Latency and Cost Targets
+{{p50_p95_targets_token_budgets}}
+
+### Safety and Evals
+{{guardrails_hallucination_risk_eval_plan}}
+
+### Risks
+{{model_dependency_data_exposure_cost_overrun}}
+
+---
+Mode: DISCOVERY — AI Engineer Note received. Continue collecting parallel specialist outputs.
+```

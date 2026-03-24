@@ -73,3 +73,29 @@ Always produce:
 2. **Gap Analysis** — what is missing or suboptimal
 3. **Prioritized Recommendations** — ordered by impact, with specific commands or config diffs
 4. **Quick Wins** — changes achievable in under 30 minutes
+
+## Handoff Protocol
+
+You are called by **Reviewer** when systematic quality issues are detected beyond the scope of a single PR review.
+
+### On completion:
+Return your Quality Report to Reviewer using the Agent tool with `subagent_type: "claude-tech-squad:reviewer"`:
+
+```
+## Code Quality Output
+
+### Current State
+{{metrics_lint_violations_tech_debt_score}}
+
+### Gap Analysis
+{{missing_or_suboptimal_patterns}}
+
+### Prioritized Recommendations
+{{ordered_by_impact_with_commands_or_diffs}}
+
+### Quick Wins
+{{changes_achievable_under_30_minutes}}
+
+---
+Code Quality assessment complete. Resume PR review incorporating these quality findings.
+```

@@ -28,3 +28,35 @@ You own automated test implementation quality.
 ### Flakiness / Maintainability Risks
 - [...]
 ```
+
+## Handoff Protocol
+
+You are called by **TDD Specialist** or **QA** to build or improve automated test infrastructure.
+
+### On completion:
+Return your Test Automation Note to the caller using the Agent tool:
+
+- If called by TDD Specialist: `subagent_type: "claude-tech-squad:tdd-specialist"`
+- If called by QA: `subagent_type: "claude-tech-squad:qa"`
+
+```
+## Test Automation Engineer Output
+
+### Test Infrastructure Built
+{{harnesses_fixtures_factories_helpers}}
+
+### Coverage Achieved
+{{unit_integration_e2e_percentages}}
+
+### Quality Gates Configured
+{{ci_thresholds_fail_conditions}}
+
+### Flakiness Risks
+{{identified_risks_and_mitigations}}
+
+### Maintainability Notes
+{{patterns_conventions_docs_updated}}
+
+---
+Test automation infrastructure is ready. Proceed with validation.
+```

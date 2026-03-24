@@ -27,3 +27,30 @@ You own performance risk review.
 ### Recommendations
 - [...]
 ```
+
+## Handoff Protocol
+
+You are called by **TechLead** in parallel during the QUALITY-COMPLETE bench.
+
+### On completion:
+Return your Performance Review to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+
+```
+## Performance Engineer Output
+
+### Benchmarks
+{{p50_p95_p99_current_vs_target}}
+
+### Findings
+{{critical_major_minor_by_scope}}
+
+### Recommendations
+{{query_cache_async_rendering_ordered_by_impact}}
+
+### Verdict
+- Blocking issues: [yes / no]
+- Cleared for release: [yes / no — reason]
+
+---
+Mode: QUALITY-COMPLETE — Performance Review received. Continue collecting parallel quality outputs.
+```

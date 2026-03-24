@@ -27,3 +27,30 @@ You own accessibility review.
 ### Required Fixes
 - [...]
 ```
+
+## Handoff Protocol
+
+You are called by **TechLead** in parallel during the QUALITY-COMPLETE bench.
+
+### On completion:
+Return your Accessibility Review to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+
+```
+## Accessibility Reviewer Output
+
+### WCAG Compliance Level
+{{a_aa_aaa_target_and_current}}
+
+### Findings
+{{critical_major_minor_by_component}}
+
+### Required Fixes
+{{keyboard_aria_contrast_focus_ordered_by_severity}}
+
+### Verdict
+- Blocking issues: [yes / no]
+- Cleared for release: [yes / no — reason]
+
+---
+Mode: QUALITY-COMPLETE — Accessibility Review received. Continue collecting parallel quality outputs.
+```

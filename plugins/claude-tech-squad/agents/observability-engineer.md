@@ -70,3 +70,33 @@ For any change, verify:
 ### Gaps
 - [Missing coverage for failure mode X]
 ```
+
+## Handoff Protocol
+
+You are called by **TechLead** in parallel during the QUALITY-COMPLETE bench.
+
+### On completion:
+Return your Observability Note to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+
+```
+## Observability Engineer Output
+
+### Instrumentation Coverage
+{{logs_metrics_traces_alerts_added}}
+
+### Dashboard Updates
+{{panels_added_or_modified}}
+
+### Alert Coverage
+{{new_alerts_thresholds_channels}}
+
+### Gaps
+{{missing_coverage_for_failure_modes}}
+
+### Verdict
+- Production-observable: [yes / no — gaps]
+- Cleared for release: [yes / no — reason]
+
+---
+Mode: QUALITY-COMPLETE — Observability Note received. Continue collecting parallel quality outputs.
+```
