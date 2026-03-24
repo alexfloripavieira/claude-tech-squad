@@ -1,6 +1,6 @@
 # Claude Tech Squad — Manual Técnico
 
-**Versão:** 5.1.1
+**Versão:** 5.2.0
 **Plugin:** `claude-tech-squad`
 
 ---
@@ -268,7 +268,7 @@ Veja [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md) para exemplos de uso de 
 
 ---
 
-## 6. Os 55 agentes — papéis e especialidades
+## 6. Os 59 agentes — papéis e especialidades
 
 ### Discovery & Planning
 
@@ -371,6 +371,14 @@ Veja [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md) para exemplos de uso de 
 | `tech-writer` | User guides, API references públicas, tutorials, changelogs para clientes |
 | `devex-engineer` | Setup local, CLI tooling, scaffolding, contribuição, onboarding |
 | `jira-confluence-specialist` | Jira issues, epics, stories, Confluence pages (via MCP Atlassian) |
+| `developer-relations` | Comunidade dev externa, SDKs, tutoriais, conteúdo técnico, feedback de devs |
+
+### Business & Growth
+
+| Agente | Especialidade |
+|---|---|
+| `solutions-architect` | Integrações enterprise, pré-venda técnica, RFPs, PoCs para clientes |
+| `growth-engineer` | A/B testing, feature flags, funnels, growth loops, experimentação |
 
 ### Operações & Release
 
@@ -568,4 +576,7 @@ Mobile feature:    frontend-architect → mobile-dev → techlead
 Cloud infra:       cloud-architect → devops → sre → techlead
 Tech debt:         reviewer → code-quality → reviewer
 Incidente:         incident-manager → {sre + devops + observability-engineer}
+Enterprise client: solutions-architect → integration-engineer → techlead
+Growth / A/B:      growth-engineer → analytics-engineer → techlead
+Dev community:     developer-relations → tech-writer → techlead
 ```

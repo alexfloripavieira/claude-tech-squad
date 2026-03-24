@@ -31,7 +31,7 @@ See [OPERATIONAL-PLAYBOOK.md](docs/OPERATIONAL-PLAYBOOK.md) for common execution
 
 - one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
-- 55 specialist agents for software delivery
+- 59 specialist agents for software delivery
 - 10 skills covering discovery, implementation, security, data, and more
 
 ## Commands
@@ -100,7 +100,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 /claude-tech-squad:squad describe the full delivery request
 ```
 
-## Specialist Roster (55 agents)
+## Specialist Roster (59 agents)
 
 ### Discovery & Planning
 - PM
@@ -173,12 +173,17 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 - Tech Writer
 - DevEx Engineer
 - Jira and Confluence Specialist
+- Developer Relations
 
 ### Operations & Release
 - Release
 - SRE
 - Cost Optimizer
 - Incident Manager
+
+### Business & Growth
+- Solutions Architect
+- Growth Engineer
 
 Testing split:
 
@@ -195,6 +200,7 @@ Documentation split:
 
 - Docs Writer produces internal developer and operator documentation
 - Tech Writer produces external user guides, public API references, and customer changelogs
+- Developer Relations owns external developer community, SDKs, and technical content
 
 ## Install Modes
 
