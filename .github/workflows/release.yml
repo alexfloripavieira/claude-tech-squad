@@ -1,0 +1,63 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
+      - name: Validate plugin
+        run: bash scripts/validate.sh
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=${TAG_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Assert versions are consistent
+        env:
+          TAG_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          MARKETPLACE_VERSION=$(python3 -c "import json; d=json.load(open('.claude-plugin/marketplace.json')); print(d['plugins'][0]['version'])")
+          PLUGIN_VERSION=$(python3 -c "import json; d=json.load(open('plugins/claude-tech-squad/.claude-plugin/plugin.json')); print(d['version'])")
+          if [ "$MARKETPLACE_VERSION" != "$TAG_VERSION" ]; then
+            echo "marketplace.json version ($MARKETPLACE_VERSION) does not match tag ($TAG_VERSION)"
+            exit 1
+          fi
+          if [ "$PLUGIN_VERSION" != "$TAG_VERSION" ]; then
+            echo "plugin.json version ($PLUGIN_VERSION) does not match tag ($TAG_VERSION)"
+            exit 1
+          fi
+          echo "Versions consistent: $TAG_VERSION"
+
+      - name: Extract changelog notes
+        env:
+          TAG_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          awk "/^\#\# \[$TAG_VERSION\]/{found=1; next} found && /^\#\# \[/{exit} found{print}" CHANGELOG.md > /tmp/release-notes.md
+          echo "Release notes extracted."
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v${TAG_VERSION}" \
+            --title "v${TAG_VERSION}" \
+            --notes-file /tmp/release-notes.md
