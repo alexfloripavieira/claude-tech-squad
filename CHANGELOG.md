@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.9.0] - 2026-03-24
+
+### Changed (scope deduplication — each agent owns exactly one specialty)
+- `platform-dev`: narrowed to background workers, job queues, developer tooling, integration glue, and observability hooks in code. CI/CD and infra config explicitly delegated to `ci-cd` and `devops`.
+- `devops`: removed "blast radius" ownership — now explicitly delegated to `sre`. Devops owns infrastructure design and config; SRE owns runtime reliability assessment.
+- `sre`: clarified boundaries — owns blast radius, SLO, rollback readiness, and canary strategy. Infrastructure config delegated to `devops`. Incident coordination delegated to `incident-manager`.
+- `qa`: removed Lint Gate and TDD Compliance Gate (belong to `reviewer`). QA now owns exclusively behavioral validation: test execution, AC verification, regression detection.
+- `observability-engineer`: scoped to ops/infrastructure observability only (logs, system metrics, traces, on-call alerts, Grafana/Prometheus dashboards). Product/business metrics explicitly delegated to `analytics-engineer`.
+- `analytics-engineer`: scoped to product analytics only (user behavior events, funnels, A/B tests, product dashboards). Infrastructure metrics explicitly delegated to `observability-engineer`.
+- `cost-optimizer`: removed DB query performance analysis. Now calls `dba` for query-level cost concerns, focusing exclusively on cloud spend, API costs, storage lifecycle, and infrastructure rightsizing.
+
 ## [2.8.0] - 2026-03-24
 
 ### Added
