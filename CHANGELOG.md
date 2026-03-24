@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.7.0] - 2026-03-24
+
+### Added
+- Skill `bug-fix`: focused defect resolution workflow (root cause → failing test → fix → real test execution → review). Escalates to `/squad` if architectural issues detected.
+- Agent `code-quality`: strategic code quality specialist owning lint configuration, coding standards, tech debt analysis, and quality metrics. Complements `reviewer` (tactical) with strategic quality ownership.
+
+### Changed
+- Agent `qa` and `reviewer` now execute real lint/test tools via Bash (backpressure real) — introduced in v2.6.0 and now complemented by dedicated quality ownership in `code-quality`
+
 ## 2.6.0 (2026-03-24)
 
 - Added: Skill `security-audit` — auditoria atomica com execucao real de bandit/pip-audit/npm audit
