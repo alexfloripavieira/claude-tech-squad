@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.1.1] - 2026-03-24 — Auto-update distribution pipeline
+
+### Fixed
+- `marketplace.json` estava travado em `4.2.0` desde a release inicial, tornando todas as versões subsequentes (`4.2.1`, `5.0.0`, `5.1.0`) invisíveis para usuários com `autoUpdate: true`. Corrigido para `5.1.0`.
+
+### Added
+- `.github/workflows/release.yml`: workflow do GitHub Actions disparado em tags `v*.*.*`. Valida o plugin, verifica consistência de versões entre `marketplace.json`, `plugin.json` e a tag, e cria um GitHub Release com as notas extraídas do `CHANGELOG.md`.
+- `scripts/release.sh`: script de release em um comando. Faz bump de `marketplace.json` e `plugin.json`, valida, checa entrada no `CHANGELOG.md`, commita, cria a tag e faz push. Uso: `./scripts/release.sh 5.2.0`.
+- `docs/RELEASING.md`: atualizado com o processo automatizado completo e explicação de como o `autoUpdate` funciona para os usuários.
+
 ## [5.1.0] - 2026-03-24 — 16 New Specialist Agents (55 total)
 
 Expanded the squad from 39 to 55 agents covering LLM/AI stacks, monitoring, cloud, security, mobile, data, search, and developer experience.
