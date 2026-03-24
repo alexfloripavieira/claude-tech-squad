@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.2.2] - 2026-03-24 — Safety Guardrails: Absolute Prohibitions — second pass (7 more agents)
+
+### Changed
+
+**Absolute Prohibitions blocks** added to 7 more agents after a full audit of every agent in the roster:
+
+- `chaos-engineer`: NEVER run experiments in production without confirmed maintenance window, on-call present, and documented abort procedure. NEVER inject faults that cause data loss. Staging is the default — production requires explicit confirmation per experiment.
+- `security-engineer`: NEVER revoke production tokens without replacement ready. NEVER disable auth or CORS protections. NEVER add WAF rules to production without staging validation. NEVER log or hardcode secrets.
+- `cost-optimizer`: NEVER delete storage buckets, cloud databases, or production instances. NEVER disable monitoring to save cost. All deletions require DevOps/SRE verification before execution.
+- `ml-engineer`: NEVER promote models to production without rollback procedure. NEVER delete model versions serving production traffic. NEVER overwrite training datasets without a versioned backup. Model deployment follows the same standards as a code release.
+- `mobile-dev`: NEVER submit directly to App Store or Play Store production track. NEVER roll out to 100% of users without staged rollout. NEVER hardcode secrets. NEVER disable certificate pinning as a workaround. App store submissions are irreversible for users.
+- `frontend-dev`: NEVER commit to main/develop directly. NEVER merge without approved review. NEVER hardcode credentials. NEVER disable CSP or XSS protections as a workaround.
+- `techlead`: As execution authority, NEVER authorize any specialist to take a prohibited action without explicit written user confirmation. Surfaces all such decisions to the user with a clear risk summary before proceeding.
+
+**Full audit verdict:** 13 agents now have Absolute Prohibitions (dba, devops, ci-cd, release, incident-manager, data-engineer, backend-dev, platform-dev, sre, chaos-engineer, security-engineer, cost-optimizer, ml-engineer, mobile-dev, frontend-dev, techlead = 16 total). The 3 skill orchestrators (discovery, implement, squad) carry the Global Safety Contract. All remaining agents are pure review/design/analysis with no execution authority.
+
 ## [5.2.1] - 2026-03-24 — Safety Guardrails: Absolute Prohibitions across all dangerous agents
 
 ### Added
