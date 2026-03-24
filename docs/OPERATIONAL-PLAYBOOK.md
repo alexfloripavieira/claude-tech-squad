@@ -16,194 +16,227 @@ Default behavior note:
 
 - `/claude-tech-squad:squad` is TDD-first by default for code changes
 
+---
+
 ## Scenario 1: New Feature
 
-Use:
-
-- `/claude-tech-squad:discovery`
+Use: `/claude-tech-squad:discovery`
 
 When:
-
 - the problem still needs shaping
 - architecture is not yet confirmed
 - acceptance criteria need to be clarified
-
-Prompt example:
 
 ```text
 /claude-tech-squad:discovery
 Design the next delivery slice for subscription management, including admin roles, audit trail, rollout boundaries, and acceptance criteria.
 ```
 
-Healthy output:
-
-- `Phase Start` lines for discovery and blueprint
-- explicit agent handoffs such as PM, Planner, Architect, Tech Lead, and Design Principles Specialist
-- a final blueprint document
+---
 
 ## Scenario 2: Implement Approved Blueprint
 
-Use:
-
-- `/claude-tech-squad:implement`
+Use: `/claude-tech-squad:implement`
 
 When:
-
 - discovery is already done
 - architecture and scope have been approved
-- you want TDD cycle planning, build, review, QA, docs, and UAT coordination
-
-Prompt example:
+- you want TDD cycles, build, review, QA, docs, and UAT coordination
 
 ```text
 /claude-tech-squad:implement
 Use the approved blueprint to implement the next delivery slice through TDD cycles, run validation, update docs, and produce release-ready output.
 ```
 
-Healthy output:
-
-- build and quality phases
-- design guardrails before implementation agents start
-- a TDD delivery plan or refreshed TDD cycle map before implementation agents start
-- implementation agent handoffs
-- reviewer and QA loops when needed
-- final implementation report with `Agent Execution Log`
-
-## Scenario 2A: TDD-First Delivery Slice
-
-Use:
-
-- `/claude-tech-squad:discovery`
-- then `/claude-tech-squad:implement`
-
-When:
-
-- you want development to start from failing tests rather than direct implementation
-- the slice is small enough to benefit from explicit red-green-refactor cycles
-
-Prompt example:
-
-```text
-/claude-tech-squad:discovery
-Plan the next billing retry slice and prepare it for TDD, including the first failing tests, cycle order, design guardrails, and QA handoff.
-```
-
-Then:
-
-```text
-/claude-tech-squad:implement
-Use the approved discovery package to execute the billing retry slice through TDD cycles and validate the result.
-```
+---
 
 ## Scenario 3: End-To-End Delivery
 
-Use:
-
-- `/claude-tech-squad:squad`
+Use: `/claude-tech-squad:squad`
 
 When:
-
 - you want the full path from discovery to release preparation
 - the task spans multiple specialties and approvals
-
-Default execution mode:
-
-- tests-first
-- red-green-refactor cycles before direct implementation
-
-Prompt example:
 
 ```text
 /claude-tech-squad:squad
 Add SSO login with audit trail, admin approval flow, automated coverage, documentation, and release artifacts.
 ```
 
-Healthy output:
+---
 
-- discovery, blueprint, build, quality, and release phases
-- a TDD-first delivery stance or an explicit exception
-- visible orchestration across specialists
-- final squad report and `Agent Execution Log`
+## Scenario 4: LLM Product — RAG Chatbot
 
-## Scenario 4: Jira Or Acceptance Audit
-
-Use:
-
-- `/claude-tech-squad:squad`
+Use: `/claude-tech-squad:squad`
 
 When:
+- building or improving a chatbot, AI agent, or RAG-powered feature
+- specialists needed: agent-architect, rag-engineer, prompt-engineer, conversational-designer, llm-eval-specialist
 
-- you need to compare a ticket to real implementation
-- you want PM, QA, reviewer, and technical roles involved in the audit
+```text
+/claude-tech-squad:squad
+Build a travel agent chatbot with RAG retrieval from the knowledge base. It should handle flight search, hotel recommendations, and iterative conversation memory. Include token optimization, hallucination evaluation, and chaos testing for LLM API failures.
+```
 
-Prompt example:
+```text
+/claude-tech-squad:discovery
+Design the RAG pipeline for the support chatbot. Define chunking strategy, embedding model, vector store, hybrid search approach, and retrieval quality metrics. Include an evaluation plan using RAGAS.
+```
+
+---
+
+## Scenario 5: LLM Product — Multi-Agent System
+
+Use: `/claude-tech-squad:discovery` then `/claude-tech-squad:implement`
+
+When:
+- designing orchestration between multiple AI agents
+- MCP servers, tool use contracts, and agent loops need definition
+
+```text
+/claude-tech-squad:discovery
+Design a multi-agent orchestration system where a coordinator agent delegates to specialist agents (flight search, hotel search, itinerary planner). Define MCP servers, tool schemas, handoff protocols, and loop safety guardrails.
+```
+
+---
+
+## Scenario 6: Monitoring and Observability
+
+Use: `/claude-tech-squad:squad`
+
+When:
+- adding production dashboards, SLO tracking, or LLM cost visibility
+- specialists needed: observability-engineer, monitoring-specialist, analytics-engineer
+
+```text
+/claude-tech-squad:squad
+Add real-time monitoring dashboards for token cost per user, RAG retrieval latency, and hallucination rate trends. Integrate with the existing Prometheus/Grafana stack and define alert thresholds.
+```
+
+---
+
+## Scenario 7: Search Feature
+
+Use: `/claude-tech-squad:squad`
+
+When:
+- adding or improving full-text or hybrid search
+- specialists needed: search-engineer, rag-engineer (if hybrid), backend-architect
+
+```text
+/claude-tech-squad:squad
+Implement knowledge base search using Elasticsearch with hybrid BM25 + vector retrieval. Include faceted filters, autocomplete, and relevance tuning. TDD required.
+```
+
+---
+
+## Scenario 8: Mobile Feature
+
+Use: `/claude-tech-squad:squad`
+
+When:
+- implementing features for iOS, Android, or React Native
+- specialists needed: frontend-architect, mobile-dev
+
+```text
+/claude-tech-squad:squad
+Add push notifications and deep link handling to the React Native app. Include offline support for the notification queue and app store release preparation.
+```
+
+---
+
+## Scenario 9: Jira or Acceptance Audit
+
+Use: `/claude-tech-squad:squad`
+
+When:
+- comparing a ticket to real implementation
+- PM, QA, reviewer, and technical roles involved in the audit
 
 ```text
 /claude-tech-squad:squad
 Audit the linked Jira story against the current implementation, validate requirements and acceptance criteria, review structural design quality, run relevant checks, and show explicit agent execution lines with Agent Execution Log.
 ```
 
-Healthy output:
+---
 
-- requirement and acceptance matrices
-- evidence by file or test
-- visible execution trace
-- final verdict with blockers and gaps
+## Scenario 10: Refactor or Debt Reduction
 
-## Scenario 5: Refactor Or Debt Reduction
-
-Use:
-
-- `/claude-tech-squad:discovery`
-- then `/claude-tech-squad:implement`
+Use: `/claude-tech-squad:discovery` then `/claude-tech-squad:implement`
 
 When:
-
 - the goal is technical improvement rather than new scope
 - you still need design, risk analysis, and controlled implementation
-
-Prompt example:
 
 ```text
 /claude-tech-squad:discovery
 Plan a refactor of webhook retry handling to improve idempotency, observability, and rollback safety without changing user-facing behavior.
 ```
 
-## Scenario 6: Release Readiness
+---
 
-Use:
+## Scenario 11: Release Readiness
 
-- `/claude-tech-squad:implement`
-- or `/claude-tech-squad:squad` if you need the full pass
+Use: `/claude-tech-squad:implement` or `/claude-tech-squad:squad`
 
 When:
-
 - implementation is mostly done
 - you need QA confidence, docs delta, Jira/Confluence updates, and rollout guidance
-
-Prompt example:
 
 ```text
 /claude-tech-squad:implement
 Run release-readiness validation for the approved scope, including QA, documentation delta, Jira/Confluence pack, and rollout preparation.
 ```
 
-## Scenario 7: Production Incident Follow-Through
+---
 
-Use:
+## Scenario 12: Production Incident Follow-Through
 
-- `/claude-tech-squad:squad`
+Use: `/claude-tech-squad:squad`
 
 When:
-
-- the issue already crosses diagnosis, remediation, testing, operational safety, and release
-
-Prompt example:
+- the issue crosses diagnosis, remediation, testing, operational safety, and release
 
 ```text
 /claude-tech-squad:squad
 Investigate the duplicate webhook incident, implement the fix, validate regressions, update operational docs, and prepare a safe rollout plan.
 ```
+
+---
+
+## Scenario 13: Security Audit
+
+Use: `/claude-tech-squad:security-audit`
+
+When:
+- periodic security review or pre-release check is needed
+- runs bandit, pip-audit, npm audit, and secret scanning
+
+```text
+/claude-tech-squad:security-audit
+```
+
+---
+
+## Scenario 14: Schema or Migration Planning
+
+Use: `/claude-tech-squad:migration-plan` before any schema change
+
+```text
+/claude-tech-squad:migration-plan
+```
+
+---
+
+## Scenario 15: Cloud or Production Debug
+
+Use: `/claude-tech-squad:cloud-debug`
+
+```text
+/claude-tech-squad:cloud-debug
+```
+
+---
 
 ## What Good Execution Looks Like
 
@@ -211,9 +244,9 @@ You should expect:
 
 - visible phase transitions
 - role-specific handoff lines
-- structural guidance before the implementation pass when architecture matters
+- structural guidance before the implementation pass
 - retries when review or QA fails
 - batch lines when specialist benches run in parallel
 - a final `Agent Execution Log`
 
-If these markers are missing, use [EXECUTION-TRACE.md](EXECUTION-TRACE.md).
+If these markers are missing, see [EXECUTION-TRACE.md](EXECUTION-TRACE.md).

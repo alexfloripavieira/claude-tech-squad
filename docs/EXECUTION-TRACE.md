@@ -4,86 +4,132 @@ This guide explains how to interpret the visible squad execution emitted by `cla
 
 Use it when you want to confirm that the plugin is actually orchestrating specialists, not just producing one consolidated answer.
 
+---
+
+## Two Execution Modes
+
+### Inline mode (default)
+
+Agents run as subagents inside the same Claude session. Visibility comes from progress lines emitted in the assistant output.
+
+### Teammate mode (tmux panes)
+
+Each specialist spawns as an independent Claude Code instance in its own tmux pane. Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and `CLAUDE_CODE_TEAMMATE_MODE=tmux` in `~/.claude/settings.json`, and Claude Code started inside a tmux session.
+
+See [GETTING-STARTED.md](GETTING-STARTED.md) for setup instructions.
+
+---
+
 ## What You Should Expect
 
-A healthy run usually shows:
+### Inline mode trace
 
-- a phase transition with `[Phase Start]`
-- one or more explicit handoffs with `[Agent Start]`
-- matching completions with `[Agent Done]`
-- batch markers when specialists run in parallel
-- a final `Agent Execution Log`
-
-Example:
+A healthy run shows:
 
 ```text
-[Phase Start] Discovery
+[Phase Start] discovery
 [Agent Start] PM | claude-tech-squad:pm | First-pass product analysis
 [Agent Done] PM | Status: completed | Output: scope options and open questions
-[Agent Batch Start] Specialist Design Bench | Agents: Backend Architect, Frontend Architect
-[Agent Start] Backend Architect | claude-tech-squad:backend-architect | Service design review
-[Agent Done] Backend Architect | Status: completed | Output: API and domain boundaries
-[Agent Start] Frontend Architect | claude-tech-squad:frontend-architect | UI architecture review
-[Agent Done] Frontend Architect | Status: completed | Output: state and composition plan
-[Agent Batch Done] Specialist Design Bench | Outcome: architecture slices ready
+[Agent Start] Business Analyst | claude-tech-squad:business-analyst | Domain rules
+[Agent Done] Business Analyst | Status: completed | Output: 5 domain rules, 2 edge cases
+[Agent Blocked] PO | Waiting on: user scope validation (Gate 1)
+[Agent Batch Start] specialist-bench | Agents: backend-architect, rag-engineer, prompt-engineer
+[Agent Start] Backend Architect | claude-tech-squad:backend-architect | Service design
+[Agent Done] Backend Architect | Status: completed | Output: hexagonal layers defined
+[Agent Start] RAG Engineer | claude-tech-squad:rag-engineer | Retrieval stack design
+[Agent Done] RAG Engineer | Status: completed | Output: chunking + hybrid search plan
+[Agent Batch Done] specialist-bench | Outcome: specialist notes ready
 ```
+
+### Teammate mode trace
+
+```text
+[Team Created] discovery
+[Teammate Spawned] pm | pane: pm
+[Teammate Spawned] ba | pane: ba
+[Gate] Scope Validation | Waiting for user input
+[Batch Spawned] specialist-bench | Teammates: backend-arch, rag-engineer, prompt-engineer, agent-architect
+[Teammate Done] backend-arch | Output: hexagonal layers defined
+[Teammate Done] rag-engineer | Output: hybrid search plan ready
+[Teammate Done] reviewer | Status: APPROVED
+[Teammate Done] qa | Status: PASS
+```
+
+---
 
 ## How To Read Each Line
 
-`[Phase Start]`
+### Inline mode lines
 
-- means the workflow has moved into a new stage such as Discovery, Blueprint, Build, Quality, or Release
-- if the phase changes with no agent lines after it, the run is incomplete or the output was interrupted
+`[Phase Start]`
+- Marks a new stage: Discovery, Implementation, Release
+- If the phase changes with no agent lines after it, the run is incomplete
 
 `[Agent Start]`
-
-- means the workflow is handing work to a specific specialist
-- the line should tell you the role, the `subagent_type`, and the immediate objective
-- this is the strongest visible proof that the plugin is orchestrating a real specialist handoff
+- The workflow is handing work to a specific specialist
+- Shows role, `subagent_type`, and immediate objective
+- This is the strongest proof of real specialist handoff
 
 `[Agent Done]`
-
-- means that specialist finished its pass
-- the summary should be short, concrete, and tied to the role that ran
-- every `Agent Start` should eventually have a matching `Agent Done`, unless the run is blocked or interrupted
+- Specialist finished its pass
+- Every `Agent Start` should eventually have a matching `Agent Done`
 
 `[Agent Batch Start]` and `[Agent Batch Done]`
-
-- mean that multiple specialists are being run as a parallel bench
-- you should still see the individual `Agent Start` and `Agent Done` lines for the agents inside the batch
-- the batch summary should explain what the grouped run achieved
+- Multiple specialists running in parallel
+- Individual `Agent Start` and `Agent Done` lines should appear inside the batch
 
 `[Agent Blocked]`
-
-- means the workflow cannot proceed cleanly
-- common reasons: missing user decisions, missing discovery input, inaccessible Jira or Confluence context, failing test setup, or unresolved review feedback
-- a blocked line is not a bug by itself; it is a visible gate
+- Workflow cannot proceed — missing user decision, input, or access
+- A blocked line is a visible gate, not a bug
 
 `[Agent Retry]`
+- Workflow looped after review or validation failure
+- Healthy when tied to a concrete reason: failed QA, reviewer request, specialist finding
 
-- means the workflow intentionally looped after review or validation failure
-- this is healthy when it is tied to a concrete reason such as failed QA, a reviewer request, or a critical specialist finding
+### Teammate mode lines
+
+`[Team Created]`
+- A new team was created for this workflow run
+
+`[Teammate Spawned]`
+- A specialist was spawned in its own tmux pane
+- Shows the pane name and role
+
+`[Gate]`
+- Workflow paused for user input at a decision point
+
+`[Batch Spawned]`
+- Multiple teammates spawned in parallel
+- Each gets its own pane
+
+`[Teammate Done]`
+- Teammate finished and returned results to the orchestrator
+
+---
 
 ## What A Healthy Run Looks Like
 
-Signs that the trace is behaving correctly:
+- Phases appear in a sensible order
+- Each phase has the expected specialist handoffs
+- Starts and completions are balanced
+- Batch runs are followed by individual agent lines
+- The final `Agent Execution Log` matches the visible trace
+- The final report contains real artifact output, not only the trace
 
-- phases appear in a sensible order
-- each phase has the expected specialist handoffs
-- starts and completions are balanced
-- batch runs are followed by individual agent lines
-- the final `Agent Execution Log` matches the visible trace above it
-- the final report still contains the real artifact output, not only the trace
+---
 
 ## What A Suspicious Run Looks Like
 
-These patterns usually mean the run did not execute as intended:
+These patterns mean the run did not execute as intended:
 
-- only a final answer appears, with no trace lines at all
-- there are `Agent Start` lines but no `Agent Done` lines and no blocked reason
-- the workflow jumps from Discovery straight to Release with no intermediate specialist activity
-- the `Agent Execution Log` lists agents that never appeared in the visible trace
-- the output claims a specialist reviewed something but gives no role-specific summary
+- Only a final answer appears with no trace lines at all
+- There are `Agent Start` lines but no `Agent Done` lines and no blocked reason
+- The workflow jumps from Discovery straight to Release with no intermediate activity
+- The `Agent Execution Log` lists agents that never appeared in the visible trace
+- The output claims a specialist reviewed something but gives no role-specific summary
+- In teammate mode: no tmux panes open (Claude Code not started inside tmux, or env vars missing)
+
+---
 
 ## What To Do If The Trace Looks Wrong
 
@@ -91,7 +137,10 @@ These patterns usually mean the run did not execute as intended:
 2. Re-run with an explicit request for visible execution lines and `Agent Execution Log`.
 3. Start with `/claude-tech-squad:discovery` for a small request before using `/claude-tech-squad:squad`.
 4. If Jira, Confluence, or another external dependency is part of the task, confirm access is available.
-5. If the trace is still missing, inspect the installed plugin version with `claude plugin list`.
+5. If teammate mode panes are not opening: confirm tmux session is active, env vars are set, and Claude Code was started inside tmux.
+6. If the trace is still missing, inspect the installed plugin version with `claude plugin list`.
+
+---
 
 ## Minimal Smoke Test
 
@@ -104,14 +153,14 @@ Run a very small discovery-only smoke test in this repository and show explicit 
 
 Expected result:
 
-- at least one `Phase Start`
-- at least one `Agent Start`
-- at least one matching `Agent Done`
+- at least one `[Phase Start]` or `[Team Created]`
+- at least one `[Agent Start]` or `[Teammate Spawned]`
+- at least one matching completion line
 - a final `Agent Execution Log`
 
-## Real Audit Prompt
+---
 
-For a real multi-role audit:
+## Real Audit Prompt
 
 ```text
 /claude-tech-squad:squad
