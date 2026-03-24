@@ -1,0 +1,140 @@
+---
+name: security-audit
+description: Runs a full security audit on the project, detecting the stack (Python/JS), executing static analysis tools (bandit, pip-audit, npm audit), scanning for hardcoded secrets, and producing a structured severity report. Trigger with "auditar seguranca", "security audit", "checar vulnerabilidades", "scan de seguranca".
+user-invocable: true
+---
+
+# /security-audit — Security Audit with Static Analysis
+
+Detects the project stack, runs real security analysis tools, scans for hardcoded secrets, and produces a structured report with findings categorized by severity.
+
+## When to Use
+
+- Periodic security maintenance
+- Before releases or deployments
+- After adding new dependencies
+- When the user says: "auditar seguranca", "security audit", "checar vulnerabilidades", "scan de seguranca"
+
+## Execution
+
+Follow these steps exactly:
+
+### Step 1 — Detect project stack
+
+Read the following files to determine the project stack:
+
+- `pyproject.toml`, `requirements.txt`, `Pipfile` — Python project
+- `package.json`, `yarn.lock`, `pnpm-lock.yaml` — JavaScript/Node project
+
+Record which stacks are present. A project can be both Python and JS.
+
+### Step 2 — Run static analysis tools via Bash
+
+Execute the appropriate tools based on the detected stack. Capture all output for later analysis.
+
+**Python static analysis (if Python detected):**
+```bash
+bandit -r . --exclude .venv,node_modules,migrations,tests -f text 2>/dev/null || echo "TOOL_NOT_AVAILABLE: bandit"
+```
+
+**Python dependency vulnerabilities (if Python detected):**
+```bash
+pip-audit 2>/dev/null || safety check 2>/dev/null || echo "TOOL_NOT_AVAILABLE: pip-audit/safety"
+```
+
+**JavaScript audit (if JS detected):**
+```bash
+npm audit 2>/dev/null || echo "TOOL_NOT_AVAILABLE: npm audit"
+```
+
+**Secrets scan (always run):**
+
+Use Grep to search for patterns that indicate hardcoded secrets:
+- Patterns: `password\s*=\s*["'][^"']+["']`, `api_key\s*=\s*["']`, `secret\s*=\s*["']`, `token\s*=\s*["'][^"']+["']`, `AWS_SECRET_ACCESS_KEY`, `PRIVATE.KEY`
+- Exclude: `.env.template`, `.env.example`, `*.md`, `node_modules/`, `.venv/`, `migrations/`, `tests/`, `*.pyc`
+
+### Step 3 — Invoke security reviewer agent
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:security-reviewer"`.
+
+Prompt:
+```
+You are the Security Reviewer agent. Analyze the following security scan outputs and produce a structured assessment.
+
+Project stack: {{detected_stack}}
+
+Bandit output:
+{{bandit_output}}
+
+Dependency audit output:
+{{dep_audit_output}}
+
+npm audit output:
+{{npm_audit_output}}
+
+Secrets scan findings:
+{{secrets_output}}
+
+For each finding, classify severity as Critical / High / Medium / Low.
+Include file:line references when available.
+Identify false positives where obvious.
+Recommend specific remediation for each finding.
+```
+
+### Step 4 — Produce structured report
+
+Generate a markdown report with the following structure:
+
+```markdown
+# Security Audit Report — YYYY-MM-DD
+
+## Summary
+- Critical: N findings
+- High: N findings
+- Medium: N findings
+- Low: N findings
+- Tools executed: [list]
+- Tools not available: [list]
+
+## Critical Findings
+### [Finding title]
+- **File:** path/to/file:line
+- **Tool:** bandit / pip-audit / npm audit / secrets scan
+- **Description:** ...
+- **Remediation:** ...
+
+## High Findings
+...
+
+## Medium Findings
+...
+
+## Low Findings
+...
+
+## Recommendations
+1. Immediate actions (Critical/High)
+2. Short-term improvements (Medium)
+3. Process improvements (tooling, CI integration)
+
+## Tools Coverage
+| Tool | Status | Findings |
+|------|--------|----------|
+```
+
+### Step 5 — Save report
+
+Create the `ai-docs/` directory if it does not exist. Write the report to:
+```
+ai-docs/security-audit-YYYY-MM-DD.md
+```
+
+Use the current date for the filename.
+
+### Step 6 — Report to user
+
+Tell the user:
+- Total findings by severity
+- Top 3 most critical issues with file references
+- Which tools ran successfully and which were not available
+- Path to the saved report

@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.6.0 (2026-03-24)
+
+- Added: Skill `security-audit` — auditoria atomica com execucao real de bandit/pip-audit/npm audit
+- Added: Skill `migration-plan` — planejamento de migrations com data-architect + dba
+- Added: Skill `cloud-debug` — debug de producao com observability-engineer + sre + techlead
+- Added: Skill `dependency-check` — verificacao real de dependencias desatualizadas/vulneraveis
+- Added: Skill `factory-retrospective` — auto-melhoria da factory via analise de execution logs
+- Changed: QA agente agora executa ferramentas reais (pytest, ruff, mypy) antes da revisao textual
+- Changed: Security Reviewer agora executa bandit, pip-audit, safety antes da analise de ameacas
+- Changed: Jira/Confluence Specialist agora cria issues e paginas reais via API Atlassian MCP
+- Fixed: marketplace.json e CHANGELOG sincronizados com plugin.json (versao 2.5.0 estava nao documentada)
+
+## 2.5.0 (2026-03-XX)
+
+- Added: Hexagonal Architecture como padrao em todos os agentes de arquitetura e implementacao
+- Added: Skill `pre-commit-lint` para auto-fix de lint antes de commits (ruff, black, isort, eslint, prettier)
+- Added: Lint Compliance Gate no QA (falha rapida se lint nao passa) e no Reviewer (lint + TDD compliance)
+- Added: TDD Compliance Gate no Reviewer (verifica testes para cada nova funcao/classe)
+- Changed: TDD-first e agora mandatorio em todos os agentes (nao apenas no /squad)
+- Changed: PO agora tem Post-Implementation Audit obrigatorio antes do sign-off
+- Changed: PM agora tem UAT obrigatorio mapeando cada AC a evidencia concreta
+- Changed: Backend-dev ganhou tabela de imports permitidos/proibidos por camada Hexagonal
+
 ## 2.4.0
 
 - made `/claude-tech-squad:squad` TDD-first by default for code changes

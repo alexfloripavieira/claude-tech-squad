@@ -1,0 +1,174 @@
+---
+name: cloud-debug
+description: Debugs production or staging incidents by collecting logs, analyzing stack traces, evaluating blast radius, and producing a structured diagnosis with action plan. Trigger with "debug producao", "cloud debug", "investigar erro em producao", "incident", "sistema fora", "analisar logs".
+user-invocable: true
+---
+
+# /cloud-debug — Production/Staging Incident Debug
+
+Collects available logs, analyzes error patterns and stack traces, evaluates blast radius, and produces a structured diagnosis with prioritized action plan.
+
+## When to Use
+
+- Production or staging incidents
+- Investigating errors reported by users
+- Analyzing unexpected behavior in deployed environments
+- When the user says: "debug producao", "cloud debug", "investigar erro em producao", "incident", "sistema fora", "analisar logs"
+
+## Execution
+
+Follow these steps exactly:
+
+### Step 1 — Gather symptom description (mandatory gate)
+
+Ask the user:
+```
+What is the observed symptom or error? Please provide:
+1. What is happening (or not happening)?
+2. When did it start (approximate time)?
+3. Which environment (production / staging / homolog)?
+4. Any error messages, URLs, or screenshots available?
+```
+
+Do NOT proceed until the user provides at least item 1. This is a blocking gate.
+
+### Step 2 — Collect logs
+
+Run the following log collection commands via Bash. Capture all output.
+
+**Docker logs (if available):**
+```bash
+docker compose logs --tail=200 --no-color 2>/dev/null || echo "DOCKER_LOGS_NOT_AVAILABLE"
+```
+
+**Application-specific logs (if Docker available):**
+```bash
+docker compose logs --tail=200 --no-color django 2>/dev/null || echo "DJANGO_LOGS_NOT_AVAILABLE"
+docker compose logs --tail=100 --no-color celery 2>/dev/null || echo "CELERY_LOGS_NOT_AVAILABLE"
+docker compose logs --tail=100 --no-color frontend 2>/dev/null || echo "FRONTEND_LOGS_NOT_AVAILABLE"
+```
+
+**Local log files (search for common locations):**
+
+Use Glob to find log files:
+```
+**/logs/*.log
+**/log/*.log
+**/*.log
+```
+
+Read the last 100 lines of any log files found.
+
+### Step 3 — Extract error patterns
+
+Use Grep to search collected logs and codebase for:
+- Stack traces: `Traceback`, `Error`, `Exception`, `FATAL`, `CRITICAL`
+- HTTP errors: `500`, `502`, `503`, `504`, `400`, `403`, `404`
+- Connection issues: `ConnectionRefused`, `TimeoutError`, `ConnectionReset`
+- Memory/resource issues: `MemoryError`, `OOM`, `killed`
+- The specific error terms from the user's symptom description
+
+### Step 4 — Invoke observability engineer agent
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:observability-engineer"`.
+
+Prompt:
+```
+You are the Observability Engineer agent. Analyze the following logs and error patterns from a {{environment}} incident.
+
+User-reported symptom:
+{{symptom_description}}
+
+Collected logs:
+{{logs_summary}}
+
+Error patterns found:
+{{error_patterns}}
+
+Produce:
+1. Timeline of events based on log timestamps
+2. Error classification (application / infrastructure / external dependency)
+3. Correlation between different error signals
+4. Metrics to check if monitoring is available (Grafana/Prometheus queries)
+```
+
+### Step 5 — Invoke SRE agent for blast radius
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:sre"`.
+
+Prompt:
+```
+You are the SRE agent. Evaluate the blast radius and impact of this incident.
+
+Symptom: {{symptom_description}}
+Observability analysis: {{observability_output}}
+
+Evaluate:
+1. Which services/users are affected?
+2. Is the issue isolated or spreading?
+3. Current severity level (SEV1-4)
+4. Is immediate mitigation needed (rollback, restart, scale)?
+5. Communication needs (stakeholders to notify)
+```
+
+### Step 6 — Invoke tech lead for fix proposal
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:techlead"`.
+
+Prompt:
+```
+You are the Tech Lead agent. Propose a fix and action plan for this incident.
+
+Symptom: {{symptom_description}}
+Observability analysis: {{observability_output}}
+SRE assessment: {{sre_output}}
+
+Produce:
+1. Root cause hypothesis (ranked by likelihood)
+2. Immediate fix (to stop the bleeding)
+3. Short-term fix (proper solution)
+4. Long-term fix (prevent recurrence)
+5. Specific code changes or configuration needed
+6. Verification steps to confirm the fix works
+```
+
+### Step 7 — Produce diagnosis report
+
+Present to the user:
+
+```markdown
+# Incident Diagnosis
+
+## Symptom
+{{user_description}}
+
+## Root Cause Hypothesis
+1. [Most likely] ...
+2. [Possible] ...
+
+## Blast Radius
+- **Severity:** SEV-N
+- **Affected services:** ...
+- **Affected users:** ...
+
+## Action Plan
+
+### Immediate (do now)
+1. ...
+
+### Short-term (next hours/day)
+1. ...
+
+### Long-term (prevent recurrence)
+1. ...
+
+## Verification Steps
+1. ...
+
+## Evidence
+- Relevant log excerpts
+- Error patterns found
+- Timeline of events
+```
+
+Do NOT save this report to a file automatically. Present it directly to the user for immediate action. Offer to save it if the user wants a record.
