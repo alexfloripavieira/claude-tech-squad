@@ -1,5 +1,28 @@
 # Changelog
 
+## [5.5.0] - 2026-03-24 — UAT rejection loop, coverage gate, /pr-review, /hotfix, cache sync
+
+### Added
+
+**`/pr-review` skill** (new):
+Full pull request review workflow. Fetches the PR diff, detects relevant specialist reviewers from changed files (reviewer, security-reviewer, privacy-reviewer, performance-engineer, accessibility-reviewer, api-designer, dba), spawns them in parallel, consolidates findings, presents summary, and posts inline review threads to GitHub via the API. Uses `--input` with a JSON file to avoid the HTTP 422 array serialization bug from `--field`. Writes SEP log on completion.
+
+**`/hotfix` skill** (new):
+Emergency fix workflow for production breaks. Intake gate → stack detection → hotfix branch → code-debugger root cause analysis → root cause confirmation gate → minimal patch → reviewer gate → optional security spot-check → commit + PR → deploy checklist. Faster than `/bug-fix` for known breaks. Escalate to `/squad` if fix requires more than 5 files or reveals a design flaw.
+
+**UAT rejection loop** (`implement`):
+When PM returns REJECTED, the workflow no longer silently stops. The orchestrator extracts the specific gaps, presents them to the user with options [R]e-queue or [S]kip, and if re-queued, spawns the relevant implementation agents again with the rejection gaps as context. Increments `retry_count` in the SEP log.
+
+**Coverage gate** (`implement` — Step 9b):
+Between QA PASS and PM UAT, a new coverage gate checks test coverage delta. If coverage dropped, the gate presents uncovered files and blocks UAT until the user chooses [C]ontinue anyway or [T]est more (re-runs QA with coverage gap as context). Gate is skipped silently when no coverage tool is available.
+
+**Cache sync after retrospective recommendations** (`factory-retrospective` — Step 7b):
+After applying approved skill changes, the retrospective detects the installed plugin cache path and copies modified SKILL.md files automatically. If the cache is not found, emits a warning with the reinstall command.
+
+### Changed
+
+- `implement`: step numbering updated — coverage gate is Step 9b, UAT re-queue loop is inserted after Step 10
+
 ## [5.4.0] - 2026-03-24 — Squad Execution Protocol (SEP): Observability, Continuity, and Remediation Contracts
 
 ### Added

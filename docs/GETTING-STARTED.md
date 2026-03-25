@@ -140,6 +140,23 @@ When running in teammate mode, each specialist runs in its own Claude Code insta
 
 ## Commands
 
+### `/claude-tech-squad:hotfix`
+
+Use quando produção está quebrada e você precisa de um patch agora. Mais rápido que `/bug-fix` — intake → root cause → patch mínimo → branch `hotfix/` → PR → deploy checklist.
+
+```text
+/claude-tech-squad:hotfix
+```
+
+### `/claude-tech-squad:pr-review`
+
+Use para revisar qualquer pull request com bench especializado. Detecta os revisores relevantes pelos arquivos alterados, roda em paralelo, consolida findings, e abre threads no GitHub.
+
+```text
+/claude-tech-squad:pr-review
+https://github.com/org/repo/pull/42
+```
+
 ### `/claude-tech-squad:discovery`
 
 Use when the problem or feature still needs shaping. Produces a complete Discovery & Blueprint Document.

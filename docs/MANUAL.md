@@ -1,6 +1,6 @@
 # Claude Tech Squad — Manual Técnico
 
-**Versão:** 5.4.0
+**Versão:** 5.5.0
 **Plugin:** `claude-tech-squad`
 
 ---
@@ -117,6 +117,8 @@ Sem tmux mode, os mesmos workflows funcionam corretamente como subagentes inline
 | `/discovery` | Planejar antes de implementar. Produz blueprint completo sem escrever código. |
 | `/implement` | Implementar a partir de um blueprint existente (saída do `/discovery`). |
 | `/bug-fix` | Corrigir um bug específico com stack trace ou repro steps. 1–5 arquivos. |
+| `/hotfix` | Produção quebrada. Patch mínimo + branch `hotfix/` + PR + deploy checklist. |
+| `/pr-review` | Revisar qualquer PR. Bench paralelo de especialistas + threads no GitHub. |
 | `/security-audit` | Auditoria de segurança periódica ou pré-release. Roda bandit, pip-audit, npm audit. |
 | `/migration-plan` | Planejar mudança de schema de banco antes de alterar models. |
 | `/cloud-debug` | Investigar problema em ambiente de cloud/produção com logs e infra. |
@@ -127,11 +129,13 @@ Sem tmux mode, os mesmos workflows funcionam corretamente como subagentes inline
 **Regra de escalada:**
 
 ```
-bug 1–5 arquivos     → /bug-fix
-feature nova         → /squad
-planejar primeiro    → /discovery → /implement
-schema vai mudar     → /migration-plan (antes do /squad ou /implement)
-auditoria periódica  → /security-audit
+bug urgente, prod quebrada  → /hotfix
+bug 1–5 arquivos            → /bug-fix
+feature nova                → /squad
+planejar primeiro           → /discovery → /implement
+schema vai mudar            → /migration-plan (antes do /squad ou /implement)
+auditoria periódica         → /security-audit
+revisar PR                  → /pr-review
 ```
 
 ---
@@ -237,10 +241,17 @@ Se N: registra `implement_triggered: false` no log — detectável pelo `/factor
          └─ docs-writer
               └─ tech-writer (se docs externas)
                    └─ jira-confluence-specialist
-                        └─ pm ─────────────── [GATE 5: UAT]
+                        └─ coverage-gate (Step 9b) ─────────── [GATE se cobertura caiu]
+              │  Bloqueia UAT se delta < 0
+              │  Opções: [C]ontinuar ou [T]estar mais
+              └─ pm ─────────────── [GATE 5: UAT]
+                   REJECTED → [GATE: re-queue ou skip]
+                       R → impl agents com contexto dos gaps ──────────────┐
+                           reviewer → qa → quality bench → UAT ────────────┘
+                   APPROVED → fim
 ```
 
-**Gates de usuário:** 1 (UAT final)
+**Gates de usuário:** 1 UAT + 1 coverage (condicional) + 1 rejection re-queue (condicional)
 
 **Saída SEP:** `ai-docs/.squad-log/{timestamp}-implement-{run_id}.md` com Completion Blocks de cada agente implementador e resultado do UAT.
 
@@ -278,6 +289,88 @@ TeamCreate → time "squad" (persiste por todas as fases)
 ```
 
 **Escalada para /squad se:** root cause revela problema arquitetural ou > 5 arquivos.
+
+---
+
+### /hotfix
+
+**Objetivo:** Patch mínimo emergencial para produção quebrada. Mais rápido que `/bug-fix` — sem fase de investigação profunda.
+
+**Input:** Sintoma, escopo, ambiente de deploy, branch base.
+
+**Fluxo:**
+
+```
+/hotfix
+    │
+    ├─ [GATE 1: intake — sintoma + escopo + deploy target]
+    │
+    ├─ Stack Command Detection
+    │
+    ├─ git checkout -b hotfix/{{slug}} origin/{{base}}
+    │
+    ├─ code-debugger (root cause analysis, sem implementar)
+    │
+    ├─ [GATE 2: confirmação do diagnóstico]
+    │
+    ├─ backend-dev / frontend-dev (patch mínimo)
+    │   Regra: sem refactor, sem novas dependências
+    │
+    ├─ reviewer (lightweight — foco em regressões)
+    │   CHANGES → impl de volta
+    │
+    ├─ security-reviewer (condicional — só se auth/input/dados)
+    │
+    ├─ git commit + git push + gh pr create
+    │
+    └─ [GATE 3: deploy checklist — staging → prod → monitorar 15min]
+```
+
+**Escalada para /squad se:** fix requer > 5 arquivos ou revela flaw arquitetural.
+
+**Saída SEP:** `ai-docs/.squad-log/{timestamp}-hotfix-{run_id}.md`
+
+---
+
+### /pr-review
+
+**Objetivo:** Code review especializado com abertura automática de threads no GitHub.
+
+**Input:** URL ou número da PR, repo, confirmação para abrir threads.
+
+**Fluxo:**
+
+```
+/pr-review
+    │
+    ├─ [GATE 1: PR URL + repo + abrir threads? Y/N]
+    │
+    ├─ gh pr view → metadata (título, base, head, arquivos, diff)
+    │
+    ├─ Detecta reviewers relevantes pelos arquivos alterados:
+    │   sempre: reviewer
+    │   auth/input/secrets → security-reviewer
+    │   PII/dados externos → privacy-reviewer
+    │   queries/loops/render → performance-engineer
+    │   UI/HTML/ARIA → accessibility-reviewer
+    │   APIs/contratos → api-designer
+    │   schema/migrations → dba
+    │
+    ├─ PARALLEL BENCH (todos os reviewers detectados)
+    │   Cada um recebe o diff completo
+    │
+    ├─ Consolida findings + deduplica file:line
+    │   Conflito de severidade → usa a mais alta
+    │
+    ├─ Apresenta resumo ao usuário
+    │
+    ├─ [GATE 2: confirmar abertura de threads no GitHub]
+    │
+    └─ gh api .../pulls/{n}/reviews --input /tmp/payload.json
+       (usa --input com JSON file para evitar bug HTTP 422 de arrays)
+```
+
+**Saída SEP:** `ai-docs/.squad-log/{timestamp}-pr-review-{run_id}.md`
 
 ---
 
@@ -499,18 +592,25 @@ Veja [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md) para exemplos de uso de 
 
 ## 8. Gates de usuário
 
-| Gate | Quem apresenta | O que decidir |
-|---|---|---|
-| **Gate 1** — Scope Validation | `po` | O escopo definido está correto? Cortes necessários? |
-| **Gate 2** — Technical Tradeoffs | `planner` | Qual abordagem técnica seguir? |
-| **Gate 3** — Architecture Direction | `techlead` | A arquitetura proposta faz sentido? |
-| **Gate 4** — Blueprint Confirmation | `tdd-specialist` | O blueprint está aprovado para implementação? |
-| **Gate Bridge** — Implement Now? | orchestrador | Iniciar `/implement` imediatamente? (SEP Contrato 3) |
-| **Gate 5** — UAT | `pm` | A feature entregue atende aos critérios de aceitação? |
+| Gate | Skill | Quem apresenta | O que decidir |
+|---|---|---|---|
+| **Gate 1** — Scope Validation | `/discovery` | `po` | O escopo definido está correto? Cortes necessários? |
+| **Gate 2** — Technical Tradeoffs | `/discovery` | `planner` | Qual abordagem técnica seguir? |
+| **Gate 3** — Architecture Direction | `/discovery` | `techlead` | A arquitetura proposta faz sentido? |
+| **Gate 4** — Blueprint Confirmation | `/discovery` | `tdd-specialist` | O blueprint está aprovado para implementação? |
+| **Gate Bridge** — Implement Now? | `/discovery` | orchestrador | Iniciar `/implement` imediatamente? (SEP Contrato 3) |
+| **Gate 5** — UAT | `/implement` | `pm` | A feature entregue atende aos ACs? |
+| **Coverage Gate** — Coverage Drop | `/implement` | orchestrador | Cobertura caiu. Continuar ou testar mais? |
+| **UAT Re-queue** — Rejection Loop | `/implement` | orchestrador | UAT rejeitado. Re-queue com gaps ou encerrar? |
+| **Gate 1** — Hotfix Intake | `/hotfix` | orchestrador | Confirmar sintoma + escopo + deploy target |
+| **Gate 2** — Root Cause Confirm | `/hotfix` | orchestrador | Diagnóstico correto? Prosseguir com patch? |
+| **Gate 3** — Deploy Checklist | `/hotfix` | orchestrador | Staging verificado → prod deploy → monitor 15min |
+| **Gate 1** — PR Intake | `/pr-review` | orchestrador | PR URL + repo |
+| **Gate 2** — Post Threads? | `/pr-review` | orchestrador | Confirmar abertura de threads no GitHub |
 
 Nenhum gate pode ser pulado. Responder ao gate é o que move a esteira para a próxima fase.
 
-O **Gate Bridge** é o único gate que não bloqueia a esteira — responder N registra `implement_triggered: false` no log e encerra o `/discovery` normalmente.
+O **Gate Bridge** é o único gate que não bloqueia a esteira — responder N registra `implement_triggered: false` no log e encerra o `/discovery` normalmente. O **Coverage Gate** e o **UAT Re-queue** só aparecem quando a condição é ativada (cobertura caiu / UAT rejeitado).
 
 ---
 
@@ -547,9 +647,14 @@ O **Gate Bridge** é o único gate que não bloqueia a esteira — responder N r
 [SEP Log Written] ai-docs/.squad-log/{filename}
 [Remediation Tasks Written] ai-docs/security-remediation-YYYY-MM-DD.md
 [Gate] implement-bridge | Waiting for user input
+[Gate] Coverage Drop | Waiting for user input
+[Teammate Retry] pm-uat | Reason: UAT REJECTED — re-queuing implementation
+[Review Posted] N threads opened on PR #N
+[Hotfix Branch] hotfix/{slug} created from {base}
+[Cache Synced] N skill(s) updated in installed plugin
 ```
 
-Essas linhas aparecem ao final de cada skill que implementa o Squad Execution Protocol. O `[Gate] implement-bridge` aparece apenas no `/discovery` após o blueprint ser confirmado.
+Essas linhas aparecem ao final de cada skill que implementa o Squad Execution Protocol. O `[Gate] implement-bridge` aparece apenas no `/discovery`. `[Gate] Coverage Drop` e `[Teammate Retry] pm-uat` são condicionais — só emitidos quando a condição é ativada.
 
 ---
 
@@ -558,10 +663,12 @@ Essas linhas aparecem ao final de cada skill que implementa o Squad Execution Pr
 ### Qual skill usar
 
 ```
+Produção quebrada, urgente             → /hotfix
 Tenho um bug com stack trace           → /bug-fix
 Quero planejar antes de implementar    → /discovery
 Tenho um blueprint, quero implementar  → /implement
 Quero tudo de uma vez                  → /squad
+Preciso revisar uma PR                 → /pr-review
 Vou mudar models do banco              → /migration-plan ANTES do /squad ou /implement
 Preciso de auditoria de segurança      → /security-audit
 Problema em produção                   → /cloud-debug
@@ -600,6 +707,12 @@ Os agentes trabalham autonomamente entre os gates. Não é necessário interagir
 
 # Bug específico
 /claude-tech-squad:bug-fix
+
+# Produção quebrada — patch emergencial
+/claude-tech-squad:hotfix
+
+# Revisar uma PR com bench especializado
+/claude-tech-squad:pr-review
 
 # Antes de qualquer mudança de modelo
 /claude-tech-squad:migration-plan
