@@ -1,0 +1,290 @@
+---
+name: hotfix
+description: Streamlined emergency fix workflow for production issues. Skips discovery overhead — goes straight to root cause, minimal patch, tests, hotfix branch, PR, and deploy checklist. Trigger with "hotfix", "fix urgente", "producao quebrada", "patch emergencial", "emergency fix".
+user-invocable: true
+---
+
+# /hotfix — Emergency Production Fix
+
+Lightweight emergency fix workflow. Faster than `/bug-fix` for known production breaks — skips root cause investigation overhead and goes straight to minimal patch → tests → branch → deploy.
+
+**Use when:** production or staging is broken, you know approximately where, and speed matters.
+
+**Escalate to `/squad` if:** the fix requires architectural changes, touches more than 5 files, or reveals a design flaw that needs proper scoping.
+
+## Execution
+
+### Step 1 — Hotfix Intake Gate
+
+Ask the user for (if not already provided):
+1. **Symptom**: What is broken? (error, stack trace, user impact)
+2. **Scope**: Which service, endpoint, or component?
+3. **Deploy target**: Which environment needs the fix? (staging / production)
+4. **Branch strategy**: What is the base branch for the hotfix? (default: `main` or `master`)
+
+Do NOT proceed until scope and deploy target are confirmed. This is a blocking gate.
+
+### Step 2 — Stack Command Detection (SEP Stack-Agnostic)
+
+Read project files to detect test and build commands before spawning any agent:
+
+| Signal file | test command | build command |
+|---|---|---|
+| `Makefile` with `test:` | `make test` | `make build` |
+| `package.json` scripts | `npm test` | `npm run build` |
+| `pyproject.toml` | `pytest` | n/a |
+| `pom.xml` | `mvn test` | `mvn package` |
+| `build.gradle` | `./gradlew test` | `./gradlew build` |
+
+Store as `{{test_command}}` and `{{build_command}}`. CLAUDE.md overrides take priority.
+
+### Step 3 — Create hotfix branch
+
+```bash
+git fetch origin
+git checkout -b hotfix/{{slug}} origin/{{base_branch}}
+```
+
+Where `{{slug}}` is a short descriptor (e.g. `hotfix/null-pointer-checkout`).
+
+Emit: `[Hotfix Branch] hotfix/{{slug}} created from {{base_branch}}`
+
+### Step 4 — Spawn code-debugger for root cause
+
+```
+Agent(
+  subagent_type = "code-debugger",
+  prompt = """
+## Emergency Fix Investigation
+
+### Symptom
+{{symptom}}
+
+### Scope
+{{scope}}
+
+### Stack trace / error (if available)
+{{error}}
+
+---
+Identify the root cause and the minimal change required to fix it.
+Produce:
+1. Root cause (1-3 sentences)
+2. Minimal patch — exact files and lines to change
+3. Risk: what could this change break?
+4. Verification: how to confirm the fix works
+Do NOT implement the fix. Return analysis only.
+"""
+)
+```
+
+Present root cause analysis to user before proceeding.
+
+### Step 5 — Root cause confirmation gate
+
+Present the diagnosis:
+
+```
+Root cause: {{root_cause}}
+Proposed patch: {{patch_description}}
+Risk: {{risk}}
+
+Proceed with this fix? [Y/N/modify]
+```
+
+**This is a blocking gate.** Do NOT implement until user confirms.
+
+### Step 6 — Spawn backend-dev or frontend-dev for minimal patch
+
+Based on scope, spawn the appropriate implementation agent:
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:backend-dev",  # or frontend-dev, mobile-dev
+  prompt = """
+## Hotfix Implementation
+
+### Root cause
+{{root_cause}}
+
+### Proposed patch
+{{patch_description}}
+
+### Constraints
+- Minimal change only — do not refactor, do not clean up unrelated code
+- Do not add new dependencies
+- Do not change APIs or contracts unless the bug is in the contract itself
+
+### Test command
+{{test_command}}
+
+---
+Implement the minimal fix. Write or update the test that proves the bug is fixed.
+Run {{test_command}} and confirm PASS.
+
+Return:
+## Completion Block
+- Files changed: [list]
+- Tests added/modified: [list]
+- Test result: {{test_command}} → PASS/FAIL
+- Test count: N passed, M failed
+"""
+)
+```
+
+Emit: `[Teammate Spawned] hotfix-impl | pane: hotfix-impl`
+
+### Step 7 — Reviewer gate
+
+Spawn reviewer for a lightweight review of the patch only:
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:reviewer",
+  prompt = """
+## Hotfix Review
+
+### Root cause
+{{root_cause}}
+
+### Patch
+{{implementation_output}}
+
+---
+This is an emergency fix. Review for:
+1. Does the patch actually fix the root cause?
+2. Does it introduce new bugs or regressions?
+3. Is there a simpler, safer approach?
+
+Return: APPROVED or CHANGES REQUESTED (with specific issues).
+Do NOT chain to other agents.
+"""
+)
+```
+
+Emit: `[Teammate Spawned] reviewer | pane: reviewer`
+
+If CHANGES REQUESTED: spawn implementation agent again with feedback. Repeat until APPROVED.
+
+### Step 8 — Security spot-check
+
+If the bug involves auth, input handling, data access, or secret exposure, spawn security-reviewer:
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:security-reviewer",
+  prompt = """
+## Security Spot-Check — Hotfix
+
+### Patch
+{{approved_patch}}
+
+---
+Quick security check on this emergency fix.
+Flag any: auth bypass, input injection, data exposure, or secret leakage.
+Return: CLEAR or RISK with specific issue.
+Do NOT chain.
+"""
+)
+```
+
+Skip this step if the bug is unrelated to security surface (UI layout, config typo, etc.).
+
+### Step 9 — Commit and push
+
+```bash
+git add {{changed_files}}
+git commit -m "hotfix: {{short_description}}"
+git push origin hotfix/{{slug}}
+```
+
+### Step 10 — Open PR
+
+```bash
+gh pr create \
+  --base {{base_branch}} \
+  --head hotfix/{{slug}} \
+  --title "hotfix: {{short_description}}" \
+  --body "$(cat <<'EOF'
+## Hotfix
+
+### Root cause
+{{root_cause}}
+
+### Patch
+{{patch_description}}
+
+### Tests
+- {{test_command}} → PASS (N passed)
+
+### Deploy checklist
+- [ ] Merge PR after approval
+- [ ] Deploy to staging and verify
+- [ ] Deploy to production
+- [ ] Monitor for 15 minutes post-deploy
+- [ ] Close incident if open
+EOF
+)"
+```
+
+Emit the PR URL to the user.
+
+### Step 11 — Deploy checklist gate
+
+Present the deploy checklist and ask:
+
+```
+Hotfix PR opened: {{pr_url}}
+
+Deploy checklist:
+- [ ] PR approved
+- [ ] Staging deploy verified
+- [ ] Production deploy executed
+- [ ] Post-deploy monitoring (15 min)
+
+Ready to proceed? [Y] when each step is done.
+```
+
+This is informational — the actual deploy is always a manual step. Do NOT attempt to deploy automatically.
+
+### Step 12 — Write SEP log (SEP Contrato 1)
+
+```bash
+mkdir -p ai-docs/.squad-log
+```
+
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-hotfix-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+skill: hotfix
+timestamp: {{ISO8601}}
+status: completed
+branch: hotfix/{{slug}}
+pr_url: {{pr_url}}
+base_branch: {{base_branch}}
+root_cause_confirmed: true
+reviewer_result: APPROVED
+security_checked: true | skipped
+uat_result: N/A
+---
+
+## Root Cause
+{{root_cause}}
+
+## Patch Summary
+{{patch_description}}
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
+
+### Step 13 — Report to user
+
+Tell the user:
+- Root cause confirmed
+- Files changed
+- Tests: PASS (N passed)
+- PR URL
+- Deploy checklist status
+- Any security findings (if security check ran)

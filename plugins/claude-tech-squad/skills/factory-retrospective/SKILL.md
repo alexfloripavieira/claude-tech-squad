@@ -177,6 +177,34 @@ For each approved recommendation:
 
 Document all changes applied in the retrospective report.
 
+### Step 7b — Sync changes to installed plugin cache
+
+If any SKILL.md file was modified in Step 7, the installed plugin cache must be updated — otherwise the next run will still execute the old version.
+
+Detect the cache path:
+
+```bash
+CACHE=$(ls -d ~/.claude/plugins/cache/*/*/claude-tech-squad/*/skills/ 2>/dev/null | head -1)
+echo "${CACHE:-NOT_FOUND}"
+```
+
+If cache is found, copy each modified skill to the cache:
+
+```bash
+# For each modified skill (e.g. implement, discovery, security-audit):
+cp plugins/claude-tech-squad/skills/{{skill}}/SKILL.md "$CACHE/{{skill}}/SKILL.md"
+```
+
+If cache is NOT_FOUND, emit a warning:
+
+```
+[Warning] Plugin cache not found. Changes applied to source only.
+Run: claude plugin install claude-tech-squad@alexfloripavieira-plugins
+to reinstall and pick up the updated skill files.
+```
+
+Emit: `[Cache Synced] {{N}} skill(s) updated in installed plugin`
+
 ### Step 8 — Save report and mark timestamp
 
 Write the full retrospective report to:

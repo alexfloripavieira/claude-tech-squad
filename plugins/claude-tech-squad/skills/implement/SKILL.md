@@ -322,6 +322,36 @@ Do NOT chain to other agents.
 
 Emit: `[Teammate Spawned] jira-confluence | pane: jira-confluence`
 
+### Step 9b — Coverage Gate
+
+Before spawning PM for UAT, check test coverage delta.
+
+```bash
+# Detect coverage tool from project stack
+# Python
+coverage report --fail-under=0 2>/dev/null || pytest --cov --cov-report=term-missing 2>/dev/null || echo "COVERAGE_NOT_AVAILABLE"
+# JS
+npx nyc report --reporter=text 2>/dev/null || npx vitest run --coverage 2>/dev/null || echo "COVERAGE_NOT_AVAILABLE"
+```
+
+If coverage data is available:
+- Compute delta: coverage after implementation vs coverage reported in blueprint (if present) or vs current `main`
+- If delta < 0 (coverage dropped): emit `[Gate] Coverage Drop | Waiting for user input` and present:
+
+```
+Coverage dropped: {{before}}% → {{after}}% (delta: {{delta}}%)
+
+Affected files without new test coverage:
+{{uncovered_files}}
+
+Options:
+- [C] Continue to UAT anyway
+- [T] Add tests first (re-runs QA after)
+```
+
+Block UAT until user decides. If [T]: spawn QA again with coverage gap as context.
+If coverage tool is not available or delta >= 0: proceed silently.
+
 ### Step 10 — PM UAT Gate
 
 Spawn PM for UAT validation:
@@ -354,7 +384,29 @@ Return: APPROVED or REJECTED with specific gaps.
 Emit: `[Teammate Spawned] pm-uat | pane: pm-uat`
 Emit: `[Gate] UAT | Waiting for user input`
 
-Present PM UAT output to user. Implementation is complete when user approves.
+Present PM UAT output to user.
+
+**If PM returns REJECTED:**
+
+Do NOT end the workflow. Extract the specific gaps from PM output and present to the user:
+
+```
+UAT REJECTED — PM identified the following gaps:
+1. {{gap_1}}
+2. {{gap_2}}
+
+Options:
+- [R] Re-queue: fix the gaps and re-run UAT
+- [S] Skip: mark as REJECTED and close the run
+```
+
+If user chooses [R]:
+- Emit: `[Teammate Retry] pm-uat | Reason: UAT REJECTED — re-queuing implementation`
+- Increment `retry_count`
+- Spawn the relevant implementation agents with the rejection gaps as context (same format as Step 4, prepend `## UAT Rejection Feedback\n{{gaps}}` to the prompt)
+- After fixes, re-run Steps 5–10 (review → QA → quality bench → docs → UAT)
+
+Implementation is complete when user approves UAT or chooses [S].
 
 ### Step 11 — Write Execution Log (SEP Contrato 1)
 
