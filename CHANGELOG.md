@@ -1,5 +1,70 @@
 # Changelog
 
+## [5.10.0] - 2026-03-25 — /multi-service e /iac-review: pipeline completa para sistemas distribuídos e infraestrutura
+
+### Added
+
+**`/multi-service` skill** (novo):
+Coordena o delivery de features que atravessam múltiplos repositórios e serviços. Mapeia o grafo de dependências entre serviços, analisa mudanças de contrato (REST, gRPC, eventos, schemas), detecta breaking changes e produz estratégia de versionamento, gera sequência de deploy segura (staging → produção em ordem de dependência), e avalia blast radius por serviço. Spawna `integration-engineer` para análise de contratos, `architect` para design cross-service (Saga, outbox, circuit breakers), `techlead` para sequência de entrega, e `sre` para blast radius e rollback. Gate obrigatório antes de qualquer deploy: todos os contract tests devem passar antes de produção.
+
+**`/iac-review` skill** (novo):
+Revisa mudanças de Infrastructure as Code antes do apply. Detecta automaticamente o stack (Terraform, Pulumi, CloudFormation, CDK, Ansible, Helm, Kubernetes). Roda análise estática (tfsec, checkov, kubesec), spawna `devops` para blast radius e ordem de apply, `cloud-architect` para segurança IAM e postura de rede (wildcard permissions, portas abertas para 0.0.0.0/0, recursos públicos sem auth), e `cost-optimizer` para estimativa de impacto de custo. Produz sequência de apply segura com checklist de pré-apply (backup, staging first, on-call). Gate que bloqueia se houver finding crítico de segurança ou blast radius HIGH sem confirmação explícita.
+
+## [5.9.0] - 2026-03-25 — LLM Excellence: /llm-eval, /prompt-review, llm-safety-reviewer, AI auto-detection no /squad
+
+### Added
+
+**`/llm-eval` skill** (new):
+Evaluation suite como gate de CI para features de LLM. Descobre datasets de eval existentes, detecta framework (RAGAS, DeepEval, PromptFoo), executa métricas de qualidade (faithfulness, answer_relevance, context_precision, hallucination_rate), compara contra baseline, e emite PASS/FAIL/REGRESSION. Spawna `llm-eval-specialist` para plano de evals e `rag-engineer` para review de qualidade de retrieval. CI gate bloqueia release se houver regressão acima do threshold.
+
+**`/prompt-review` skill** (new):
+Review de mudanças em prompts como code review. Faz diff do prompt atual vs. versão anterior (git), roda testes de regressão nos exemplos golden, escaneia vulnerabilidades de prompt injection (direto e indireto via documentos recuperados), estima impacto no custo de tokens, e produz veredicto APPROVED/CHANGES REQUESTED/BLOCKED. Versiona o prompt aprovado em `ai-docs/prompt-versions/`.
+
+**`llm-safety-reviewer` agent** (new):
+Especialista em segurança específica de LLM — distinto do `security-reviewer` genérico. Cobre: prompt injection direto e indireto, jailbreak resistance, tool call authorization (allowlist + human gate para operações destrutivas), PII leakage via outputs do modelo, system prompt leakage, data exfiltration em sistemas agentic, e outputs LLM usados como código executável. Inclui matriz de injection surface e tool authorization.
+
+**AI auto-detection no `/squad`** (Step 1):
+Ao iniciar, `/squad` agora detecta automaticamente uso de LLM/AI no repositório (OpenAI, Anthropic, LangChain, LlamaIndex, pgvector, etc.). Se detectado: adiciona `ai-engineer`, `rag-engineer`, `prompt-engineer` ao batch de especialistas na Phase 1; adiciona `llm-safety-reviewer` ao quality bench na Phase 2; spawna `llm-eval-specialist` para gate de evals antes da UAT.
+
+### Changed
+
+**`ai-engineer` agent** — expandido com LLM App Excellence Checklist: model pinning, context window budget, least privilege on context, fallback strategy, output schema validation, structured outputs, hallucination mitigation, output content filtering, token cost estimation, prompt caching, semantic caching, model routing, streaming, LLM tracing (LangSmith/Langfuse/Helicone), latency SLOs, token usage monitoring, golden dataset requirement, regression gate, agent loop safety (max_iterations, tool allowlist, human-in-the-loop gates).
+
+**`security-reviewer` agent** — adicionada seção LLM-Specific Security Checks com scan automatizado para input interpolation vulnerabilities, tool definitions sem allowlist, e tabela de threat surface LLM.
+
+**`rag-engineer` agent** — adicionados RAG Quality Gates: thresholds mínimos RAGAS (faithfulness ≥ 0.80, answer_relevance ≥ 0.75, context_precision ≥ 0.70), proteção contra knowledge base poisoning, embedding model version pinning, e context window safety.
+
+## [5.8.0] - 2026-03-24 — Global Safety Contract: CI gate, staging gate, backup gate, PII safety, supply chain, .squad-log gitignore
+
+### Changed (safety)
+
+**Global Safety Contract expanded to all 16 skills:**
+All 13 skills that were missing the Global Safety Contract now carry it. The 3 original skills (discovery, implement, squad) were also updated with new prohibited items. Every skill now explicitly prohibits: `git commit --no-verify`, `eval()` / shell injection, production deploys without staging verification, migrations without backup confirmation, and tag creation on failing CI.
+
+**CI hard gate in `/release`:**
+Step 3 (CI validation) now HARD BLOCKS release if CI status is `failure` or `cancelled`. Previously only emitted a warning. Release cannot proceed to tagging until CI is green. If CI status is unavailable, user must explicitly accept the risk at the confirmation gate (logged as `ci_unknown_override: true` in SEP log).
+
+**Mandatory staging gate in `/hotfix`:**
+Step 11 (deploy checklist) now requires staging deploy + verification before production deploy. Skipping staging requires explicit "SKIP STAGING" text from the user with a reason, which is logged in the SEP log. Per the safety contract: "even in emergencies, a staging verification catches broken deploys before they compound the incident."
+
+**Backup verification gate in `/migration-plan`:**
+New Step 5b added before the migration plan is finalized. For staging/production migrations: requires confirmed backup date/time, storage location, and restore-test status. High-risk migrations (irreversible, type changes with data loss, >1M rows) additionally require a written rollback script and confirmation it was tested.
+
+**PII safety in `/hotfix`, `/cloud-debug`, `/incident-postmortem`:**
+Global Safety Contract in these skills now explicitly requires masking tokens, email addresses, and credentials before passing log content to agents. Agents must not store PII in responses or SEP logs.
+
+**Safety constraints injected into agent prompts:**
+Implementation agent prompts in `/bug-fix`, `/hotfix`, and `/release` now carry explicit safety constraints inline — ensuring rules reach agents even when the skill-level contract is not directly visible to the spawned subagent.
+
+**Supply chain check in `/dependency-check`:**
+New Step 2b scans newly added packages for typosquatting, suspicious new packages (< 6 months old), and unusual install-time permissions. Supply chain risks surface as Critical findings alongside CVEs.
+
+**`.squad-log/` gitignore protection in `/onboarding`:**
+Step 3 now ensures `ai-docs/.squad-log/` is added to `.gitignore` during project bootstrap. Prevents SEP execution logs (which may contain CVEs and security findings) from being committed to the repository.
+
+**Staging deploy sequence in `/release` confirmation gate:**
+Step 7 confirmation gate now explicitly shows the required deploy sequence: staging first → verify → then production. Release notes template updated to include staging step in deploy checklist.
+
 ## [5.7.0] - 2026-03-24 — Proactive integrations: ADR, feature flags, load test, cost analysis, runbooks, run chains
 
 ### Added

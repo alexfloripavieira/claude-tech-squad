@@ -6,6 +6,20 @@ user-invocable: true
 
 # /factory-retrospective — Agent Factory Self-Improvement Retrospective
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Apply changes to `CLAUDE.md` or skill files without the user approving them at the gate in Step 6
+- Delete or overwrite SEP log files — logs are audit trails, treat them as read-only
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Analyzes recent agent execution logs, identifies patterns of failure, retry loops, and inefficiencies, then produces actionable recommendations to improve the agent factory workflow.
 
 ## When to Use

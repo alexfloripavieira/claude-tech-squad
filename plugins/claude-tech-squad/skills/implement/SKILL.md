@@ -22,6 +22,10 @@ No teammate may, under any circumstances:
 - Destroy infrastructure via `terraform destroy` or equivalent IaC commands
 - Disable or bypass authentication/authorization as a workaround
 - Deploy to production without a documented and tested rollback plan
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Apply migrations or schema changes to production without first verifying a backup exists
+- Deploy to production before staging has been successfully deployed and verified
 
 If any teammate believes a task requires one of these actions, it must STOP and surface the decision to the user before proceeding. The urgency of an implementation deadline does not override this contract.
 

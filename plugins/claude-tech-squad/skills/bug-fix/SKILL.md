@@ -6,6 +6,24 @@ user-invocable: true
 
 # /bug-fix — Focused Bug Resolution
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in any environment
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Remove secrets or environment variables from production
+- Destroy infrastructure via `terraform destroy` or equivalent IaC commands
+- Disable or bypass authentication/authorization as a "quick fix"
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Apply migrations or schema changes to production without first verifying a backup exists
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Lightweight defect resolution workflow. Faster than `/squad` for isolated bugs — skips discovery/planning phases and goes straight to root cause → failing test → fix → validation.
 
 ## When to Use
@@ -107,6 +125,13 @@ Rules:
 - Do not introduce new behavior beyond what is needed to fix the bug.
 - Follow the project's coding standards (Hexagonal Architecture, no direct DB JOINs across apps, etc.)
 - Verify all library APIs via context7 before using them.
+
+Safety constraints (non-negotiable):
+- Never force-push (`git push --force`) to any branch
+- Never skip pre-commit hooks (`git commit --no-verify`)
+- Never drop tables, databases, or truncate data without explicit user confirmation
+- Never disable authentication or authorization as a fix
+- If the fix requires any of the above, STOP and report to the user
 
 Output: list of changed files with a one-line description of each change.
 ```

@@ -6,6 +6,28 @@ user-invocable: true
 
 # /migration-plan — Database Migration Planning
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Apply migrations to production without confirming a recent backup exists and is restorable
+- Run `migrate` (not `--dry-run`) against production or staging without explicit user authorization
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in any environment
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Destroy infrastructure via `terraform destroy` or equivalent IaC commands
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+
+**Migration-specific rules:**
+- Irreversible migrations (removing columns, changing types with data loss) MUST include a rollback script before the plan is marked complete
+- Column removal must follow the add-first / dual-read / remove pattern across separate deploys
+- Any migration touching more than 10 million rows must include a zero-downtime strategy
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Analyzes the current migration state, detects pending model changes, coordinates with data architecture and DBA specialists, and produces a safe migration plan with rollback strategy.
 
 ## When to Use
@@ -97,6 +119,28 @@ Evaluate:
 5. Estimated downtime or performance impact
 6. Safe deployment sequence
 ```
+
+### Step 5b — Backup verification gate (mandatory for staging/production)
+
+Before producing the final plan, ask the user:
+
+```
+This migration plan will be applied to a real database. Before proceeding:
+
+1. Is there a recent backup of the target database?
+   - What is the backup date/time?
+   - Where is it stored and has it been verified (restore-tested)?
+
+2. What environment will this migration run in first? (local / staging / production)
+
+Provide backup confirmation before the plan is finalized. This is a blocking gate.
+```
+
+For local-only development migrations, the user may skip this gate by responding "local dev only".
+
+For any migration rated **High risk** (irreversible column removal, type change with data loss, table with >1M rows), also require:
+- Written rollback script path (`ai-docs/rollback-{{migration}}.sql`)
+- Confirmation that the rollback was tested on a copy of production data
 
 ### Step 6 — Produce migration plan
 

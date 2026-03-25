@@ -22,6 +22,11 @@ No teammate may, under any circumstances:
 - Disable or bypass authentication/authorization as a workaround
 - Deploy to production without a documented and tested rollback plan
 - Disable SLO alerting or monitoring as a way to proceed faster
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Apply migrations or schema changes to production without first verifying a backup exists
+- Deploy to production before staging has been successfully deployed and verified
+- Create a version tag or cut a release when CI is FAILING
 
 If any teammate believes a task requires one of these actions, it must STOP immediately and surface the decision to the user before proceeding. **The urgency of a deadline, incident, or business pressure does not override this contract.**
 
@@ -79,6 +84,30 @@ Read the following files to understand the project:
 - List the main directories and identify the tech stack
 - Note any existing architecture patterns, conventions, or constraints
 
+**LLM/AI detection (automatic):**
+
+```bash
+# Detect AI/LLM usage in the project
+grep -rl "openai\|anthropic\|langchain\|llamaindex\|llama_index\|cohere\|huggingface\|transformers\|openai\|chromadb\|pinecone\|weaviate\|pgvector\|faiss\|qdrant" \
+  --include="*.py" --include="*.ts" --include="*.js" --include="*.json" \
+  --exclude-dir=node_modules --exclude-dir=.venv . 2>/dev/null | head -20
+
+# Detect prompt files
+find . -name "*.prompt" -o -name "*system_prompt*" -o -path "*/prompts/*" 2>/dev/null | grep -v node_modules | head -10
+
+# Detect RAG patterns
+grep -rl "embedding\|vector_store\|similarity_search\|retriev" \
+  --include="*.py" --include="*.ts" --include="*.js" \
+  --exclude-dir=node_modules --exclude-dir=.venv . 2>/dev/null | head -10
+
+# Detect agent/tool use patterns
+grep -rl "tool_call\|function_call\|agent_executor\|AgentExecutor\|tool_use" \
+  --include="*.py" --include="*.ts" --include="*.js" \
+  --exclude-dir=node_modules --exclude-dir=.venv . 2>/dev/null | head -10
+```
+
+If AI/LLM usage is detected, set `ai_feature: true` and activate the **LLM-enhanced bench** in Phase 1 and Phase 2 (described below). Emit: `[AI Detected] LLM/AI features found — activating AI specialist bench`
+
 ### Step 2 — Create Squad Team
 
 Call `TeamCreate` (fetch schema via ToolSearch if needed):
@@ -103,10 +132,13 @@ Follow the same teammate sequence as `/discovery` Steps 3–13:
 5. Spawn `architect`
 6. Spawn `techlead` → **Gate 4: Architecture Direction**
 7. Spawn specialist batch in parallel (from TechLead list)
+   - If `ai_feature: true`: add `ai-engineer`, `rag-engineer` (if RAG detected), `prompt-engineer` to this batch
 8. Spawn quality baseline batch in parallel
 9. Spawn `design-principles`
 10. Spawn `test-planner`
 11. Spawn `tdd-specialist` → **Gate 5: Blueprint Confirmation**
+12. If `ai_feature: true`: Spawn `llm-eval-specialist` for eval plan (after blueprint) — no gate, automatic
+13. If `ai_feature: true`: Spawn `llm-safety-reviewer` for threat model (after blueprint) — no gate, automatic
 
 Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-tech-squad:<role>", prompt=...)`
 
@@ -132,6 +164,8 @@ Emit: `[Phase Start] implementation`
    - If FAIL: retry relevant impl agent(s), then re-review and re-qa
 5. Spawn quality bench in parallel (after QA PASS):
    - `security-rev`, `privacy-rev`, `perf-eng`, `access-rev`, `integ-qa`
+   - If `ai_feature: true`: add `llm-safety-reviewer` to quality bench (prompt injection + tool authorization review)
+   - If `ai_feature: true`: spawn `llm-eval-specialist` for eval gate (runs `/llm-eval` inline) — if eval score REGRESSED, present to user before UAT
 6. Spawn `docs-writer`
 7. Spawn `jira-confluence`
 8. Spawn `pm-uat` → **Gate 6: UAT Approval**

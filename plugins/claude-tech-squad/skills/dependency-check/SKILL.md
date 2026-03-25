@@ -6,6 +6,25 @@ user-invocable: true
 
 # /dependency-check — Dependency Vulnerability and Update Check
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in any environment
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Remove secrets or environment variables from production
+- Destroy infrastructure via `terraform destroy` or equivalent IaC commands
+- Disable or bypass authentication/authorization as a workaround
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Apply migrations or schema changes to production without first verifying a backup exists
+- Auto-upgrade packages to major versions without presenting a breaking-changes summary first
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Detects package managers, runs real vulnerability and outdated-package checks, categorizes findings by severity, and produces a prioritized upgrade plan.
 
 ## When to Use
@@ -60,13 +79,35 @@ yarn audit 2>/dev/null || echo "TOOL_NOT_AVAILABLE: yarn audit"
 yarn outdated 2>/dev/null || echo "TOOL_NOT_AVAILABLE: yarn outdated"
 ```
 
+### Step 2b — Supply chain safety check
+
+For any new or recently added packages (added since the last dependency check or the last git tag), run additional supply chain verification:
+
+```bash
+# New packages since last tag (git-based)
+LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+if [ -n "$LAST_TAG" ]; then
+  git diff ${LAST_TAG}..HEAD -- requirements*.txt package.json pyproject.toml 2>/dev/null | grep "^+" | grep -v "^+++" | head -30
+else
+  echo "NO_LAST_TAG"
+fi
+```
+
+For each newly added package, check:
+- **Typosquatting risk**: Is the package name suspiciously similar to a well-known package? (e.g. `requets` vs `requests`, `lodahs` vs `lodash`)
+- **Minimal publish history**: Was this package published very recently (< 6 months) with no prior release history?
+- **Unusual permissions requested**: Does the package's install scripts request network access, file system writes outside of its directory, or shell execution?
+
+If any supply chain risk is detected, emit a `[Supply Chain Warning]` and include it in the Critical findings category.
+
 ### Step 3 — Categorize findings
 
-Organize all findings into three categories:
+Organize all findings into four categories:
 
-1. **Security vulnerabilities (Critical)** — Known CVEs, exploitable issues
-2. **Major version updates (Important)** — Breaking changes possible, review needed
-3. **Minor/patch updates (Informative)** — Safe to upgrade, bug fixes and improvements
+1. **Supply chain risks (Critical)** — Typosquatting, malicious packages, suspicious new packages
+2. **Security vulnerabilities (Critical)** — Known CVEs, exploitable issues
+3. **Major version updates (Important)** — Breaking changes possible, review needed
+4. **Minor/patch updates (Informative)** — Safe to upgrade, bug fixes and improvements
 
 ### Step 4 — Invoke planner agent for risk assessment
 

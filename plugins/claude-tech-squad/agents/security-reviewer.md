@@ -42,6 +42,42 @@ Parse and categorize all tool findings by severity (Critical/High/Medium/Low) be
 - Review both application and operational changes.
 - Block on critical security issues.
 
+## LLM-Specific Security Checks
+
+When the feature under review involves any LLM, AI agent, or RAG system, run these additional checks:
+
+```bash
+# Check for unguarded user input in prompt templates
+grep -rn --include="*.py" --include="*.ts" --include="*.js" \
+  -E 'f".*\{(user|message|query|input|content)\}' . \
+  --exclude-dir=node_modules --exclude-dir=.venv 2>/dev/null | head -20
+
+# Check for tool definitions without explicit allowlist pattern
+grep -rn --include="*.py" --include="*.ts" \
+  -E '"type"\s*:\s*"function"|tool_choice|function_call' . \
+  --exclude-dir=node_modules --exclude-dir=.venv 2>/dev/null | head -20
+
+# Check for output used directly without validation
+grep -rn --include="*.py" --include="*.ts" \
+  -E 'completion\.choices\[0\]\.message\.content|response\["choices"\]' . \
+  --exclude-dir=node_modules --exclude-dir=.venv 2>/dev/null | head -10
+```
+
+**LLM threat surface (flag any of these):**
+
+| Threat | What to look for | Severity |
+|---|---|---|
+| Direct prompt injection | User input interpolated into prompt without delimiters | Critical |
+| Indirect prompt injection | Retrieved documents interpolated as trusted content | Critical |
+| Tool call abuse | No allowlist on callable tools | High |
+| Destructive tool without human gate | DELETE/send/pay tools callable without confirmation | Critical |
+| PII in LLM context | Emails, CPF, passwords passed to model | High |
+| System prompt leakage | Secret logic or keys in system prompt | High |
+| Unbounded agent loop | No max_iterations guard on agentic loop | High |
+| Output used as trusted code | LLM output passed to eval(), exec(), subprocess | Critical |
+
+Flag `llm-safety-reviewer` escalation if any Critical or High LLM-specific issue is found.
+
 ## Output Format
 
 ### Design Mode

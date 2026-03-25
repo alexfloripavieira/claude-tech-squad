@@ -6,6 +6,26 @@ user-invocable: true
 
 # /incident-postmortem — Post-Mortem After Production Incidents
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in production
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Remove secrets or environment variables from production
+- Destroy infrastructure via `terraform destroy` or equivalent IaC commands
+- Disable or bypass authentication/authorization as a workaround
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Apply migrations or schema changes to production without first verifying a backup exists
+
+**PII Safety:** Incident logs, stack traces, and chat excerpts may contain emails, user IDs, tokens, or credentials. Before passing any artifact to agents: mask tokens (replace with `[REDACTED]`), mask email addresses, never include raw database credentials or API keys. Post-mortem documents written to `ai-docs/` must not contain raw PII.
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Structured blameless post-mortem workflow. Use after an incident has been resolved to learn what happened, why it happened, and how to prevent recurrence.
 
 **Blameless principle:** This workflow focuses on systems and processes, not individuals. All outputs frame findings in terms of what failed, not who failed.

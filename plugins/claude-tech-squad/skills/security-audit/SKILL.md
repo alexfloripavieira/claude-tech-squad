@@ -6,6 +6,26 @@ user-invocable: true
 
 # /security-audit — Security Audit with Static Analysis
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in any environment
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Remove secrets or environment variables from production
+- Destroy infrastructure via `terraform destroy` or equivalent IaC commands
+- Disable or bypass authentication/authorization as a workaround
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Apply migrations or schema changes to production without first verifying a backup exists
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
+**Additional constraint for security audit:** Findings containing CVEs, tokens, or credentials must be written only to `ai-docs/.squad-log/` (never to git-tracked files without redaction). Never echo raw secrets to terminal output.
+
 Detects the project stack, runs real security analysis tools, scans for hardcoded secrets, and produces a structured report with findings categorized by severity.
 
 ## When to Use

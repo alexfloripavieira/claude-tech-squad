@@ -6,6 +6,27 @@ user-invocable: true
 
 # /hotfix — Emergency Production Fix
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Deploy to production before the fix has been deployed and verified in staging (even in emergencies — staging takes minutes, a bad production deploy takes hours to recover)
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in production
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Remove secrets or environment variables from production
+- Destroy infrastructure via `terraform destroy` or equivalent IaC commands
+- Disable or bypass authentication/authorization as an emergency workaround
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Apply migrations to production without confirming a recent backup exists
+
+**PII Safety:** Stack traces and logs may contain emails, user IDs, tokens, or credentials. Before passing any log content to agents: mask tokens (replace with `[REDACTED]`), mask email addresses, never pass raw database credentials or API keys. Agents must not store PII in their responses or in SEP logs.
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Lightweight emergency fix workflow. Faster than `/bug-fix` for known production breaks — skips root cause investigation overhead and goes straight to minimal patch → tests → branch → deploy.
 
 **Use when:** production or staging is broken, you know approximately where, and speed matters.
@@ -114,6 +135,13 @@ Agent(
 - Minimal change only — do not refactor, do not clean up unrelated code
 - Do not add new dependencies
 - Do not change APIs or contracts unless the bug is in the contract itself
+
+### Safety constraints (non-negotiable)
+- Never force-push (`git push --force`) to any branch
+- Never skip pre-commit hooks (`git commit --no-verify`)
+- Never drop tables, databases, or truncate data without explicit user confirmation
+- Never disable authentication or authorization as an emergency fix
+- If the fix requires any of the above, STOP and report to the user before proceeding
 
 ### Test command
 {{test_command}}
@@ -237,13 +265,17 @@ Present the deploy checklist and ask:
 Hotfix PR opened: {{pr_url}}
 
 Deploy checklist:
-- [ ] PR approved
-- [ ] Staging deploy verified
+- [ ] PR approved by at least one reviewer
+- [ ] Hotfix deployed to STAGING — verify fix works in staging before production
+- [ ] Staging verification confirmed (symptom no longer occurs, no new errors)
 - [ ] Production deploy executed
-- [ ] Post-deploy monitoring (15 min)
+- [ ] Post-deploy monitoring (15 min minimum — watch error rates, latency, logs)
+- [ ] Incident resolved / on-call cleared
 
 Ready to proceed? [Y] when each step is done.
 ```
+
+**Mandatory staging gate:** Production deploy must NOT occur until staging deploy is confirmed working. Even in emergencies, a staging verification catches broken deploys before they compound the incident. Skipping staging requires the user to explicitly type "SKIP STAGING" with a reason — log this in the SEP log.
 
 This is informational — the actual deploy is always a manual step. Do NOT attempt to deploy automatically.
 

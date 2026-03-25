@@ -6,6 +6,22 @@ user-invocable: true
 
 # /onboarding — Project Bootstrap for Squad Usage
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Overwrite or delete existing `CLAUDE.md`, `.gitignore`, or CI configuration files — only create if absent or append with user confirmation
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in any environment
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Commit or push files that contain secrets, tokens, or credentials
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Sets up a new repository to work with `claude-tech-squad`. Detects the stack, creates the artifact structure, generates a `CLAUDE.md` template, and produces an initial health baseline so the first `/discovery` or `/squad` run starts with full context.
 
 ## When to Use
@@ -58,6 +74,22 @@ Record: repository age (commit count), test coverage presence, CI/CD presence.
 ```bash
 mkdir -p ai-docs/.squad-log
 ```
+
+**Security: protect squad logs from git exposure.** SEP logs may contain security findings, CVEs, and internal vulnerability details. Ensure `.squad-log/` is never committed:
+
+```bash
+# Check if .gitignore exists and already covers squad-log
+grep -q "\.squad-log" .gitignore 2>/dev/null || echo "NEEDS_GITIGNORE_ENTRY"
+```
+
+If `.gitignore` does not already contain `ai-docs/.squad-log/`, append:
+
+```
+# Squad execution logs — may contain security findings
+ai-docs/.squad-log/
+```
+
+Emit: `[Security] ai-docs/.squad-log/ added to .gitignore — prevents CVE/finding exposure`
 
 Create `ai-docs/README.md`:
 

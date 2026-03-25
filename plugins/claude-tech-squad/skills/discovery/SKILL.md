@@ -20,6 +20,9 @@ No teammate may, under any circumstances:
 - Remove secrets or environment variables from production
 - Destroy infrastructure via `terraform destroy` or equivalent IaC commands
 - Disable or bypass authentication/authorization as a workaround
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Apply migrations or schema changes to production without first verifying a backup exists
 
 If any teammate believes a task requires one of these actions, it must STOP and surface the decision to the user before proceeding. The speed of a discovery workflow does not override this contract.
 

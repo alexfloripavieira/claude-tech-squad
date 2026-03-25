@@ -6,6 +6,26 @@ user-invocable: true
 
 # /release — Release Preparation
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Create a version tag or cut a release when CI is FAILING — CI must be GREEN before any tag is created
+- Deploy to production before staging has been successfully deployed and verified
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in production
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Remove secrets or environment variables from production
+- Destroy infrastructure via `terraform destroy` or equivalent IaC commands
+- Disable or bypass authentication/authorization as a workaround
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Apply migrations to production without confirming a recent backup exists
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Standalone release workflow. Use when implementation is complete and you need: change inventory, CI/CD validation, rollback plan, release notes, and version tag — without running the full `/squad`.
 
 ## When to Use
@@ -73,8 +93,21 @@ Check for:
 git diff ${LAST_TAG}..HEAD --name-only 2>/dev/null | grep -E "migration|migrate|schema" || echo "NO_MIGRATION_FILES"
 ```
 
-Emit warnings for:
-- CI failures on the branch
+**CI Gate (hard block):** If CI status is `failure` or `cancelled` on the release branch, emit:
+
+```
+[BLOCKED] CI is FAILING on this branch. Release is blocked until CI passes.
+
+Failing workflow(s): {{workflow_names}}
+
+Do NOT proceed with tagging or release. Fix CI first, then re-run /release.
+```
+
+Do NOT continue to Step 4 if CI is failing. This is a non-negotiable safety gate — a failed CI means untested code, and deploying untested code violates the contract above.
+
+**Exception:** If CI status is unavailable (`CI_STATUS_NOT_AVAILABLE`), emit a warning and allow the user to confirm at the gate in Step 7 that they accept the risk of unknown CI status.
+
+Emit notices for:
 - Migration files present (may need manual apply step)
 - New environment variables introduced since last tag
 
@@ -104,10 +137,16 @@ Agent(
 ---
 You are the Release agent. Produce:
 1. Rollback plan — specific steps to revert this release if needed
-2. Deploy checklist — ordered steps to deploy safely
+2. Deploy checklist — ordered steps to deploy safely (staging first, then production)
 3. Required communications — who needs to know before/after deploy
 4. Monitoring checklist — what to watch for 30 minutes post-deploy
 5. GO / NO-GO assessment — is this release safe to deploy?
+
+Safety constraints (non-negotiable):
+- Return NO-GO if CI was FAILING on the release branch
+- Deploy checklist must include staging verification before production
+- Never recommend force-pushing or skipping hooks
+- Never recommend disabling monitoring to proceed faster
 
 Return structured output. Do NOT chain to other agents.
 """
@@ -257,12 +296,20 @@ Release {{version}} summary:
 - CI/CD: {{PASSING/FAILING/UNKNOWN}}
 - Release agent: {{GO/NO-GO}}
 - SRE: {{GO/NO-GO}}
+- Cost analysis: {{CLEAR/RISK}}
 - Pending migrations: {{yes/no}}
+- Feature flags to toggle: {{N}}
+
+Deploy sequence after tagging:
+1. Deploy to STAGING → verify → confirm
+2. Deploy to PRODUCTION (only after staging verified)
 
 Proceed to tag and publish release notes? [Y/N]
 ```
 
 **This is a blocking gate.** Do NOT create tag until user confirms.
+
+If CI/CD is UNKNOWN and user confirms: record `ci_unknown_override: true` in the SEP log.
 
 ### Step 8 — Create tag and release
 

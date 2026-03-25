@@ -5,6 +5,18 @@ description: Configures a PreToolUse hook that auto-fixes staged files with proj
 
 # /pre-commit-lint — Auto-fix Lint Before Commits
 
+## Global Safety Contract
+
+**This contract applies to every operation in this workflow. Violating it requires explicit written user confirmation.**
+
+This skill must never:
+- Generate a hook that passes `--no-verify` to git commands — doing so defeats the purpose of pre-commit safety
+- Modify `.git/hooks/` directly — always use `.claude/settings.json` hooks
+- Auto-fix changes that alter the semantic behavior of code (only formatting and lint are permitted)
+- Remove existing hook configurations without showing the user what will be removed
+
+If any operation requires bypassing these constraints, STOP and surface the decision to the user before proceeding.
+
 Detects the project's lint tools from `.pre-commit-config.yaml` (or `pyproject.toml`/`package.json`) and installs a `PreToolUse` Bash hook in `.claude/settings.json` that runs auto-fix on staged files before every `git commit`.
 
 ## What This Skill Does

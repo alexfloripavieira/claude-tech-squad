@@ -19,7 +19,7 @@ Use it for:
 
 - discovery and scope clarification
 - architecture, TDD-first implementation planning, and implementation coordination
-- multi-specialist delivery across 59 specialist agents
+- multi-specialist delivery across 60 specialist agents
 - test, review, documentation, Jira/Confluence, and release follow-through
 
 If you need baseline commands, skills, rules, and templates, use `claude-config`.
@@ -189,6 +189,44 @@ Use para revisar qualquer pull request com bench especializado. Detecta os revis
 https://github.com/org/repo/pull/42
 ```
 
+### `/claude-tech-squad:llm-eval`
+
+Use após qualquer mudança em prompts, pipeline RAG, modelo de embedding, ou lógica de AI. Roda suite de evals (RAGAS, DeepEval, PromptFoo), compara contra baseline, e bloqueia o release se houver regressão de qualidade.
+
+```text
+/claude-tech-squad:llm-eval
+```
+
+Use também antes de qualquer release que inclua features de AI — é o equivalente de `npm test` para apps com LLM.
+
+### `/claude-tech-squad:prompt-review`
+
+Use antes de mergar qualquer mudança em arquivos de prompt. Faz diff comportamental, testa regressão nos exemplos golden, escaneia prompt injection (direto e via documentos RAG), e estima impacto no custo de tokens.
+
+```text
+/claude-tech-squad:prompt-review
+```
+
+Se o veredicto for BLOCKED (risco de injection), o prompt não pode ser mergeado até corrigir.
+
+### `/claude-tech-squad:multi-service`
+
+Use when a change spans multiple services and requires coordinated deployment. Maps the dependency graph, validates contracts (Pact tests), sequences the deployment runbook, and assesses blast radius.
+
+```text
+/claude-tech-squad:multi-service
+Services: payment-api (producer), order-service (consumer), notification-service (consumer)
+Change: payment webhook payload adding new required field
+```
+
+### `/claude-tech-squad:iac-review`
+
+Use before any `terraform apply`, `helm upgrade`, `cdk deploy`, or equivalent. Reviews the changeset for blast radius, security posture (IAM, open ports, encryption), and cost impact. Produces a safe apply sequence with rollback plan and a blocking gate for critical findings.
+
+```text
+/claude-tech-squad:iac-review
+```
+
 ### `/claude-tech-squad:discovery`
 
 Use when the problem or feature still needs shaping. Produces a complete Discovery & Blueprint Document.
@@ -288,7 +326,7 @@ Rule of thumb:
 |---|---|
 | Discovery | pm, business-analyst, po, planner, architect, techlead |
 | Architecture | backend-architect, frontend-architect, api-designer, data-architect, ux-designer, ai-engineer, agent-architect, integration-engineer, devops, ci-cd, dba, platform-dev, cloud-architect |
-| LLM / AI | prompt-engineer, rag-engineer, llm-eval-specialist, conversational-designer, ml-engineer |
+| LLM / AI | ai-engineer, prompt-engineer, rag-engineer, llm-eval-specialist, llm-safety-reviewer, agent-architect, conversational-designer, ml-engineer |
 | Implementation | backend-dev, frontend-dev, mobile-dev, data-engineer, tdd-specialist |
 | Search | search-engineer |
 | Quality | reviewer, qa, test-planner, test-automation-engineer, integration-qa |

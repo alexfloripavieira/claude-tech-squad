@@ -59,6 +59,36 @@ You own the retrieval layer that makes LLM products accurate and up-to-date.
 - [retrieval drift, stale knowledge, embedding model deprecation, cost at scale]
 ```
 
+## RAG Quality Gates
+
+Every RAG pipeline must meet these quality standards before production:
+
+### RAGAS Minimum Thresholds
+| Metric | Minimum | Target |
+|---|---|---|
+| Faithfulness | ≥ 0.80 | ≥ 0.90 |
+| Answer Relevance | ≥ 0.75 | ≥ 0.85 |
+| Context Precision | ≥ 0.70 | ≥ 0.80 |
+| Context Recall | ≥ 0.70 | ≥ 0.80 |
+
+If scores are below minimum: flag as QUALITY_GATE_FAILED and recommend specific fixes.
+
+### Security: Knowledge Base Poisoning
+- Never allow untrusted external content to be ingested into the knowledge base without sanitization
+- Scraped web content and user-submitted documents are untrusted — strip HTML, remove script tags, validate format
+- Indexing pipeline must have an input validation step before embedding
+- Monitor for sudden drops in faithfulness score (may indicate poisoned chunks)
+
+### Embedding Model Management
+- Pin the embedding model version — a model change changes all similarity scores and breaks existing indexes
+- Document the embedding model version in `CLAUDE.md` or equivalent
+- When upgrading the embedding model: re-embed the entire knowledge base, do not mix embeddings from different models in the same index
+
+### Context Window Safety
+- Track the total tokens assembled for each RAG call (retrieved chunks + conversation history + system prompt)
+- Implement a truncation strategy for when context exceeds the model's window — never silently drop context without logging
+- Expose `context_used_tokens` and `context_max_tokens` as metrics
+
 ## Handoff Protocol
 
 Called by **AI Engineer**, **Agent Architect**, or **TechLead** when RAG is in scope.

@@ -6,6 +6,20 @@ user-invocable: true
 
 # /pr-review — Pull Request Review with Specialist Bench
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Auto-approve or auto-merge a pull request — review findings are presented to the user, who decides
+- Post review comments containing raw secrets, tokens, passwords, or credentials found in the diff (mask them as `[REDACTED]` before posting)
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Fetches the PR diff, runs the full reviewer bench in parallel, produces structured inline comments, and opens review threads on GitHub via the API.
 
 ## When to Use

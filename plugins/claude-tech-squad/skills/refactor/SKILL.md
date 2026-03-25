@@ -6,6 +6,23 @@ user-invocable: true
 
 # /refactor — Safe Incremental Refactoring
 
+## Global Safety Contract
+
+**This contract applies to every agent and operation in this workflow. Violating it requires explicit written user confirmation.**
+
+No agent may, under any circumstances:
+- Change observable behavior during a refactor — if behavior must change, escalate to `/squad`
+- Execute `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`, or any destructive SQL without a verified rollback script and explicit user confirmation
+- Delete cloud resources (S3 buckets, databases, clusters, queues) in any environment
+- Merge to `main`, `master`, or `develop` without an approved pull request
+- Force-push (`git push --force`) to any protected branch
+- Skip pre-commit hooks (`git commit --no-verify`) without explicit user authorization
+- Remove public API surface (methods, endpoints, exported symbols) without verifying zero callers first
+- Execute `eval()`, dynamic shell injection, or unsanitized external input in commands
+- Proceed with the next refactor step after a test failure — stop and present [F]ix / [S]kip / [A]bort
+
+If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
+
 Test-guarded refactoring workflow. Prevents big-bang refactors that break behavior silently — every change is backed by tests that prove behavior is preserved.
 
 **Core rule:** Behavior does not change. If the refactor requires a behavior change, that is a feature — use `/squad` instead.
