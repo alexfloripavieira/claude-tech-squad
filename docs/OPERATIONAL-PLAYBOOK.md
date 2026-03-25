@@ -204,7 +204,40 @@ Investigate the duplicate webhook incident, implement the fix, validate regressi
 
 ---
 
-## Scenario 13: Security Audit
+## Scenario 13: Production Emergency — Hotfix
+
+Use: `/claude-tech-squad:hotfix`
+
+When:
+- production or staging is broken and a patch is needed now
+- you know approximately where the issue is
+- you need a branch, PR, and deploy checklist without discovery overhead
+
+```text
+/claude-tech-squad:hotfix
+```
+
+Escalate to `/squad` if the root cause reveals an architectural problem or the fix touches more than 5 files.
+
+---
+
+## Scenario 14: Pull Request Review
+
+Use: `/claude-tech-squad:pr-review`
+
+When:
+- reviewing a non-trivial pull request before merge
+- you want specialist coverage beyond a basic code review (security, privacy, performance, accessibility)
+- you want findings posted as inline GitHub review threads automatically
+
+```text
+/claude-tech-squad:pr-review
+https://github.com/org/repo/pull/42
+```
+
+---
+
+## Scenario 15: Security Audit
 
 Use: `/claude-tech-squad:security-audit`
 
@@ -218,7 +251,7 @@ When:
 
 ---
 
-## Scenario 14: Schema or Migration Planning
+## Scenario 16: Schema or Migration Planning
 
 Use: `/claude-tech-squad:migration-plan` before any schema change
 
@@ -228,7 +261,7 @@ Use: `/claude-tech-squad:migration-plan` before any schema change
 
 ---
 
-## Scenario 15: Cloud or Production Debug
+## Scenario 17: Cloud or Production Debug
 
 Use: `/claude-tech-squad:cloud-debug`
 
