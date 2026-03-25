@@ -775,10 +775,10 @@ Cada agente de implementação no `/implement` deve retornar um bloco estruturad
 
 ```markdown
 ## Completion Block
-- Task: implementar endpoint de criação de Lead
+- Task: implement lead creation endpoint
 - Status: completed
-- Files changed: [django/approvals/views.py, django/approvals/serializers.py]
-- Tests run: docker compose exec django python -m pytest /tests/backend/unit/approvals/ -v → PASS
+- Files changed: [src/api/leads/views.py, src/api/leads/serializers.py]
+- Tests run: {{test_command}} → PASS
 - Test count: 14 passed, 0 failed
 ```
 
