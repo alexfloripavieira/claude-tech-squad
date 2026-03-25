@@ -14,18 +14,6 @@ This repository is the execution layer. It provides the specialist team and work
 - LLM/AI features: evals as CI gate, prompt review, RAG quality, prompt injection security
 - Jira and Confluence handoff support
 
-## Use `claude-config` For
-
-- machine-level and user-level baseline setup
-- reusable global commands, skills, rules, and templates
-- portable defaults shared across repositories
-
-Short version:
-
-- `claude-config` installs the environment
-- `claude-tech-squad` runs the squad
-
-See [USAGE-BOUNDARIES.md](docs/USAGE-BOUNDARIES.md).
 See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for installation, teammate mode setup, commands, and prompt examples.
 See [EXECUTION-TRACE.md](docs/EXECUTION-TRACE.md) for how to interpret visible agent execution.
 See [OPERATIONAL-PLAYBOOK.md](docs/OPERATIONAL-PLAYBOOK.md) for common execution scenarios.
