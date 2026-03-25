@@ -140,6 +140,38 @@ When running in teammate mode, each specialist runs in its own Claude Code insta
 
 ## Commands
 
+### `/claude-tech-squad:onboarding`
+
+Run once in any new repository before using other squad commands. Detects the stack, creates `ai-docs/`, generates a `CLAUDE.md` template, and runs a security and dependency baseline.
+
+```text
+/claude-tech-squad:onboarding
+```
+
+### `/claude-tech-squad:release`
+
+Use when implementation is done and you need to cut a release. Builds change inventory from git, validates CI/CD, generates rollback plan and release notes, creates the version tag.
+
+```text
+/claude-tech-squad:release
+```
+
+### `/claude-tech-squad:incident-postmortem`
+
+Use after a production incident is resolved. Reconstructs timeline, identifies root cause with 5-whys, produces prioritized action items, and generates a blameless post-mortem document.
+
+```text
+/claude-tech-squad:incident-postmortem
+```
+
+### `/claude-tech-squad:refactor`
+
+Use for safe technical debt reduction. Writes characterization tests to lock current behavior, then refactors incrementally — behavior does not change.
+
+```text
+/claude-tech-squad:refactor
+```
+
 ### `/claude-tech-squad:hotfix`
 
 Use quando produção está quebrada e você precisa de um patch agora. Mais rápido que `/bug-fix` — intake → root cause → patch mínimo → branch `hotfix/` → PR → deploy checklist.

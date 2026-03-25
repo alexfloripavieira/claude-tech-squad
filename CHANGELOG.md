@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.6.0] - 2026-03-24 — /onboarding, /release, /incident-postmortem, /refactor
+
+### Added
+
+**`/onboarding` skill** (new):
+Bootstraps a new repository for squad usage. Detects stack from project files, creates `ai-docs/` structure with SEP log directory, generates a `CLAUDE.md` template with detected commands, runs initial security and dependency baseline scans, and produces a `ai-docs/project-baseline-YYYY-MM-DD.md` with health summary and recommended first steps. First command to run in any new repo.
+
+**`/release` skill** (new):
+Standalone release preparation. Builds a categorized change inventory from git log and merged PRs, validates CI/CD status, spawns `release` agent for rollback plan and deploy checklist, spawns `sre` for blast radius assessment, generates internal and user-facing release notes, creates the version tag, and optionally publishes a GitHub release. Confirmation gate before tag creation. NO-GO from release agent or SRE halts the workflow.
+
+**`/incident-postmortem` skill** (new):
+Structured blameless post-mortem after production incidents. Reconstructs timeline from git history and user-provided artifacts, spawns `incident-manager` for root cause + 5-whys + contributing factors analysis, spawns `sre` for reliability and observability gap assessment, generates prioritized action items (P1/P2/P3), and produces a shareable post-mortem document at `ai-docs/postmortem-YYYY-MM-DD-{slug}.md`. Completes the incident lifecycle started by `/hotfix` and `/cloud-debug`.
+
+**`/refactor` skill** (new):
+Test-guarded incremental refactoring. Spawns `design-principles-specialist` for analysis and step-by-step plan, writes characterization tests that lock current behavior before any code changes, executes each refactor step individually with test verification, rolls back or gates on test failures, and runs `reviewer` on the final result. Core rule: behavior does not change — if behavior must change, escalate to `/squad`.
+
 ## [5.5.0] - 2026-03-24 — UAT rejection loop, coverage gate, /pr-review, /hotfix, cache sync
 
 ### Added

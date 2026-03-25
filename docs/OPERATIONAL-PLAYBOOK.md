@@ -8,13 +8,34 @@ Use it when you want a practical answer to: "which command should I run for this
 
 Choose the lightest command that still matches the real delivery scope:
 
+- `/claude-tech-squad:onboarding` for bootstrapping a new repository
 - `/claude-tech-squad:discovery` for shaping and planning
 - `/claude-tech-squad:implement` for execution after approval
 - `/claude-tech-squad:squad` for end-to-end or audit-style work
+- `/claude-tech-squad:refactor` for safe technical debt reduction
+- `/claude-tech-squad:release` for cutting a release from existing work
+- `/claude-tech-squad:incident-postmortem` for learning after incidents
 
 Default behavior note:
 
 - `/claude-tech-squad:squad` is TDD-first by default for code changes
+
+---
+
+## Scenario 0: New Repository — Bootstrap
+
+Use: `/claude-tech-squad:onboarding`
+
+When:
+- starting a new project from scratch
+- adopting the squad workflow in an existing repository for the first time
+- you want a CLAUDE.md template, ai-docs/ structure, and a security baseline before the first sprint
+
+```text
+/claude-tech-squad:onboarding
+```
+
+Run this once per repository before any other squad command.
 
 ---
 
@@ -204,7 +225,56 @@ Investigate the duplicate webhook incident, implement the fix, validate regressi
 
 ---
 
-## Scenario 13: Production Emergency — Hotfix
+## Scenario 13: Technical Debt — Safe Refactor
+
+Use: `/claude-tech-squad:refactor`
+
+When:
+- you want to improve code structure without changing behavior
+- extracting classes, reducing coupling, removing duplication
+- behavior must stay identical — if it needs to change, use `/squad`
+
+```text
+/claude-tech-squad:refactor
+```
+
+Escalate to `/squad` if root cause analysis reveals a design flaw requiring behavioral changes or the scope exceeds 15 files.
+
+---
+
+## Scenario 14: Release Preparation
+
+Use: `/claude-tech-squad:release`
+
+When:
+- implementation is done and you need to cut a release
+- you want release notes generated from commits and PRs
+- you want a rollback plan, deploy checklist, and version tag
+
+```text
+/claude-tech-squad:release
+```
+
+---
+
+## Scenario 15: Post-Incident Learning
+
+Use: `/claude-tech-squad:incident-postmortem`
+
+When:
+- a production incident has been resolved
+- you want a blameless root cause analysis and action items
+- you need a post-mortem document to share with the team
+
+```text
+/claude-tech-squad:incident-postmortem
+```
+
+Complements `/cloud-debug` (active diagnosis) and `/hotfix` (emergency fix) to close the full incident lifecycle.
+
+---
+
+## Scenario 19: Production Emergency — Hotfix
 
 Use: `/claude-tech-squad:hotfix`
 
@@ -221,7 +291,7 @@ Escalate to `/squad` if the root cause reveals an architectural problem or the f
 
 ---
 
-## Scenario 14: Pull Request Review
+## Scenario 20: Pull Request Review
 
 Use: `/claude-tech-squad:pr-review`
 
@@ -237,7 +307,7 @@ https://github.com/org/repo/pull/42
 
 ---
 
-## Scenario 15: Security Audit
+## Scenario 21: Security Audit
 
 Use: `/claude-tech-squad:security-audit`
 
@@ -251,7 +321,7 @@ When:
 
 ---
 
-## Scenario 16: Schema or Migration Planning
+## Scenario 22: Schema or Migration Planning
 
 Use: `/claude-tech-squad:migration-plan` before any schema change
 
@@ -261,7 +331,7 @@ Use: `/claude-tech-squad:migration-plan` before any schema change
 
 ---
 
-## Scenario 17: Cloud or Production Debug
+## Scenario 23: Cloud or Production Debug
 
 Use: `/claude-tech-squad:cloud-debug`
 

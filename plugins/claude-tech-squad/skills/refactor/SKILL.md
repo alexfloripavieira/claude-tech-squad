@@ -1,0 +1,272 @@
+---
+name: refactor
+description: Safe, test-guarded incremental refactoring workflow. Writes characterization tests to lock current behavior, plans the refactor in small steps, implements incrementally, and verifies behavior is preserved at each step. Trigger with "refatorar", "refactor", "limpar código", "remover débito técnico", "reorganizar", "melhorar design".
+user-invocable: true
+---
+
+# /refactor — Safe Incremental Refactoring
+
+Test-guarded refactoring workflow. Prevents big-bang refactors that break behavior silently — every change is backed by tests that prove behavior is preserved.
+
+**Core rule:** Behavior does not change. If the refactor requires a behavior change, that is a feature — use `/squad` instead.
+
+## When to Use
+
+- Cleaning up technical debt without changing external behavior
+- Extracting shared logic, renaming for clarity, restructuring modules
+- Reducing coupling or improving testability
+- When the user says: "refatorar", "refactor", "limpar código", "remover débito técnico", "reorganizar", "melhorar design"
+
+**Escalate to `/squad` if:**
+- The refactor requires a behavior change
+- The scope touches more than 15 files
+- The refactor involves changing a public API contract
+
+## Execution
+
+### Step 1 — Refactor Intake Gate
+
+Ask the user (if not already provided):
+1. **Target**: What code needs to be refactored? (file, module, class, function)
+2. **Goal**: What specific improvement? (extract class, rename, reduce coupling, improve testability, remove duplication)
+3. **Constraint**: What must NOT change? (public API, external behavior, DB schema)
+4. **Risk tolerance**: Is this in a hot path or critical service?
+
+### Step 2 — Stack Command Detection
+
+Read project files to detect test command before spawning any agent:
+
+| Signal file | test command |
+|---|---|
+| `Makefile` with `test:` | `make test` |
+| `package.json` scripts | `npm test` |
+| `pyproject.toml` | `pytest` |
+| `pom.xml` | `mvn test` |
+| `build.gradle` | `./gradlew test` |
+
+Store as `{{test_command}}`. CLAUDE.md overrides take priority.
+
+### Step 3 — Spawn design-principles-specialist for analysis
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:design-principles-specialist",
+  prompt = """
+## Refactor Analysis
+
+### Target
+{{target_description}}
+
+### Goal
+{{refactor_goal}}
+
+### Constraint
+{{constraints}}
+
+---
+You are the Design Principles Specialist. Analyze the target code and produce:
+1. **Current problems** — specific violations (high coupling, low cohesion, SRP violation, duplication, etc.)
+2. **Refactor plan** — ordered list of small, safe steps (each step should be independently verifiable)
+3. **Risk assessment** — what could break at each step?
+4. **Characterization test needs** — what behavior must be covered by tests before refactoring starts?
+5. **Definition of done** — how do we know the refactor is complete and correct?
+
+Each step in the plan must be atomic: it either makes things better or can be rolled back cleanly.
+Do NOT chain to other agents.
+"""
+)
+```
+
+### Step 4 — Refactor plan confirmation gate
+
+Present the analysis and plan to the user:
+
+```
+Refactor analysis complete.
+
+Target: {{target}}
+Problems identified: N
+Steps planned: N
+
+Step 1: {{step_1_description}} (risk: low/medium/high)
+Step 2: {{step_2_description}} (risk: low/medium/high)
+...
+
+Characterization tests needed for: {{list}}
+
+Proceed with this plan? [Y/N/modify]
+```
+
+**This is a blocking gate.** Do NOT write characterization tests until user confirms the plan.
+
+### Step 5 — Write characterization tests
+
+Spawn test-automation-engineer to write tests that lock current behavior:
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:test-automation-engineer",
+  prompt = """
+## Characterization Tests
+
+### Target
+{{target_description}}
+
+### Current behavior to lock
+{{characterization_test_needs}}
+
+### Test command
+{{test_command}}
+
+### Constraint
+Do NOT test implementation details. Test observable behavior only:
+- Return values
+- Side effects (DB writes, events emitted, external calls made)
+- Error cases
+
+---
+Write characterization tests that will FAIL if the behavior changes during refactoring.
+These tests must pass on the CURRENT code before any refactoring begins.
+
+Run {{test_command}} to confirm all tests pass.
+
+Return:
+## Completion Block
+- Tests written: N
+- Files created/modified: [list]
+- Test result: {{test_command}} → PASS/FAIL
+Do NOT chain.
+"""
+)
+```
+
+Run `{{test_command}}`. If tests fail on the current code: the characterization tests are wrong. Spawn test-automation-engineer again to fix them. Do NOT proceed to refactoring until all characterization tests pass on unmodified code.
+
+Emit: `[Characterization Tests] N tests written — all PASS on current code`
+
+### Step 6 — Execute refactor steps incrementally
+
+For each step in the refactor plan:
+
+1. Spawn the appropriate implementation agent (backend-dev, frontend-dev, etc.):
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:backend-dev",  # or frontend-dev
+  prompt = """
+## Refactor Step {{N}} of {{total}}
+
+### Step Description
+{{step_description}}
+
+### Constraint
+- Do NOT change observable behavior
+- Do NOT change public API signatures unless explicitly in the plan
+- Keep each step small and independently verifiable
+
+### Test command
+{{test_command}}
+
+---
+Implement this refactor step.
+After implementing, run {{test_command}}.
+All characterization tests MUST still pass.
+
+Return:
+## Completion Block
+- Step: {{N}}
+- Files changed: [list]
+- Test result: {{test_command}} → PASS/FAIL (N passed)
+- Behavior preserved: yes / no (explain if no)
+Do NOT chain.
+"""
+)
+```
+
+2. After each step: verify `{{test_command}}` passes.
+
+3. If tests fail after a step:
+   - Emit: `[Refactor Step {{N}} FAILED] Characterization tests broke — rolling back`
+   - Ask user: `[Gate] Step {{N}} broke tests. Options: [F]ix the step, [S]kip this step, [A]bort refactor`
+   - If Fix: spawn implementation agent with failure context
+   - If Skip: proceed to next step
+   - If Abort: stop here, leave code in last known-good state
+
+Emit per step: `[Refactor Step {{N}}] {{description}} — PASS`
+
+### Step 7 — Spawn reviewer for final review
+
+After all steps complete:
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:reviewer",
+  prompt = """
+## Refactor Review
+
+### Goal
+{{refactor_goal}}
+
+### Changes made
+{{aggregated_diffs}}
+
+### Characterization test results
+{{test_results}}
+
+---
+Review this refactor for:
+1. Does it achieve the stated goal?
+2. Are there any remaining code smells or opportunities missed?
+3. Did any step accidentally change behavior (check characterization tests carefully)?
+4. Is the code simpler and more readable than before?
+
+Return: APPROVED or CHANGES REQUESTED with specific issues.
+Do NOT chain.
+"""
+)
+```
+
+If CHANGES REQUESTED: spawn implementation agent to address feedback. Re-run tests. Re-run reviewer.
+
+### Step 8 — Final test run
+
+```bash
+{{test_command}}
+```
+
+Confirm all characterization tests pass. Confirm no new test failures introduced.
+
+### Step 9 — Write SEP log (SEP Contrato 1)
+
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-refactor-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+skill: refactor
+timestamp: {{ISO8601}}
+status: completed
+target: {{target}}
+steps_planned: N
+steps_completed: N
+steps_skipped: N
+characterization_tests_written: N
+reviewer_result: APPROVED
+test_result: PASS
+---
+
+## Refactor Summary
+{{one_paragraph}}
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
+
+### Step 10 — Report to user
+
+Tell the user:
+- Steps completed / skipped / failed
+- Files changed
+- Characterization tests written (N) — these can now serve as regression tests
+- Reviewer result
+- Test suite result
+- Suggestion: commit with message `refactor: {{goal}}`

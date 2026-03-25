@@ -1,6 +1,6 @@
 # Claude Tech Squad — Manual Técnico
 
-**Versão:** 5.5.0
+**Versão:** 5.6.0
 **Plugin:** `claude-tech-squad`
 
 ---
@@ -113,12 +113,16 @@ Sem tmux mode, os mesmos workflows funcionam corretamente como subagentes inline
 
 | Skill | Quando usar |
 |---|---|
+| `/onboarding` | Primeiro comando em qualquer repo novo. Bootstrap de ai-docs/, CLAUDE.md, baseline de segurança. |
 | `/squad` | Feature completa do zero ao deploy. Inclui discovery + build + release. |
 | `/discovery` | Planejar antes de implementar. Produz blueprint completo sem escrever código. |
 | `/implement` | Implementar a partir de um blueprint existente (saída do `/discovery`). |
+| `/refactor` | Refatoração segura com testes de caracterização. Comportamento não muda. |
 | `/bug-fix` | Corrigir um bug específico com stack trace ou repro steps. 1–5 arquivos. |
 | `/hotfix` | Produção quebrada. Patch mínimo + branch `hotfix/` + PR + deploy checklist. |
+| `/release` | Cortar uma release: inventário de mudanças, rollback plan, release notes, tag. |
 | `/pr-review` | Revisar qualquer PR. Bench paralelo de especialistas + threads no GitHub. |
+| `/incident-postmortem` | Pós-incidente. Timeline, root cause, 5-whys, action items, doc pronto. |
 | `/security-audit` | Auditoria de segurança periódica ou pré-release. Roda bandit, pip-audit, npm audit. |
 | `/migration-plan` | Planejar mudança de schema de banco antes de alterar models. |
 | `/cloud-debug` | Investigar problema em ambiente de cloud/produção com logs e infra. |
@@ -129,11 +133,15 @@ Sem tmux mode, os mesmos workflows funcionam corretamente como subagentes inline
 **Regra de escalada:**
 
 ```
-bug urgente, prod quebrada  → /hotfix
+repo novo                   → /onboarding (primeiro)
+prod quebrada               → /hotfix
+incidente resolvido         → /incident-postmortem
 bug 1–5 arquivos            → /bug-fix
+débito técnico              → /refactor
 feature nova                → /squad
 planejar primeiro           → /discovery → /implement
 schema vai mudar            → /migration-plan (antes do /squad ou /implement)
+release pronta              → /release
 auditoria periódica         → /security-audit
 revisar PR                  → /pr-review
 ```
@@ -395,6 +403,128 @@ Lê `ai-docs/.squad-log/` como fonte primária (SEP-aware desde v5.4.0). Detecta
 - **UAT rejection rate**: logs com `uat_result: REJECTED`
 
 Fallback para inferência por git log e markdown quando não há logs SEP.
+
+### /onboarding
+
+**Objetivo:** Bootstrap completo de um repo novo para uso com a squad.
+
+**Fluxo:**
+
+```
+/onboarding
+    │
+    ├─ Detecta stack (package.json, pyproject.toml, pom.xml, go.mod, etc.)
+    ├─ Avalia estado atual (commits, testes, CI/CD)
+    ├─ mkdir -p ai-docs/.squad-log
+    ├─ Cria ai-docs/README.md
+    ├─ Gera CLAUDE.md template (se não existe)
+    ├─ Scan de segurança rápido (bandit/npm audit)
+    ├─ Scan de dependências (pip-audit/npm audit)
+    └─ Gera ai-docs/project-baseline-YYYY-MM-DD.md
+```
+
+**Saída SEP:** `ai-docs/.squad-log/{timestamp}-onboarding-{run_id}.md`
+
+---
+
+### /release
+
+**Objetivo:** Cortar uma release com inventário de mudanças, validação, rollback plan, release notes e tag.
+
+**Input:** Versão, branch base, deploy target.
+
+**Fluxo:**
+
+```
+/release
+    │
+    ├─ [GATE 1: versão + base + target]
+    │
+    ├─ git log desde última tag → categoriza por tipo de commit
+    ├─ gh pr list merged → PRs incluídos
+    ├─ Valida CI/CD + migrations pendentes
+    │
+    ├─ release agent → rollback plan + deploy checklist + GO/NO-GO
+    ├─ sre → blast radius + canary recommendation + GO/NO-GO
+    │
+    ├─ Gera release notes (interna + user-facing)
+    │
+    ├─ [GATE 2: confirmação final — tag e publicar?]
+    │
+    ├─ git tag + git push origin {{version}}
+    └─ gh release create (se disponível)
+```
+
+**Bloqueia** se release agent ou SRE retornam NO-GO.
+
+**Saída SEP:** `ai-docs/.squad-log/{timestamp}-release-{run_id}.md`
+
+---
+
+### /incident-postmortem
+
+**Objetivo:** Post-mortem blameless após um incidente de produção.
+
+**Input:** Resumo do incidente, impacto, timeline conhecida, artefatos (logs, stack traces).
+
+**Fluxo:**
+
+```
+/incident-postmortem
+    │
+    ├─ [GATE 1: intake — impacto + resolução obrigatórios]
+    │
+    ├─ Coleta evidências (git log, CI runs, PRs de hotfix)
+    ├─ Reconstrói timeline
+    │
+    ├─ incident-manager → root cause + 5-whys + fatores contribuintes
+    ├─ sre → gaps de observabilidade + action items de confiabilidade
+    │
+    ├─ Consolida action items P1/P2/P3
+    └─ Gera ai-docs/postmortem-YYYY-MM-DD-{slug}.md
+```
+
+**Princípio blameless:** foco em sistemas e processos, nunca em indivíduos.
+
+**Saída SEP:** `ai-docs/.squad-log/{timestamp}-incident-postmortem-{run_id}.md`
+
+---
+
+### /refactor
+
+**Objetivo:** Refatoração segura com testes de caracterização. Comportamento não muda.
+
+**Input:** Target (arquivo/módulo/classe), objetivo do refactor, constraints.
+
+**Fluxo:**
+
+```
+/refactor
+    │
+    ├─ [GATE 1: target + goal + constraints]
+    ├─ Stack Command Detection
+    │
+    ├─ design-principles-specialist → análise + plano incremental
+    │
+    ├─ [GATE 2: plano aprovado?]
+    │
+    ├─ test-automation-engineer → characterization tests
+    │   Todos os tests DEVEM passar no código atual antes de prosseguir
+    │
+    ├─ Para cada step do plano:
+    │   ├─ backend-dev / frontend-dev → implementa step
+    │   ├─ {{test_command}} → DEVE passar
+    │   └─ [GATE se tests quebraram: Fix / Skip / Abort]
+    │
+    ├─ reviewer → revisão final
+    └─ {{test_command}} → confirmação final
+```
+
+**Escalada para /squad se:** comportamento deve mudar, ou > 15 arquivos.
+
+**Saída SEP:** `ai-docs/.squad-log/{timestamp}-refactor-{run_id}.md`
+
+---
 
 ### /migration-plan, /cloud-debug, /pre-commit-lint
 
@@ -663,11 +793,15 @@ Essas linhas aparecem ao final de cada skill que implementa o Squad Execution Pr
 ### Qual skill usar
 
 ```
-Produção quebrada, urgente             → /hotfix
+Repo novo, nunca usei a squad          → /onboarding (primeiro)
+Produção quebrada                      → /hotfix
+Incidente resolvido, quero aprender    → /incident-postmortem
 Tenho um bug com stack trace           → /bug-fix
+Débito técnico, sem mudar comportamento→ /refactor
 Quero planejar antes de implementar    → /discovery
 Tenho um blueprint, quero implementar  → /implement
 Quero tudo de uma vez                  → /squad
+Implementação pronta, quero release    → /release
 Preciso revisar uma PR                 → /pr-review
 Vou mudar models do banco              → /migration-plan ANTES do /squad ou /implement
 Preciso de auditoria de segurança      → /security-audit
@@ -693,6 +827,9 @@ Os agentes trabalham autonomamente entre os gates. Não é necessário interagir
 ### Skills por contexto
 
 ```bash
+# Primeiro comando em qualquer repo novo
+/claude-tech-squad:onboarding
+
 # Feature nova completa
 /claude-tech-squad:squad "implementar autenticação com OAuth Google"
 
@@ -710,6 +847,15 @@ Os agentes trabalham autonomamente entre os gates. Não é necessário interagir
 
 # Produção quebrada — patch emergencial
 /claude-tech-squad:hotfix
+
+# Pós-incidente — post-mortem blameless
+/claude-tech-squad:incident-postmortem
+
+# Débito técnico — refator seguro
+/claude-tech-squad:refactor
+
+# Implementação pronta — cortar release
+/claude-tech-squad:release
 
 # Revisar uma PR com bench especializado
 /claude-tech-squad:pr-review
@@ -800,7 +946,7 @@ O SEP é um conjunto de quatro contratos stack-agnósticos que cobrem observabil
 
 | Contrato | Nome | Skills que implementam |
 |---|---|---|
-| C1 | Execution Log | `/discovery`, `/implement`, `/security-audit`, `/dependency-check`, `/hotfix`, `/pr-review` |
+| C1 | Execution Log | `/discovery`, `/implement`, `/security-audit`, `/dependency-check`, `/hotfix`, `/pr-review`, `/onboarding`, `/release`, `/incident-postmortem`, `/refactor` |
 | C2 | Remediation Tasks | `/security-audit`, `/dependency-check` |
 | C3 | Discovery → Implement Bridge Gate | `/discovery` |
 | C4 | Task Completion Block | `/implement` (por agente de implementação) |
