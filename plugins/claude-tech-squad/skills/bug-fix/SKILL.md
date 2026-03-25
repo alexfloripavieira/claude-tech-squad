@@ -126,6 +126,13 @@ Rules:
 - Follow the project's coding standards (Hexagonal Architecture, no direct DB JOINs across apps, etc.)
 - Verify all library APIs via context7 before using them.
 
+PERFUMARIA GUARD (non-negotiable):
+- Do NOT extract helpers, rename variables, reorganize functions, or eliminate duplication unless the duplication itself is the direct cause of the bug.
+- Do NOT apply DRY improvements, SRP refactors, or "clean code" suggestions as part of this fix.
+- Do NOT improve code that is adjacent to the fix but not part of the bug path.
+- If a reviewer later suggests refactoring: defer it. Never implement refactoring under a bug-fix commit.
+- The diff must be the smallest possible change that makes the failing test pass.
+
 Safety constraints (non-negotiable):
 - Never force-push (`git push --force`) to any branch
 - Never skip pre-commit hooks (`git commit --no-verify`)
@@ -177,10 +184,23 @@ Focus:
 4. Is the fix minimal — no unnecessary refactoring?
 5. Lint compliance and TDD compliance gates.
 
-Output: APPROVED or CHANGES REQUESTED with specific comments.
+BLOCKER criteria (the ONLY reasons to output CHANGES REQUESTED):
+- The fix does not address the root cause
+- The fix introduces a crash, regression, or security hole
+- A new unguarded exception path could leave shared state (e.g. a message list) in a broken state
+- The failing test does not pass
+
+NOT blockers — flag as LOW/NIT only, never as CHANGES REQUESTED:
+- DRY violations or duplicated logic
+- Helper extraction opportunities
+- Variable renaming or reorganization
+- Code style or "clean code" improvements
+- Performance micro-optimizations
+
+Output: APPROVED or CHANGES REQUESTED. If CHANGES REQUESTED, only list blocker-category findings.
 ```
 
-If reviewer requests changes: apply them and repeat Step 5–6 once more.
+If reviewer outputs CHANGES REQUESTED: apply ONLY the blocker findings. Do NOT apply LOW/NIT suggestions. Repeat Step 5–6 once more with the blocker fixes only.
 
 ### Step 7 — Report to User
 
