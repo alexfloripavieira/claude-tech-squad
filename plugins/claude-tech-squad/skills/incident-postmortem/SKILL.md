@@ -143,6 +143,69 @@ Consolidate action items from both agents. For each item:
 - Assign an owner role (e.g. backend-dev, devops, sre, observability-engineer)
 - Set a suggested deadline (P1: this sprint, P2: next sprint, P3: backlog)
 
+### Step 6b — Generate runbook from P1 action items (proactive)
+
+After action items are consolidated, automatically generate an operational runbook for every P1 item. Do NOT ask — generate proactively.
+
+For each P1 action item, spawn sre to produce the runbook step:
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:sre",
+  prompt = """
+## Runbook Generation
+
+### Incident
+{{incident_summary}}
+
+### P1 Action Item
+{{p1_action_item}}
+
+### Root Cause
+{{root_cause}}
+
+---
+You are the SRE. Write an operational runbook section for this action item.
+The runbook must be executable by an on-call engineer at 3am under stress.
+
+Format:
+## Runbook: {{action_item_title}}
+
+**Trigger:** What symptom or alert fires this runbook
+**Severity:** P1/P2/P3
+**Expected resolution time:** N minutes
+
+### Pre-conditions
+- [ ] {{what_to_verify_before_starting}}
+
+### Steps
+1. {{specific_command_or_action}}
+2. {{specific_command_or_action}}
+3. Verify: {{how_to_confirm_resolution}}
+
+### Rollback
+{{how_to_undo_if_steps_make_things_worse}}
+
+### Escalation
+If unresolved after {{N}} minutes: escalate to {{role}}
+
+Return the runbook section. Do NOT chain.
+"""
+)
+```
+
+Write all runbook sections to `ai-docs/runbook-{{service_slug}}.md` (append if file exists, create if not):
+
+```markdown
+# Operational Runbook — {{service_name}}
+
+> Auto-generated from post-mortem {{incident_slug}}. Review and validate before relying in production.
+
+{{runbook_sections}}
+```
+
+Emit: `[Runbook Generated] ai-docs/runbook-{{service_slug}}.md — N procedures added`
+
 ### Step 7 — Write post-mortem document
 
 Write to `ai-docs/postmortem-{{YYYY-MM-DD}}-{{slug}}.md`:
@@ -228,6 +291,7 @@ Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-incident-postmortem-{{r
 ```markdown
 ---
 run_id: {{run_id}}
+parent_run_id: {{hotfix_run_id_if_known | null}}
 skill: incident-postmortem
 timestamp: {{ISO8601}}
 status: completed
@@ -236,7 +300,9 @@ incident_severity: P1 | P2 | P3 | P4
 duration_minutes: N
 action_items_p1: N
 action_items_total: N
+runbook_generated: true | false
 postmortem_artifact: ai-docs/postmortem-{{date}}-{{slug}}.md
+runbook_artifact: ai-docs/runbook-{{service_slug}}.md | null
 ---
 ```
 

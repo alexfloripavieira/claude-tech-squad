@@ -415,6 +415,76 @@ Emit: `[Teammate Spawned] tdd-specialist | pane: tdd-specialist`
 
 Present TDD Delivery Plan as **Final Gate: Blueprint Confirmation**. The discovery is complete when the user confirms.
 
+### Step 13b — ADR Generation (proactive, post-Gate 4)
+
+After blueprint confirmation, automatically generate Architecture Decision Records for every significant decision made during the discovery chain. Do NOT ask the user — generate proactively.
+
+Collect architectural decisions from the techlead, architect, and specialist bench outputs. For each decision that involved tradeoffs (e.g. "chose GraphQL over REST", "chose event-driven over synchronous", "chose PostgreSQL over MongoDB"):
+
+```bash
+mkdir -p ai-docs/{{feature_slug}}/adr
+```
+
+Write one file per decision to `ai-docs/{{feature_slug}}/adr/ADR-NNN-{{slug}}.md`:
+
+```markdown
+# ADR-NNN: {{decision_title}}
+
+**Date:** {{date}}
+**Status:** Accepted
+**Deciders:** {{specialist_roles}}
+
+## Context
+
+{{what_problem_was_being_solved}}
+
+## Decision
+
+{{what_was_chosen}}
+
+## Alternatives Considered
+
+| Option | Reason rejected |
+|--------|----------------|
+| {{alt_1}} | {{reason}} |
+
+## Consequences
+
+**Positive:** {{benefits}}
+**Negative:** {{tradeoffs}}
+**Risks:** {{risks}}
+```
+
+Emit: `[ADRs Generated] N decisions recorded in ai-docs/{{feature_slug}}/adr/`
+
+### Step 13c — Feature Flag Assessment (proactive)
+
+After blueprint confirmation, automatically assess whether this feature requires a feature flag.
+
+Evaluate based on the blueprint:
+- Does the feature change user-facing behavior gradually? (rollout candidate)
+- Is the feature risky enough to warrant instant rollback without deploy? (safety flag)
+- Does the feature need A/B testing? (experiment flag)
+- Is the feature behind a permission level that may vary by user/tenant? (entitlement flag)
+
+If **any** applies, add a section to the blueprint:
+
+```markdown
+## Feature Flag Strategy
+
+**Flag name:** `{{feature_slug}}_enabled`
+**Type:** rollout | safety | experiment | entitlement
+**Default:** false (off by default — enable explicitly per environment)
+**Rollout plan:** internal → staging → 5% → 25% → 100%
+**Cleanup:** remove flag after full rollout confirmed stable (suggested: 2 sprints)
+```
+
+If no flag is needed, emit:
+`[Feature Flag] Not required for this feature — full rollout on deploy`
+
+If a flag is needed:
+`[Feature Flag] Required — strategy added to blueprint`
+
 ### Step 14 — Write Execution Log (SEP Contrato 1)
 
 After blueprint confirmation, write the structured execution log.
@@ -428,6 +498,7 @@ Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-discovery-{{run_id}}.md
 ```markdown
 ---
 run_id: {{run_id}}
+parent_run_id: null
 skill: discovery
 timestamp: {{ISO8601}}
 status: completed
@@ -437,6 +508,8 @@ gates_blocked: []
 retry_count: 0
 teammates: [pm, ba, po, planner, architect, techlead, specialist-bench, quality-baseline, design-principles, test-planner, tdd-specialist]
 output_artifact: ai-docs/{{feature_slug}}/blueprint.md
+adrs_generated: N
+feature_flag_required: true | false
 implement_triggered: false
 ---
 

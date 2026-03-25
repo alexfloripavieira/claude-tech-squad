@@ -258,6 +258,7 @@ Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-hotfix-{{run_id}}.md`:
 ```markdown
 ---
 run_id: {{run_id}}
+parent_run_id: null
 skill: hotfix
 timestamp: {{ISO8601}}
 status: completed
@@ -267,6 +268,7 @@ base_branch: {{base_branch}}
 root_cause_confirmed: true
 reviewer_result: APPROVED
 security_checked: true | skipped
+postmortem_recommended: true
 uat_result: N/A
 ---
 
@@ -278,6 +280,24 @@ uat_result: N/A
 ```
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
+
+### Step 12b — Post-mortem prompt (proactive)
+
+After the deploy checklist gate, always prompt for a post-mortem. Do NOT skip.
+
+```
+Hotfix concluído. Todo incidente de produção merece um post-mortem.
+
+Quer iniciar agora?
+- [S] Iniciar /incident-postmortem com contexto deste hotfix
+- [N] Lembrar depois (registrado como pendente no SEP log)
+```
+
+If [S]: pass `parent_run_id: {{run_id}}` to the incident-postmortem run and invoke `/incident-postmortem` with the hotfix context pre-filled (symptom, root cause, patch, timeline).
+
+If [N]: record `postmortem_recommended: true` in the SEP log so `/factory-retrospective` can detect hotfixes without associated post-mortems.
+
+Emit: `[Gate] postmortem-prompt | Waiting for user input`
 
 ### Step 13 — Report to user
 

@@ -57,8 +57,11 @@ Use Glob: `ai-docs/*.md`, `tasks/*.md`
 - Skills with `gates_blocked` most often
 - `uat_result: REJECTED` rate
 - Orphaned discoveries: SEP logs with `implement_triggered: false`
+- Hotfixes without post-mortem: `skill: hotfix` logs with `postmortem_recommended: true` that have no matching `skill: incident-postmortem` log with `parent_run_id` pointing to that hotfix `run_id`
 - Open remediation items: `- [ ]` count across all remediation files
 - Finding resolution rate: `- [x]` / (`- [x]` + `- [ ]`) per audit
+- Run chains: group logs by `parent_run_id` to reconstruct discovery → implement → hotfix → postmortem chains
+- Cost risk releases: `skill: release` logs where cost-optimizer returned RISK (check log body)
 
 **If only fallback artifacts exist**, infer patterns from file content:
 

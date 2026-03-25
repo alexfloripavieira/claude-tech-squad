@@ -261,6 +261,32 @@ Emit: `[Batch Spawned] quality-bench | Teammates: <list>`
 Only spawn reviewers relevant to this project. Each receives the full implementation output.
 Instruction per reviewer: "Review from your specialist lens. Return findings as a checklist. Do NOT chain."
 
+**Load test agent (conditional):** Spawn if the implementation adds or modifies HTTP endpoints, message queues, batch jobs, or any operation that processes variable input volume:
+
+```
+Agent(team_name=<team>, name="load-test", subagent_type="claude-tech-squad:performance-engineer",
+  prompt="""
+## Load Test Plan
+
+### New/Modified Endpoints
+{{endpoints_or_operations}}
+
+### Current baseline (if known)
+{{existing_throughput_or_latency_slos}}
+
+---
+You are the Performance Engineer. Produce a load test plan for these endpoints:
+1. Baseline test: expected normal load (target RPS/concurrent users)
+2. Stress test: 3x normal load — what breaks first?
+3. Spike test: sudden 10x burst — does it recover?
+4. Identify: slowest query, highest memory operation, bottleneck under load
+5. Acceptance criteria: p99 latency < Xms, error rate < 0.1% at normal load
+
+If load testing tools are available (k6, locust, Artillery, JMeter), provide ready-to-run scripts.
+Return findings as a checklist. Do NOT chain.
+""")
+```
+
 ### Step 8 — Docs Writer Teammate
 
 Spawn Docs Writer with the complete delivery package:
@@ -421,14 +447,16 @@ Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md
 ```markdown
 ---
 run_id: {{run_id}}
+parent_run_id: {{discovery_run_id_if_known | null}}
 skill: implement
 timestamp: {{ISO8601}}
 status: completed | failed
 feature_slug: {{feature_slug}}
 blueprint_source: {{blueprint_path}}
-gates_cleared: [tdd, review, qa, uat]
+gates_cleared: [tdd, review, qa, coverage, uat]
 gates_blocked: []
 retry_count: {{total_reviewer_and_qa_retries}}
+load_test_run: true | false | skipped
 teammates: [tdd-specialist, backend-dev?, frontend-dev?, reviewer, qa, security-rev?, docs-writer, jira-confluence, pm-uat]
 uat_result: APPROVED | REJECTED
 ---

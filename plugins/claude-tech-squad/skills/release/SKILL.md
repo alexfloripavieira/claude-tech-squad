@@ -147,6 +147,59 @@ Return: GO or NO-GO with specific risks. Do NOT chain.
 
 If SRE returns NO-GO: present to user and halt.
 
+### Step 5b — Cost analysis (proactive)
+
+Automatically spawn cost-optimizer to assess whether this release introduces new costs. Do NOT skip — run for every release.
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:cost-optimizer",
+  prompt = """
+## Pre-Release Cost Analysis
+
+### Changes in this release
+{{categorized_commits}}
+
+### Files changed
+{{changed_files_list}}
+
+---
+You are the Cost Optimizer. Analyze this release for cost impact:
+1. New or modified DB queries — potential N+1, missing indexes, full table scans
+2. New external API calls — pricing model, rate limits, per-call cost
+3. New async jobs or workers — compute cost, memory footprint
+4. New storage operations — S3/GCS writes, log volume, data retention
+5. New infrastructure resources — lambdas, containers, queues
+
+For each risk: estimate impact (negligible / low / medium / high) and mitigation.
+Return: CLEAR (no significant cost risk) or RISK with specific items.
+Do NOT chain.
+"""
+)
+```
+
+If cost-optimizer returns RISK: add cost findings to the release notes and flag for the release confirmation gate.
+If CLEAR: emit `[Cost Analysis] No significant cost risk detected` and proceed.
+
+### Step 5c — Feature flag audit (proactive)
+
+Check if any feature flags from the blueprint are pending state changes for this release:
+
+```bash
+# Search for feature flag references in changed files
+git diff ${LAST_TAG}..HEAD -- . | grep -iE "feature_flag|featureFlag|ff_|FLAG_|unleash|launchdarkly|flipper" | head -20 || echo "NO_FLAGS_FOUND"
+```
+
+If flags are found:
+- List each flag, its current state, and whether it should be enabled/disabled/removed in this release
+- Add a **Feature Flags** section to the deploy checklist:
+  ```
+  - [ ] Enable flag: {{flag_name}} in {{environment}}
+  - [ ] Remove flag: {{flag_name}} — full rollout confirmed
+  ```
+
+If no flags found: proceed silently.
+
 ### Step 6 — Generate release notes
 
 Produce release notes in two formats:
