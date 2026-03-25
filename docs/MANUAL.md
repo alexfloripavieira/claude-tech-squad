@@ -1,6 +1,6 @@
 # Claude Tech Squad — Manual Técnico
 
-**Versão:** 5.10.0
+**Versão:** 5.11.0
 **Plugin:** `claude-tech-squad`
 
 ---
@@ -1117,9 +1117,19 @@ Exigem **confirmação escrita explícita do usuário** antes de qualquer execu�
 | Criar tag/release com CI falhando | Código não testado não é deploy — é aposta |
 | Migrar banco de dados sem backup confirmado | Operação irreversível sem rede de segurança |
 
+### Documentation Standard — Context7 Mandatory (v5.11.0+)
+
+Todos os **60 agentes** são obrigados a consultar documentação atualizada via Context7 antes de usar qualquer biblioteca, framework ou API externa — independente da stack. Dados de treinamento nunca são fonte de verdade para assinaturas de API, nomes de métodos ou comportamentos default.
+
+**Fluxo obrigatório para toda lib usada:**
+1. `mcp__plugin_context7_context7__resolve-library-id("nome-da-lib")`
+2. `mcp__plugin_context7_context7__query-docs(libraryId, topic="funcionalidade específica")`
+
+Se o Context7 não tiver documentação para a lib, o agente declara explicitamente e sinaliza suposições no output.
+
 ### Global Safety Contract
 
-Desde a v5.8.0, **todos os 16 skills** carregam o **Global Safety Contract** — não apenas os 3 orchestradores principais. Cada skill proíbe explicitamente as operações acima no cabeçalho do SKILL.md.
+Desde a v5.8.0, **todos os 20 skills** carregam o **Global Safety Contract** — não apenas os 3 orchestradores principais. Cada skill proíbe explicitamente as operações acima no cabeçalho do SKILL.md.
 
 Adicionalmente, os prompts de agentes de implementação (`backend-dev`, `frontend-dev`) e release carregam as restrições de segurança inline para que os agentes as recebam mesmo quando operando como subagentes sem acesso direto ao cabeçalho do skill.
 

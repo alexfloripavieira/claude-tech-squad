@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.11.0] - 2026-03-25 — Context7 obrigatório em todos os 60 agentes
+
+### Changed
+
+**Documentation Standard — Context7 Mandatory** (todos os 60 agentes):
+Todo agente da squad agora é obrigado a consultar documentação atualizada via Context7 antes de usar qualquer biblioteca, framework ou API externa — independente da stack. O fluxo mandatório é: (1) resolver o ID da lib com `resolve-library-id`, (2) buscar a documentação relevante com `query-docs`. Se o Context7 não tiver documentação para a lib, o agente deve declarar explicitamente e sinalizar suposições. Aplica-se a: npm, PyPI, Go modules, Maven, SDKs de cloud (AWS, GCP, Azure), frameworks (Django, React, Spring, Rails, etc.), drivers de banco, e qualquer integração de terceiros. Elimina o uso de assinaturas de API, nomes de métodos e comportamentos default baseados em dados de treinamento.
+
 ## [5.10.0] - 2026-03-25 — /multi-service e /iac-review: pipeline completa para sistemas distribuídos e infraestrutura
 
 ### Added

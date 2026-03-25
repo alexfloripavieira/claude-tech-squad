@@ -304,19 +304,18 @@ Add real-time monitoring dashboards in Grafana for token cost per user and RAG r
 
 ---
 
-## How It Relates To `claude-config`
+## Documentation Standard — Context7
 
-Recommended setup:
+Every agent in the squad is required to use **Context7** to look up current documentation before using any library, framework, or external API — regardless of stack. Training data is never used as the source of truth for API signatures or method behavior.
 
-1. Install `claude-config` as your baseline
-2. Install `claude-tech-squad` as your execution plugin
-3. Use the plugin for complex delivery
-4. Use `claude-config` commands and skills for narrower support tasks
+Required workflow for every library used:
 
-Rule of thumb:
+```
+mcp__plugin_context7_context7__resolve-library-id("library-name")
+mcp__plugin_context7_context7__query-docs(libraryId, topic="specific feature")
+```
 
-- `/claude-tech-squad:implement` runs from the approved blueprint package
-- `/claude-tech-squad:squad` assumes TDD-first for code changes unless it declares an exception
+If Context7 does not have documentation for the library, the agent declares it explicitly and flags assumptions in the output. This applies to all 60 agents.
 
 ---
 
@@ -337,4 +336,4 @@ Rule of thumb:
 | Docs / DX | docs-writer, tech-writer, devex-engineer, developer-relations, jira-confluence-specialist |
 | Operations | release, sre, cost-optimizer, incident-manager |
 
-Total: 59 specialists.
+Total: 60 specialists.

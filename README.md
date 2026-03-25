@@ -292,6 +292,19 @@ Additional safety for LLM features:
 - Model version must be pinned — never use floating model aliases in production
 - Auto-updating prompts without eval regression testing is prohibited
 
+## Documentation Standard
+
+Every agent in the squad is required to use **Context7** to look up current documentation before using any library, framework, or external API — regardless of stack. Training data is never used as the source of truth for API signatures or method behavior.
+
+Mandatory workflow for every library used:
+
+```
+mcp__plugin_context7_context7__resolve-library-id("library-name")
+mcp__plugin_context7_context7__query-docs(libraryId, topic="specific feature")
+```
+
+Applies to: npm, PyPI, Go modules, Maven, cloud SDKs (AWS, GCP, Azure), frameworks (Django, React, Spring, Rails), database drivers, and any third-party integration. If Context7 does not have documentation for the library, the agent must declare it explicitly and flag assumptions.
+
 ## Validation and Release
 
 - Validation workflow: [validate.yml](.github/workflows/validate.yml)
