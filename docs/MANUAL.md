@@ -1,6 +1,6 @@
 # Claude Tech Squad — Manual Técnico
 
-**Versão:** 5.6.0
+**Versão:** 5.7.0
 **Plugin:** `claude-tech-squad`
 
 ---
@@ -192,7 +192,12 @@ revisar PR                  → /pr-review
 
 **Saída:** Discovery & Blueprint Document com 13 seções + artefatos SEP:
 - `ai-docs/{feature}/blueprint.md`
+- `ai-docs/{feature}/adr/ADR-NNN-{slug}.md` — um por decisão arquitetural (automático)
 - `ai-docs/.squad-log/{timestamp}-discovery-{run_id}.md`
+
+**Comportamentos proativos (sem gate, automáticos):**
+- **ADRs**: após confirmação do blueprint, gera um ADR por tradeoff arquitetural relevante
+- **Feature flag**: avalia se a feature precisa de flag — se sim, adiciona estratégia ao blueprint
 
 **Gates de usuário:** 4 + 1 bridge gate (Contrato 3)
 
@@ -261,7 +266,9 @@ Se N: registra `implement_triggered: false` no log — detectável pelo `/factor
 
 **Gates de usuário:** 1 UAT + 1 coverage (condicional) + 1 rejection re-queue (condicional)
 
-**Saída SEP:** `ai-docs/.squad-log/{timestamp}-implement-{run_id}.md` com Completion Blocks de cada agente implementador e resultado do UAT.
+**Comportamento proativo (automático):** load-test agent no quality bench quando há endpoints HTTP, filas ou jobs batch.
+
+**Saída SEP:** `ai-docs/.squad-log/{timestamp}-implement-{run_id}.md` com `parent_run_id`, Completion Blocks e `load_test_run`.
 
 ---
 
@@ -455,6 +462,10 @@ Fallback para inferência por git log e markdown quando não há logs SEP.
     └─ gh release create (se disponível)
 ```
 
+**Comportamentos proativos (automáticos, sem gate):**
+- **cost-optimizer** analisa todo release antes do gate final
+- **Feature flag audit** detecta flags pendentes e adiciona ao deploy checklist
+
 **Bloqueia** se release agent ou SRE retornam NO-GO.
 
 **Saída SEP:** `ai-docs/.squad-log/{timestamp}-release-{run_id}.md`
@@ -486,7 +497,9 @@ Fallback para inferência por git log e markdown quando não há logs SEP.
 
 **Princípio blameless:** foco em sistemas e processos, nunca em indivíduos.
 
-**Saída SEP:** `ai-docs/.squad-log/{timestamp}-incident-postmortem-{run_id}.md`
+**Comportamento proativo (automático):** runbook gerado para cada P1 action item, escrito em `ai-docs/runbook-{service}.md`.
+
+**Saída SEP:** `ai-docs/.squad-log/{timestamp}-incident-postmortem-{run_id}.md` com `parent_run_id` e `runbook_artifact`.
 
 ---
 
@@ -1089,6 +1102,9 @@ Quando logs SEP existem em `ai-docs/.squad-log/`, o `/factory-retrospective` ext
 | Retry médio por skill | `retry_count` | Média de retries necessários por skill |
 | Gates mais bloqueados | `gates_blocked` | Gates que mais frequentemente pararam o workflow |
 | Orphaned discoveries | `implement_triggered: false` | Blueprints gerados mas nunca implementados |
+| Hotfixes sem post-mortem | `postmortem_recommended: true` sem `parent_run_id` correspondente | Incidentes não revisados |
+| Releases com risco de custo | `cost_risk: true` em logs de release | Releases que passaram com alertas de custo |
+| Cadeia de runs | `parent_run_id` | Reconstrói: discovery → implement → hotfix → postmortem |
 | Taxa de remediação | `[x]` vs `[ ]` nos arquivos C2 | Progresso de fechamento de findings de segurança/deps |
 
 Quando **não existem** logs SEP (runs anteriores ao v5.4.0), o retrospective cai automaticamente para inferência baseada em artefatos markdown e git history.

@@ -1,5 +1,39 @@
 # Changelog
 
+## [5.7.0] - 2026-03-24 — Proactive integrations: ADR, feature flags, load test, cost analysis, runbooks, run chains
+
+### Added
+
+**ADR auto-generation** (`/discovery` — Step 13b):
+After blueprint confirmation, generates one Architecture Decision Record per significant tradeoff made during the discovery chain. Written to `ai-docs/{feature}/adr/ADR-NNN-{slug}.md`. No user prompt — runs automatically. Fields: context, decision, alternatives considered, consequences.
+
+**Feature flag assessment** (`/discovery` — Step 13c):
+After blueprint confirmation, evaluates whether the feature needs a rollout flag, safety flag, experiment flag, or entitlement flag. If yes, adds a Feature Flag Strategy section to the blueprint with flag name, type, default value, rollout plan, and cleanup timeline.
+
+**Load test agent** (`/implement` — quality bench):
+Conditionally spawns `performance-engineer` for load test planning when the implementation adds or modifies HTTP endpoints, message queues, or batch jobs. Produces baseline, stress, and spike test plans with ready-to-run scripts (k6, Locust, Artillery) when tools are available.
+
+**Cost analysis on every release** (`/release` — Step 5b):
+`cost-optimizer` runs automatically before the final confirmation gate on every release. Checks for N+1 queries, unthrottled external API calls, expensive async jobs, and new storage operations. Returns CLEAR or RISK. RISK findings are added to release notes and highlighted at the confirmation gate.
+
+**Feature flag audit on release** (`/release` — Step 5c):
+Before the confirmation gate, detects feature flag references in the diff and checks for pending state changes (enable, disable, remove). Adds flag management steps to the deploy checklist automatically.
+
+**Runbook auto-generation** (`/incident-postmortem` — Step 6b):
+After action items are consolidated, automatically generates an operational runbook for every P1 item. Written to `ai-docs/runbook-{service}.md` (appended if exists). Each runbook section includes trigger, preconditions, step-by-step commands, verification, rollback, and escalation path. No user prompt — runs automatically.
+
+**Post-mortem prompt after hotfix** (`/hotfix` — Step 12b):
+After the deploy checklist gate, always prompts: "Quer iniciar o post-mortem agora? [S/N]". If yes, passes `parent_run_id` and pre-fills context. If no, records `postmortem_recommended: true` in the SEP log so `/factory-retrospective` detects unreviewed incidents.
+
+**`parent_run_id` in SEP logs** (all skills):
+All SEP logs now carry a `parent_run_id` field. Enables `/factory-retrospective` to reconstruct full run chains: `discovery → implement → hotfix → incident-postmortem`. Also tracks `adrs_generated`, `feature_flag_required`, `load_test_run`, `runbook_generated` fields.
+
+**Hotfix-without-postmortem detection** (`/factory-retrospective`):
+Detects `hotfix` logs with `postmortem_recommended: true` that have no matching `incident-postmortem` log via `parent_run_id`. Surfaces as "unreviewed incidents" in the retrospective report.
+
+**Run chain reconstruction** (`/factory-retrospective`):
+Groups SEP logs by `parent_run_id` to build full incident/feature chains. Makes it possible to see: "this hotfix originated from this feature, caused this incident, led to this post-mortem, produced these action items".
+
 ## [5.6.0] - 2026-03-24 — /onboarding, /release, /incident-postmortem, /refactor
 
 ### Added
