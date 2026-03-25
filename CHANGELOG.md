@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.12.0] - 2026-03-25 — /bug-fix: perfumaria guard e critérios de blocker no reviewer
+
+### Changed
+
+**`/bug-fix` skill — PERFUMARIA GUARD (Step 4 — backend-dev/frontend-dev):**
+O prompt do agente de implementação agora proíbe explicitamente qualquer melhoria cosmética ou estrutural que não seja a causa direta do bug: extração de helpers, eliminação de duplicação, renomeação, reorganização de funções, refactors de SRP/DRY. O diff de um bug fix deve ser a menor mudança possível que faz o teste falhar passar. Refactors sugeridos pelo reviewer devem ser adiados — nunca implementados sob um commit de bug fix.
+
+**`/bug-fix` skill — critérios de BLOCKER no reviewer (Step 6):**
+O reviewer agora recebe critérios explícitos que separam findings bloqueantes de não-bloqueantes. CHANGES REQUESTED só é permitido por: fix não resolve a causa raiz, regressão introduzida, crash, estado compartilhado corrompido, ou teste não passa. DRY violations, extração de helper, estilo, e micro-otimizações de performance são sempre LOW/NIT e nunca bloqueiam APPROVED. O workflow aplica somente findings bloqueantes ao iterar; sugestões de melhoria são ignoradas.
+
 ## [5.11.0] - 2026-03-25 — Context7 obrigatório em todos os 60 agentes
 
 ### Changed

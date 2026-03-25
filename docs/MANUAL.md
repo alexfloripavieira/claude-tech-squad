@@ -305,12 +305,14 @@ TeamCreate → time "squad" (persiste por todas as fases)
     ├─ [GATE: symptom + expected + repro + context]
     └─ techlead (root cause)
          └─ tdd-specialist (failing test que prova o bug)
-              └─ backend-dev ou frontend-dev (fix mínimo)
-                   └─ reviewer
+              └─ backend-dev ou frontend-dev (fix mínimo — PERFUMARIA GUARD ativo)
+                   └─ reviewer (só findings bloqueantes: regressão, crash, fix errado)
                         └─ qa (confirma fix + sem regressão)
 ```
 
 **Escalada para /squad se:** root cause revela problema arquitetural ou > 5 arquivos.
+
+**PERFUMARIA GUARD:** o agente de implementação é proibido de extrair helpers, eliminar duplicação, renomear ou reorganizar código além do caminho direto do bug. O reviewer só pode emitir CHANGES REQUESTED por: fix não resolve a causa raiz, regressão, crash, ou estado compartilhado corrompido. DRY/refactor/estilo → sempre LOW/NIT, nunca bloqueiam merge.
 
 ---
 
