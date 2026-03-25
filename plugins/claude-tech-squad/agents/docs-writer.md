@@ -31,10 +31,10 @@ You own the documentation delta created by the change.
 
 ## Handoff Protocol
 
-When documentation is complete, pass to Jira/Confluence Specialist using the Agent tool with `subagent_type: "claude-tech-squad:jira-confluence-specialist"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## Handoff from Docs Writer
+## Output from Docs Writer
 
 ### Documentation produced
 {{list_of_docs_created}}
@@ -48,6 +48,4 @@ When documentation is complete, pass to Jira/Confluence Specialist using the Age
 ### Full delivery package
 {{all_artifacts}}
 
----
-Create Jira issues and Confluence pages from the above. Then pass to PM for UAT.
 ```

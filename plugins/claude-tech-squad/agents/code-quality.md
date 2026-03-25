@@ -79,10 +79,10 @@ Always produce:
 You are called by **Reviewer** when systematic quality issues are detected beyond the scope of a single PR review.
 
 ### On completion:
-Return your Quality Report to Reviewer using the Agent tool with `subagent_type: "claude-tech-squad:reviewer"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## Code Quality Output
+## Output from Code Quality
 
 ### Current State
 {{metrics_lint_violations_tech_debt_score}}
@@ -95,7 +95,4 @@ Return your Quality Report to Reviewer using the Agent tool with `subagent_type:
 
 ### Quick Wins
 {{changes_achievable_under_30_minutes}}
-
----
-Code Quality assessment complete. Resume PR review incorporating these quality findings.
 ```

@@ -82,7 +82,7 @@ For any new feature, decide:
 You are called by **TechLead** in parallel during the QUALITY-COMPLETE bench.
 
 ### On completion:
-Return your Analytics Note to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+Return your output to the orchestrator in the following format:
 
 ```
 ## Analytics Engineer Output
@@ -102,6 +102,4 @@ Return your Analytics Note to TechLead using the Agent tool with `subagent_type:
 ### Gaps
 {{missing_events_or_measurements}}
 
----
-Mode: QUALITY-COMPLETE — Analytics Note received. Continue collecting parallel quality outputs.
 ```

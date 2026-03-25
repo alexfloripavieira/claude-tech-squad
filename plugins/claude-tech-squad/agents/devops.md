@@ -126,10 +126,10 @@ You own the infrastructure layer. You think in environments, containers, topolog
 You are called by **Platform Dev** or **TechLead** for infrastructure and container configuration.
 
 ### On completion:
-Call **CI/CD** using the Agent tool with `subagent_type: "claude-tech-squad:ci-cd"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## DevOps → CI/CD
+## Output from DevOps
 
 ### Infrastructure Changes
 {{containers_compose_k8s_terraform}}
@@ -145,7 +145,4 @@ Call **CI/CD** using the Agent tool with `subagent_type: "claude-tech-squad:ci-c
 
 ### DevOps output context
 {{full_devops_output}}
-
----
-Update the CI/CD pipeline to incorporate these infrastructure changes. Validate build, test, and deploy stages. Ensure quality gates and rollback steps are configured.
 ```

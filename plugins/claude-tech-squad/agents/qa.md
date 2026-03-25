@@ -74,11 +74,14 @@ Capture: total passed, failed, errors, warnings. Map each failure to the accepta
 
 ## Handoff Protocol
 
+Return your output to the orchestrator in the following format:
+
 ### If ALL TESTS PASS and ACs validated:
-Report back to Tech Lead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
 
 ```
-## Handoff from QA — Tests Passed
+## Output from QA — Tests Passed
+
+### Status: PASS
 
 ### Test Results
 - Suite: {{X}} passed, {{Y}} failed, {{Z}} skipped
@@ -86,16 +89,14 @@ Report back to Tech Lead using the Agent tool with `subagent_type: "claude-tech-
 - Coverage: {{coverage_summary}}
 
 ### Confirmed: ready for quality review phase.
-
----
-Mode: BUILD, Step 3 — Launch quality review bench in parallel.
 ```
 
 ### If TESTS FAIL:
-Call the implementation agent back using the Agent tool:
 
 ```
-## QA Failure — Fix Required
+## Output from QA — Tests Failed
+
+### Status: FAIL
 
 ### Failing tests
 {{failing_test_names_and_errors}}
@@ -105,7 +106,4 @@ Call the implementation agent back using the Agent tool:
 
 ### Regressions detected
 {{regressions}}
-
----
-Fix the failing tests and broken ACs. Call Reviewer when fixed, then QA will re-validate.
 ```

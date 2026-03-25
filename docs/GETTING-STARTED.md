@@ -19,7 +19,7 @@ Use it for:
 
 - discovery and scope clarification
 - architecture, TDD-first implementation planning, and implementation coordination
-- multi-specialist delivery across 55 specialist agents
+- multi-specialist delivery across 59 specialist agents
 - test, review, documentation, Jira/Confluence, and release follow-through
 
 If you need baseline commands, skills, rules, and templates, use `claude-config`.
@@ -132,6 +132,10 @@ Each pane shows the specialist working independently. The orchestrator (your mai
 
 If you run the commands without tmux mode, the workflows still work correctly — agents run inline as subagents. You get the same outputs and gates, but no separate panes.
 
+### SEP logs in teammate mode
+
+When running in teammate mode, each specialist runs in its own Claude Code instance. The **Squad Execution Protocol (SEP)** ensures observability regardless of mode: every skill writes a structured log to `ai-docs/.squad-log/` before the pane exits. This means `/factory-retrospective` always has a persistent trace of what ran, even when there is no shared conversation history to inspect. See MANUAL.md section 13 for the full SEP reference.
+
 ---
 
 ## Commands
@@ -242,7 +246,8 @@ Rule of thumb:
 | Specialist Review | security-reviewer, security-engineer, privacy-reviewer, compliance-reviewer, accessibility-reviewer, performance-engineer, chaos-engineer, design-principles-specialist, code-quality |
 | Observability | observability-engineer, monitoring-specialist, analytics-engineer |
 | Design | design-system-engineer |
-| Docs / DX | docs-writer, tech-writer, devex-engineer, jira-confluence-specialist |
+| Business & Growth | solutions-architect, growth-engineer |
+| Docs / DX | docs-writer, tech-writer, devex-engineer, developer-relations, jira-confluence-specialist |
 | Operations | release, sre, cost-optimizer, incident-manager |
 
-Total: 55 specialists.
+Total: 59 specialists.

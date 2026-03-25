@@ -57,10 +57,10 @@ You implement the platform layer that connects application code to infrastructur
 You are called by **TechLead** during the BUILD phase for background workers, job queues, and integration glue.
 
 ### On completion:
-Call **DevOps** using the Agent tool with `subagent_type: "claude-tech-squad:devops"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## Platform Dev → DevOps
+## Output from Platform Dev
 
 ### Workers and Jobs Implemented
 {{worker_names_queues_schedules}}
@@ -73,7 +73,4 @@ Call **DevOps** using the Agent tool with `subagent_type: "claude-tech-squad:dev
 
 ### Platform implementation context
 {{full_platform_dev_output}}
-
----
-Review the infrastructure and container configuration required for these workers and integration components. Define deployment topology and secrets strategy.
 ```

@@ -59,10 +59,10 @@ After implementation is complete, the PO **must** run a final audit before sign-
 
 Reply with your feedback, then I'll pass this to the technical team."
 
-**After user responds**, pass to Planner using the Agent tool with `subagent_type: "claude-tech-squad:planner"`:
+**After user responds**, return your validated output to the orchestrator in the following format:
 
 ```
-## Handoff from PO — Validated Scope
+## Output from PO — Validated Scope
 
 ### In Scope (confirmed by user)
 {{validated_scope}}
@@ -76,6 +76,4 @@ Reply with your feedback, then I'll pass this to the technical team."
 ### Full context
 PM: {{pm_summary}} | BA: {{ba_summary}}
 
----
-Your task: Inspect the real stack, validate feasibility, identify technical constraints, decompose workstreams. Then present technical tradeoffs to the user before passing to Architect.
 ```

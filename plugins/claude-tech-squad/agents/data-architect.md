@@ -41,11 +41,13 @@ Focus only on the data slice of the design.
 
 You are called by **TechLead** or **Backend Architect** when schema changes are detected.
 
-### After completing your data architecture note:
-Call **DBA** using the Agent tool with `subagent_type: "claude-tech-squad:dba"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## Data Architect → DBA
+## Output from Data Architect
+
+### Data Architecture Note
+{{full_data_architecture_note}}
 
 ### Proposed schema changes
 {{tables_columns_indexes_constraints}}
@@ -55,12 +57,6 @@ Call **DBA** using the Agent tool with `subagent_type: "claude-tech-squad:dba"`:
 
 ### Rollback considerations
 {{rollback_steps_data_recovery}}
-
-### Data architecture context
-{{full_data_architecture_note}}
-
----
-Review this schema change for migration safety, locking risk, index strategy, and rollback feasibility. Flag any blocking issues before implementation proceeds.
 ```
 
-DBA output feeds back to TechLead. TechLead collects all parallel specialist outputs before proceeding.
+The orchestrator will route schema changes to DBA for migration safety review as needed.

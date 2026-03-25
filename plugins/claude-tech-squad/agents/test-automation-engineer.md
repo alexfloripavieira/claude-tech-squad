@@ -34,10 +34,7 @@ You own automated test implementation quality.
 You are called by **TDD Specialist** or **QA** to build or improve automated test infrastructure.
 
 ### On completion:
-Return your Test Automation Note to the caller using the Agent tool:
-
-- If called by TDD Specialist: `subagent_type: "claude-tech-squad:tdd-specialist"`
-- If called by QA: `subagent_type: "claude-tech-squad:qa"`
+Return your output to the orchestrator in the following format:
 
 ```
 ## Test Automation Engineer Output
@@ -57,6 +54,4 @@ Return your Test Automation Note to the caller using the Agent tool:
 ### Maintainability Notes
 {{patterns_conventions_docs_updated}}
 
----
-Test automation infrastructure is ready. Proceed with validation.
 ```

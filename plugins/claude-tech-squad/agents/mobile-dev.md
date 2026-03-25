@@ -62,10 +62,10 @@ Framework-specific test stacks:
 
 Called by **Frontend Architect** or **TechLead** when mobile implementation is in scope.
 
-When implementation is complete, call Reviewer:
+Return your output to the orchestrator in the following format:
 
 ```
-## Handoff from Mobile Dev — Implementation Complete
+## Output from Mobile Dev — Implementation Complete
 
 ### Platform
 {{react_native / flutter / ios / android}}
@@ -81,9 +81,4 @@ When implementation is complete, call Reviewer:
 
 ### Known Concerns
 {{anything_uncertain_or_needing_review}}
-
----
-Review this mobile implementation. Check TDD compliance, mobile security patterns, performance implications, and platform conventions.
 ```
-
-If reviewer requests changes, implement them and call reviewer again.

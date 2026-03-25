@@ -34,7 +34,7 @@ You own privacy and data exposure review.
 You are called by **TechLead** in parallel during the QUALITY-COMPLETE bench.
 
 ### On completion:
-Return your Privacy Review to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+Return your output to the orchestrator in the following format:
 
 ```
 ## Privacy Reviewer Output
@@ -55,6 +55,4 @@ Return your Privacy Review to TechLead using the Agent tool with `subagent_type:
 - Blocking issues: [yes / no]
 - Cleared for release: [yes / no — reason]
 
----
-Mode: QUALITY-COMPLETE — Privacy Review received. Continue collecting parallel quality outputs.
 ```

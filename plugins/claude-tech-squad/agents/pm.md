@@ -106,10 +106,10 @@ As a [persona], I want [action], so that [outcome].
 
 ## Handoff Protocol
 
-When your analysis is complete, pass to the Business Analyst using the Agent tool with `subagent_type: "claude-tech-squad:business-analyst"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## Handoff from PM
+## Output from PM
 
 ### Problem Statement
 {{your_problem_statement}}
@@ -123,6 +123,4 @@ When your analysis is complete, pass to the Business Analyst using the Agent too
 ### Open Questions for Business Analyst
 {{questions_needing_domain_expertise}}
 
----
-Your task: Analyze the domain rules, workflows, actors, and edge cases behind the above. Then pass to PO.
 ```

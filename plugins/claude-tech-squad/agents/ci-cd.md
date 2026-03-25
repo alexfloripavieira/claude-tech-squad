@@ -50,10 +50,10 @@ You own the automation path from commit to deploy.
 You are called by **DevOps** to update pipeline configuration for infrastructure changes.
 
 ### On completion:
-Call **SRE** using the Agent tool with `subagent_type: "claude-tech-squad:sre"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## CI/CD → SRE
+## Output from CI/CD
 
 ### Pipeline Changes
 {{stages_gates_artifacts_rollback_triggers}}
@@ -66,7 +66,4 @@ Call **SRE** using the Agent tool with `subagent_type: "claude-tech-squad:sre"`:
 
 ### CI/CD output context
 {{full_cicd_output}}
-
----
-Review the release readiness. Assess blast radius, SLO impact, rollback feasibility, and provide go/no-go recommendation.
 ```

@@ -58,19 +58,7 @@ When asked to analyze infrastructure costs:
 
 ### Database Cost Analysis
 
-Database query performance is owned by the `dba` agent. For database cost concerns, invoke the DBA using the Agent tool with `subagent_type: "claude-tech-squad:dba"`:
-
-```
-Cost context: I am analyzing database-related costs. Please assess:
-1. Storage usage: are there tables with unbounded growth or missing archival policies?
-2. Connection pool: are there idle connections or connection leaks?
-3. Read replica usage: is the current replica configuration right-sized for actual read load?
-4. Backup retention: is retention period longer than the RTO/RPO requires?
-
-Focus on cost-relevant findings only, not on query optimization.
-```
-
-Incorporate the DBA's findings into your cost report under "Database Costs".
+Database query performance is owned by the `dba` agent. For database cost concerns, flag database cost findings in your report and recommend the orchestrator engage the DBA agent for detailed analysis of storage usage, connection pools, read replica sizing, and backup retention policies. Focus your own analysis on cost-relevant infrastructure patterns, not on query optimization.
 
 ### API and External Service Costs
 When asked to analyze API costs:
@@ -128,26 +116,13 @@ When asked to understand where costs come from:
 You are called by **SRE**, **DevOps**, or **TechLead** when cost review is required.
 
 ### If database query cost issues are found:
-Call **DBA** using the Agent tool with `subagent_type: "claude-tech-squad:dba"`:
-
-```
-## Cost Optimizer → DBA
-
-### Expensive Queries Identified
-{{query_hash_cost_frequency_table}}
-
-### Optimization Hypothesis
-{{index_rewrite_caching_suggestions}}
-
----
-Review these queries for index strategy and rewrite opportunities to reduce execution cost.
-```
+Flag expensive queries in your report and recommend the orchestrator engage the DBA agent for index strategy and rewrite opportunities to reduce execution cost.
 
 ### On completion:
-Return your Cost Report to the caller (SRE or TechLead) using the Agent tool with `subagent_type: "claude-tech-squad:sre"` or `subagent_type: "claude-tech-squad:techlead"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## Cost Optimizer Output
+## Output from cost-optimizer
 
 ### Spend Analysis
 {{cloud_api_storage_query_cost_breakdown}}

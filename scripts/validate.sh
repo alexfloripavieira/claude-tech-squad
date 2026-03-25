@@ -151,6 +151,17 @@ for skill_file in "$SKILLS_DIR"/*/SKILL.md; do
   fi
 done
 
+# ── No agent self-chaining (except incident-manager) ────────────────────────
+# incident-manager is the only agent authorized to use Agent tool for
+# orchestration — it coordinates real-time incident response (fan-out pattern).
+# All other agents must return output to the orchestrator.
+SELF_CHAIN_FILES=$(grep -rl 'subagent_type' "$AGENTS_DIR"/*.md | grep -v 'incident-manager.md' || true)
+if [ -n "$SELF_CHAIN_FILES" ]; then
+  echo "Self-chaining detected (subagent_type in agent files):"
+  echo "$SELF_CHAIN_FILES"
+  exit 1
+fi
+
 # ── No project-specific residue ──────────────────────────────────────────────
 if rg -n "\bA1\b|Fifi|Wooba|Cangooroo|Compozy|Botpress" \
   "$ROOT/README.md" \

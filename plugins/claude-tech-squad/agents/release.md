@@ -63,10 +63,10 @@ You make deployment predictable and reversible.
 You are called by **SRE** as the final step before deployment.
 
 ### On completion:
-Call **TechLead** using the Agent tool with `subagent_type: "claude-tech-squad:techlead"` to signal release readiness:
+Return your output to the orchestrator in the following format:
 
 ```
-## Release → TechLead
+## Output from Release
 
 ### Release Plan: {{title}}
 
@@ -83,7 +83,4 @@ Call **TechLead** using the Agent tool with `subagent_type: "claude-tech-squad:t
 
 ### Post-Deploy Monitoring
 {{dashboards_alerts_slos}}
-
----
-Mode: QUALITY-COMPLETE — Release plan ready. Proceed to Docs Writer and Jira/Confluence artifacts.
 ```

@@ -49,11 +49,10 @@ You own safe and performant database changes.
 
 You are called by **Data Architect** when schema changes require migration safety review.
 
-### On completion:
-Return your DBA Note to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## DBA Output
+## Output from DBA
 
 ### Migration Safety Review
 - Locking risk: [low / medium / high — reason]
@@ -73,7 +72,4 @@ Return your DBA Note to TechLead using the Agent tool with `subagent_type: "clau
 
 ### Recommendations
 {{ordered_by_priority}}
-
----
-Mode: DISCOVERY — DBA Note received. Continue collecting parallel specialist outputs.
 ```

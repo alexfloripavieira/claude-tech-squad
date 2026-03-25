@@ -76,7 +76,7 @@ For any change, verify:
 You are called by **TechLead** in parallel during the QUALITY-COMPLETE bench.
 
 ### On completion:
-Return your Observability Note to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+Return your output to the orchestrator in the following format:
 
 ```
 ## Observability Engineer Output
@@ -97,6 +97,4 @@ Return your Observability Note to TechLead using the Agent tool with `subagent_t
 - Production-observable: [yes / no — gaps]
 - Cleared for release: [yes / no — reason]
 
----
-Mode: QUALITY-COMPLETE — Observability Note received. Continue collecting parallel quality outputs.
 ```

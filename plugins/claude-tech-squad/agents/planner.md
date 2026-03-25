@@ -81,10 +81,10 @@ You convert product intent into technically grounded requirements.
 
 Reply with your decisions on the tradeoffs, then I'll pass to the Architect."
 
-**After user responds**, pass to Architect using the Agent tool with `subagent_type: "claude-tech-squad:architect"`:
+**After user responds**, return your validated output to the orchestrator in the following format:
 
 ```
-## Handoff from Planner — Feasibility Confirmed
+## Output from Planner — Feasibility Confirmed
 
 ### Stack Reality
 {{stack_findings}}
@@ -101,6 +101,4 @@ Reply with your decisions on the tradeoffs, then I'll pass to the Architect."
 ### Full context
 PM: {{pm_summary}} | BA: {{ba_summary}} | PO: {{po_summary}}
 
----
-Your task: Design the solution architecture. Hexagonal Architecture is the default. Produce design options with tradeoffs, choose the recommended path, define file plan and component boundaries. Then pass to Tech Lead.
 ```

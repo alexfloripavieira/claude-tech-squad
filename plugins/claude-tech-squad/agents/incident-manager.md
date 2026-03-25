@@ -181,6 +181,8 @@ Produce a live incident status block that you update at each step:
 
 ## Handoff Protocol
 
+**Exception:** incident-manager is the only agent in the squad authorized to use Agent tool for direct orchestration. This is intentional — incident response requires real-time fan-out to multiple specialists simultaneously. All other agents return output to the orchestrator.
+
 You are called directly by the user or by **SRE** when an incident is declared.
 
 ### On incident declaration:

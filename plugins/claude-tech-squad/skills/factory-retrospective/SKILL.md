@@ -19,27 +19,48 @@ Analyzes recent agent execution logs, identifies patterns of failure, retry loop
 
 Follow these steps exactly:
 
-### Step 1 — Discover execution logs
+### Step 1 — Discover execution logs (SEP-aware)
 
-Search for agent execution artifacts:
+**Primary source — SEP structured logs:**
+
+```bash
+ls ai-docs/.squad-log/ 2>/dev/null | sort -r | head -30 || echo "NO_SEP_LOGS"
+```
+
+Read all files in `ai-docs/.squad-log/` (newest first). Parse the YAML frontmatter of each file to extract:
+- `skill`, `timestamp`, `status`, `retry_count`, `gates_blocked`, `findings_*`, `uat_result`, `implement_triggered`
+
+**Orphaned discovery detection:**
+From SEP logs with `skill: discovery`, collect all where `implement_triggered: false`. These are discoveries that were never implemented.
+
+**Remediation gap detection:**
+Find remediation files and check for unchecked items:
+```bash
+grep -l "^- \[ \]" ai-docs/security-remediation-*.md ai-docs/dependency-remediation-*.md 2>/dev/null
+```
+Count `- [ ]` vs `- [x]` lines per file to compute remediation completion rate.
+
+**Fallback source — inferred artifacts (when no SEP logs exist):**
 
 ```bash
 find ai-docs/ -name "*.md" -newer ai-docs/.last-retro 2>/dev/null | head -20 || find ai-docs/ -name "*.md" -type f 2>/dev/null | sort -t/ -k3 | tail -10 || echo "NO_LOGS_FOUND"
 ```
 
-Also search for:
-- `ai-docs/*execution*`, `ai-docs/*report*`, `ai-docs/*plan*`
-- `tasks/todo.md`, `tasks/lessons.md` if they exist
+Also search for: `tasks/todo.md`, `tasks/lessons.md`
 
-Use Glob:
-```
-ai-docs/*.md
-tasks/*.md
-```
+Use Glob: `ai-docs/*.md`, `tasks/*.md`
 
 ### Step 2 — Analyze execution patterns
 
-Read the discovered log files and search for these patterns:
+**If SEP logs exist**, compute these metrics directly from frontmatter:
+- Average `retry_count` per skill
+- Skills with `gates_blocked` most often
+- `uat_result: REJECTED` rate
+- Orphaned discoveries: SEP logs with `implement_triggered: false`
+- Open remediation items: `- [ ]` count across all remediation files
+- Finding resolution rate: `- [x]` / (`- [x]` + `- [ ]`) per audit
+
+**If only fallback artifacts exist**, infer patterns from file content:
 
 **Retry patterns:**
 - Use Grep to find: `retry`, `attempt`, `try again`, `failed`, `rejected`, `redo`, `cycle`
@@ -56,9 +77,6 @@ Read the discovered log files and search for these patterns:
 **Common errors:**
 - Search for: `error`, `failed`, `exception`, `could not`, `unable to`
 - Categorize by error type
-
-**Phase duration indicators:**
-- Estimate relative phase duration by output size and number of iterations
 
 ### Step 3 — Analyze project rules
 

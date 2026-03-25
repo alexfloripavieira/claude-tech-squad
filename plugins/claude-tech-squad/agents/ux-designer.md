@@ -42,7 +42,7 @@ You focus on how the feature feels and flows for users.
 You are called by **Frontend Architect** after the frontend component design is complete.
 
 ### On completion:
-Return your UX Note to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+Return your output to the orchestrator in the following format:
 
 ```
 ## UX Designer Output
@@ -62,6 +62,4 @@ Return your UX Note to TechLead using the Agent tool with `subagent_type: "claud
 ### UX Risks
 {{friction_points_edge_cases}}
 
----
-Mode: DISCOVERY — UX Note received from UX Designer. Continue collecting parallel specialist outputs.
 ```

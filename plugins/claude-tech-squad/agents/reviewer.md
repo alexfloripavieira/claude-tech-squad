@@ -71,11 +71,14 @@ Verify that tests were written TDD-style — not added after the fact:
 
 ## Handoff Protocol
 
+Return your output to the orchestrator in the following format:
+
 ### If APPROVED:
-Call QA using the Agent tool with `subagent_type: "claude-tech-squad:qa"`:
 
 ```
-## Handoff from Reviewer — Implementation Approved
+## Output from Reviewer — Implementation Approved
+
+### Status: APPROVED
 
 ### What was reviewed
 {{scope}}
@@ -88,16 +91,14 @@ Call QA using the Agent tool with `subagent_type: "claude-tech-squad:qa"`:
 
 ### Review notes
 {{notes_for_qa}}
-
----
-Run the full test suite. Validate all acceptance criteria. Report pass/fail with evidence.
 ```
 
 ### If CHANGES REQUESTED:
-Call the implementation agent back (backend-dev or frontend-dev, based on context) using the Agent tool:
 
 ```
-## Changes Requested by Reviewer
+## Output from Reviewer — Changes Requested
+
+### Status: CHANGES REQUESTED
 
 ### Critical issues (must fix)
 {{critical_issues_with_file_line_refs}}
@@ -107,7 +108,4 @@ Call the implementation agent back (backend-dev or frontend-dev, based on contex
 
 ### Minor issues (nice to have)
 {{minor_issues}}
-
----
-Fix the issues listed above. Then call the Reviewer again when done.
 ```

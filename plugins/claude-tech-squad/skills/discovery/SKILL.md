@@ -415,6 +415,63 @@ Emit: `[Teammate Spawned] tdd-specialist | pane: tdd-specialist`
 
 Present TDD Delivery Plan as **Final Gate: Blueprint Confirmation**. The discovery is complete when the user confirms.
 
+### Step 14 — Write Execution Log (SEP Contrato 1)
+
+After blueprint confirmation, write the structured execution log.
+
+```bash
+mkdir -p ai-docs/.squad-log
+```
+
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-discovery-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+skill: discovery
+timestamp: {{ISO8601}}
+status: completed
+feature_slug: {{feature_slug}}
+gates_cleared: [1, 2, 3, 4, final]
+gates_blocked: []
+retry_count: 0
+teammates: [pm, ba, po, planner, architect, techlead, specialist-bench, quality-baseline, design-principles, test-planner, tdd-specialist]
+output_artifact: ai-docs/{{feature_slug}}/blueprint.md
+implement_triggered: false
+---
+
+## Output Digest
+{{one_paragraph_summary_of_what_was_designed}}
+
+## Findings Gerados
+none — discovery produces no actionable findings
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
+
+### Step 15 — Discovery → Implement Bridge Gate (SEP Contrato 3)
+
+Always present this gate immediately after writing the execution log:
+
+```
+Blueprint salvo em ai-docs/{{feature_slug}}/blueprint.md
+
+Próximo passo: /implement ai-docs/{{feature_slug}}/blueprint.md
+
+Quer iniciar a implementação agora? [S/N]
+```
+
+If the user answers **S**:
+- Update `implement_triggered: true` in the execution log file using Edit tool
+- Proceed to invoke `/implement` with the blueprint path
+
+If the user answers **N**:
+- Leave `implement_triggered: false` in the log
+- Inform: "Para implementar depois: /implement ai-docs/{{feature_slug}}/blueprint.md"
+- The `factory-retrospective` will detect this as an orphaned discovery
+
+Emit: `[Gate] implement-bridge | Waiting for user input`
+
 ---
 
 ## Output: Discovery & Blueprint Document

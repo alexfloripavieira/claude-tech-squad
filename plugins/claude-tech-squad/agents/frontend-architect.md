@@ -45,23 +45,19 @@ Focus only on the frontend slice of the design.
 
 You are called by **TechLead** in parallel during the DISCOVERY specialist bench.
 
-### After completing your architecture note:
-Call **UX Designer** using the Agent tool with `subagent_type: "claude-tech-squad:ux-designer"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## Frontend Architecture → UX Designer
+## Output from Frontend Architect
+
+### Frontend Architecture Note
+{{full_frontend_architecture_note}}
 
 ### Components and screens
 {{component_list_and_routing}}
 
 ### State and data flow
 {{state_management_api_calls}}
-
-### Frontend architecture context
-{{full_frontend_architecture_note}}
-
----
-Define user flows, interaction states, microcopy, empty/error/loading states, and accessibility notes for these components. Report back to TechLead.
 ```
 
-UX Designer outputs feed back to TechLead. TechLead collects all parallel specialist outputs before proceeding.
+The orchestrator will route UX concerns to UX Designer as needed.

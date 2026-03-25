@@ -1,5 +1,57 @@
 # Changelog
 
+## [5.4.0] - 2026-03-24 — Squad Execution Protocol (SEP): Observability, Continuity, and Remediation Contracts
+
+### Added
+
+**Squad Execution Protocol (SEP)** — four stack-agnostic contracts that close the observability and continuity gaps identified in the factory retrospective. All changes are additive new steps in existing skills; no existing behavior removed.
+
+**Contrato 1 — Execution Log** (`discovery`, `implement`, `security-audit`, `dependency-check`):
+Every skill now writes a structured YAML-frontmatter log entry to `ai-docs/.squad-log/` on completion. Logs include: `skill`, `timestamp`, `status`, `retry_count`, `gates_blocked`, `uat_result`, `implement_triggered`, `output_artifact`. The `factory-retrospective` reads these logs as its primary data source instead of inferring patterns from git history.
+
+**Contrato 2 — Remediation Tasks** (`security-audit`, `dependency-check`):
+Both audit skills now generate a companion `ai-docs/security-remediation-YYYY-MM-DD.md` and `ai-docs/dependency-remediation-YYYY-MM-DD.md` file with checkbox task lists organized by severity. The `factory-retrospective` counts `- [ ]` vs `- [x]` items across runs to compute remediation closure rate.
+
+**Contrato 3 — Discovery → Implement Bridge Gate** (`discovery`):
+After the blueprint confirmation gate, `/discovery` now presents an explicit "Quer iniciar a implementação agora? [S/N]" prompt. If yes, `/implement` is invoked immediately with the blueprint path. If no, the execution log records `implement_triggered: false`, which the `factory-retrospective` surfaces as an orphaned discovery.
+
+**Contrato 4 — Task Status Protocol** (`implement`):
+Each implementation agent now returns a mandatory `Completion Block` (task name, status, files changed, test command result) before the orchestrator advances to the Reviewer phase. Blocks are aggregated in the execution log.
+
+**Stack Command Detection** (`implement` — Step 0):
+Before any teammate is spawned, `/implement` detects the project's real commands from `Makefile`, `package.json`, `pyproject.toml`, `pom.xml`, or `build.gradle`. Detected commands — or overrides from `CLAUDE.md` — are injected into every implementation agent prompt. Agents never infer test/migrate/lint commands; they receive them explicitly.
+
+**`factory-retrospective` SEP-aware Step 1**:
+Step 1 now reads `ai-docs/.squad-log/` as the primary source. Computes: average `retry_count` per skill, orphaned discovery rate, open remediation items, `uat_result: REJECTED` rate. Falls back to git/markdown inference when no SEP logs exist (backward compatible with pre-5.4.0 runs).
+
+### Fixed
+
+- `factory-retrospective`: was blind to teammate-mode runs (no persistent artifacts). Now reads `.squad-log/` which is written by all skills regardless of teammate vs inline mode.
+
+## [5.3.0] - 2026-03-24 — Sequencing Model Consistency: 40 Agent Handoff Protocol Rewrites
+
+### Changed
+
+**Handoff Protocol rewrite across 40 of 59 agents.** Every agent that previously used `Agent tool` in its Handoff Protocol to chain directly to the next agent (Model B) has been rewritten to return structured output to the orchestrator (Model A). This eliminates double-execution risk, context loss, and safety contract bypass paths.
+
+**Subtypes fixed:**
+- **B1 — Forward-chain agents (26):** Handoff Protocol invoked `Agent tool` with `subagent_type` to spawn the next agent directly. Rewritten to return output to the orchestrator.
+- **B2 — Return-via-Agent-tool agents (12):** Used `Agent tool` in the Handoff Protocol to return results. Rewritten to plain structured output.
+- **B3 — Implicit chain agents (2):** `mobile-dev` and `data-engineer` had implicit chaining patterns. Rewritten to return to orchestrator.
+- **techlead:** Full strip of orchestration logic — now a pure specialist. No longer spawns or sequences other agents.
+
+**Exemptions:**
+- `incident-manager`: Retains `Agent tool` usage — legitimate fan-out pattern for coordinating multiple specialists during active incidents.
+
+**Additional fixes:**
+- `cost-optimizer`: Mid-body DBA delegation via `Agent tool` converted to recommendation text. Cost-optimizer now recommends DBA involvement instead of spawning it.
+- `scripts/validate.sh`: New self-chaining detection rule — fails if any agent file (except `incident-manager`) contains `subagent_type:` references.
+
+### Fixed
+
+- `docs/GETTING-STARTED.md`: Agent count corrected from 55 to 59. Roster table updated with 3 missing agents: `solutions-architect`, `growth-engineer` (Business & Growth), and `developer-relations` (Docs / DX).
+- `CHANGELOG.md`: v5.2.0 entry arithmetic corrected from "58 required agents" to "59 required agents".
+
 ## [5.2.2] - 2026-03-24 — Safety Guardrails: Absolute Prohibitions — second pass (7 more agents)
 
 ### Changed
@@ -48,7 +100,7 @@ The contract propagates to every teammate spawned by these workflows. It covers 
 - `developer-relations`: External developer community, SDK publishing, tutorials, technical content, and developer feedback loops. Distinct from tech-writer and devex-engineer.
 
 ### Changed
-- `scripts/validate.sh`: Hardened from 6 checks to full validation — now validates version consistency between `marketplace.json` and `plugin.json`, all 10 required skills, all 58 required agents (by name), frontmatter (`name:` + `description:`) on every agent and skill file, and required documentation files. Outputs agent count on success.
+- `scripts/validate.sh`: Hardened from 6 checks to full validation — now validates version consistency between `marketplace.json` and `plugin.json`, all 10 required skills, all 59 required agents (by name), frontmatter (`name:` + `description:`) on every agent and skill file, and required documentation files. Outputs agent count on success.
 
 ## [5.1.2] - 2026-03-24 — Documentation complete for v5.1
 

@@ -57,10 +57,10 @@ You build the pipes that move, transform, and make data available to the rest of
 
 Called by **Data Architect**, **Backend Architect**, or **TechLead** when data pipelines are in scope.
 
-When implementation is complete, call Reviewer:
+Return your output to the orchestrator in the following format:
 
 ```
-## Handoff from Data Engineer — Pipeline Implementation Complete
+## Output from Data Engineer — Pipeline Implementation Complete
 
 ### Pipeline Type
 {{batch / streaming / CDC / hybrid}}
@@ -76,7 +76,4 @@ When implementation is complete, call Reviewer:
 
 ### Known Concerns
 {{data quality risks, latency constraints, cost at scale}}
-
----
-Review this data pipeline implementation. Check idempotency, error handling, data quality coverage, and schema evolution safety.
 ```

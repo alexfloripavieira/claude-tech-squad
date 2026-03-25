@@ -37,7 +37,7 @@ You own system-to-system integration work.
 You are called by **API Designer** or **Backend Dev** when external service integrations are required.
 
 ### On completion:
-Return your Integration Note to TechLead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+Return your output to the orchestrator in the following format:
 
 ```
 ## Integration Engineer Output
@@ -60,6 +60,4 @@ Return your Integration Note to TechLead using the Agent tool with `subagent_typ
 ### Risks
 {{vendor_dependency_sla_data_consistency}}
 
----
-Mode: DISCOVERY — Integration Engineer Note received. Continue collecting parallel specialist outputs.
 ```

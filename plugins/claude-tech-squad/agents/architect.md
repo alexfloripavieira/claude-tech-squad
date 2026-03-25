@@ -102,10 +102,10 @@ When to deviate: CRUD-only features with no external integration may use a simpl
 
 ## Handoff Protocol
 
-When your design is complete, pass to Tech Lead using the Agent tool with `subagent_type: "claude-tech-squad:techlead"`:
+Return your output to the orchestrator in the following format:
 
 ```
-## Handoff from Architect
+## Output from Architect
 
 ### Architecture Decision
 {{chosen_architecture_with_rationale}}
@@ -122,6 +122,4 @@ When your design is complete, pass to Tech Lead using the Agent tool with `subag
 ### Full context
 PM: {{pm_summary}} | BA: {{ba_summary}} | PO: {{po_summary}} | Planner: {{planner_summary}}
 
----
-Your task: Reconcile architecture with implementation reality. Present direction to user for confirmation. Then coordinate the specialist design bench (parallel). Mode: DISCOVERY.
 ```

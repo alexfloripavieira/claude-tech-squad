@@ -66,6 +66,22 @@ If not available, ask the user to run `/discovery` first or paste the blueprint.
 
 ## Execution
 
+### Step 0 — Stack Command Detection (SEP Stack-Agnostic)
+
+Before any teammate is spawned, detect the project's real commands. Read the following files (whichever exist) and extract the canonical commands:
+
+| Signal file | test command | migrate command | lint command | build command |
+|---|---|---|---|---|
+| `Makefile` with `test:` target | `make test` | detect from targets | `make lint` | `make build` |
+| `package.json` scripts | `npm test` or `npm run test` | n/a | `npm run lint` | `npm run build` |
+| `pyproject.toml` with pytest | `pytest` | n/a | `ruff check .` | n/a |
+| `pom.xml` | `mvn test` | `mvn flyway:migrate` | `mvn checkstyle:check` | `mvn package` |
+| `build.gradle` | `./gradlew test` | n/a | `./gradlew lint` | `./gradlew build` |
+
+Store as `{{project_commands}}` and inject into every implementation agent prompt. No agent should ever infer commands — they always receive the detected commands.
+
+If a `CLAUDE.md` exists, read its commands block and use those values, which override all detected values above.
+
 ### Step 1 — Validate Blueprint
 
 Confirm the Discovery & Blueprint Document is present.
@@ -133,7 +149,23 @@ Each implementation agent prompt must include:
 - Failing test files from TDD Specialist
 - Relevant specialist notes (backend-arch, frontend-arch, api-designer, etc.)
 - Design principles guardrails
+- Project commands: `{{project_commands}}` — use these exact commands, never infer
 - Instruction: "Implement until the failing tests pass. Follow TDD. When done, return a summary of files changed and test results. Do NOT chain to other agents."
+
+**SEP Contrato 4 — Task Status Protocol:**
+Each implementation agent must also:
+1. Before starting: confirm which task slice it is implementing
+2. After completing: verify `{{test_command}}` passes
+3. Return a structured completion block:
+```
+## Completion Block
+- Task: {{task_name}}
+- Status: completed
+- Files changed: [list]
+- Tests run: {{test_command}} → PASS/FAIL
+- Test count: N passed, M failed
+```
+The orchestrator uses this block to track which tasks are done before spawning Reviewer.
 
 Wait for all implementation teammates to complete.
 
@@ -323,6 +355,43 @@ Emit: `[Teammate Spawned] pm-uat | pane: pm-uat`
 Emit: `[Gate] UAT | Waiting for user input`
 
 Present PM UAT output to user. Implementation is complete when user approves.
+
+### Step 11 — Write Execution Log (SEP Contrato 1)
+
+After UAT gate resolves, write the structured execution log.
+
+```bash
+mkdir -p ai-docs/.squad-log
+```
+
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+skill: implement
+timestamp: {{ISO8601}}
+status: completed | failed
+feature_slug: {{feature_slug}}
+blueprint_source: {{blueprint_path}}
+gates_cleared: [tdd, review, qa, uat]
+gates_blocked: []
+retry_count: {{total_reviewer_and_qa_retries}}
+teammates: [tdd-specialist, backend-dev?, frontend-dev?, reviewer, qa, security-rev?, docs-writer, jira-confluence, pm-uat]
+uat_result: APPROVED | REJECTED
+---
+
+## Output Digest
+{{one_paragraph_summary_of_what_was_implemented}}
+
+## Completion Blocks
+{{aggregated_completion_blocks_from_all_implementation_agents}}
+
+## Findings Gerados
+{{list_of_findings_from_quality_bench_if_any}}
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
 ---
 
