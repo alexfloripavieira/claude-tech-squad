@@ -280,6 +280,35 @@ Output: APPROVED or CHANGES REQUESTED. If CHANGES REQUESTED, only list blocker-c
 
 If reviewer outputs CHANGES REQUESTED: apply ONLY the blocker findings. Do NOT apply LOW/NIT suggestions. Repeat Step 5–6 once more with the blocker fixes only.
 
+### Step 6b — Write SEP log (SEP Contrato 1)
+
+```bash
+mkdir -p ai-docs/.squad-log
+```
+
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-bug-fix-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+skill: bug-fix
+timestamp: {{ISO8601}}
+status: completed
+bug_description: {{one_line_summary}}
+root_cause: {{root_cause}}
+files_changed: [list]
+test_written: {{test_name}}
+test_result: PASS
+lint_result: PASS | skipped
+reviewer_result: APPROVED
+---
+
+## Fix Summary
+{{one_paragraph}}
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
+
 ### Step 7 — Report to User
 
 Produce a concise summary:

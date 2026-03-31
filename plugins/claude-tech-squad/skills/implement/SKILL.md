@@ -126,6 +126,14 @@ If a `CLAUDE.md` exists, read its commands block and use those values, which ove
 Confirm the Discovery & Blueprint Document is present.
 If missing, stop and ask the user to provide it.
 
+Extract and store the following variables from the blueprint before spawning any agent:
+- `{{feature_slug}}` — machine-readable slug for this feature (e.g. `user-auth-oauth2`, derived from the blueprint title or ticket ID, lowercase kebab-case)
+- `{{acceptance_criteria}}` — full acceptance criteria list from the blueprint
+- `{{test_plan}}` — test plan from TDD/discovery output (if present)
+- `{{architecture}}` — architecture decisions from discovery (if present)
+
+These variables are used by docs-writer, jira-confluence, and the SEP log. If any are not found in the blueprint, derive `feature_slug` from the task description and leave others as "see blueprint".
+
 ### Step 2 — Create Implementation Team
 
 Call `TeamCreate` (fetch schema via ToolSearch if needed):
@@ -516,12 +524,25 @@ Agent(
 ### Architecture Decisions
 {{architecture}}
 
+### Acceptance Criteria
+{{acceptance_criteria}}
+
+### Test Plan
+{{test_plan}}
+
+### QA Validation Output
+{{qa_output}}
+
+### TechLead Conformance Audit
+{{conformance_output}}
+
 ### Quality Review Findings
 {{quality_bench_output}}
 
 ---
 You are the Docs Writer. Update technical docs, migration notes, operator guidance,
 changelog inputs, and developer-facing usage notes for this change.
+Map each acceptance criterion to the implemented behavior and the test that covers it.
 Return a documentation delta or updated files.
 Do NOT chain to other agents.
 """
@@ -607,13 +628,18 @@ Agent(
 ### Implementation Evidence
 {{qa_output}}
 
+### TechLead Conformance Audit
+{{conformance_output}}
+
 ### Quality Reviews
 {{quality_bench_output}}
 
 ---
 You are the PM performing UAT. Validate that each acceptance criterion has concrete
-evidence of fulfillment from the QA and implementation output.
+evidence of fulfillment from the QA output, conformance audit, and implementation output.
+For each acceptance criterion, state: criterion → evidence found → PASS or MISSING.
 Return: APPROVED or REJECTED with specific gaps.
+Do NOT chain.
 """
 )
 ```

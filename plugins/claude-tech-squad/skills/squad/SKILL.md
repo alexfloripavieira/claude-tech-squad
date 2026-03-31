@@ -171,6 +171,8 @@ Follow the same teammate sequence as `/discovery` Steps 3–13:
 Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-tech-squad:<subagent>", prompt=...)`
 
 **Phase 1 explicit subagent_type mappings** (name → subagent_type):
+
+Core discovery chain:
 - `pm` → `pm`
 - `business-analyst` → `business-analyst`
 - `po` → `po`
@@ -182,6 +184,31 @@ Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-te
 - `tdd-specialist` → `tdd-specialist`
 - `llm-eval-specialist` → `llm-eval-specialist`
 - `llm-safety-reviewer` → `llm-safety-reviewer`
+
+Specialist batch (spawned based on TechLead requirements, any subset):
+- `backend-arch` → `backend-architect`
+- `frontend-arch` → `frontend-architect`
+- `api-designer` → `api-designer`
+- `data-arch` → `data-architect`
+- `ux-designer` → `ux-designer`
+- `devops` → `devops`
+- `ci-cd` → `ci-cd`
+- `dba` → `dba`
+- `ai-engineer` → `ai-engineer`
+- `rag-engineer` → `rag-engineer`
+- `integration-engineer` → `integration-engineer`
+- `ml-engineer` → `ml-engineer`
+- `search-engineer` → `search-engineer`
+- `prompt-engineer` → `prompt-engineer`
+- `cloud-arch` → `cloud-architect`
+- `mobile-dev` → `mobile-dev`
+
+Quality baseline batch (always runs in parallel with specialist batch):
+- `security-baseline` → `security-reviewer`
+- `privacy-baseline` → `privacy-reviewer`
+- `compliance-baseline` → `compliance-reviewer`
+- `perf-baseline` → `performance-engineer`
+- `observability-baseline` → `observability-engineer`
 
 All agents receive the full accumulated context from prior teammates.
 All agents end with: "Do NOT chain to other agents — the orchestrator handles sequencing."

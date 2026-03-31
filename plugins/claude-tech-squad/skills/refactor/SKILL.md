@@ -270,7 +270,26 @@ Do NOT chain.
 )
 ```
 
-If CHANGES REQUESTED: spawn implementation agent to address feedback. Re-run tests. Re-run reviewer.
+If CHANGES REQUESTED: spawn the implementation agent again with the specific feedback. Re-run tests. Re-run reviewer. Repeat until APPROVED.
+
+### Step 7b — Quality Bench
+
+After reviewer APPROVED, spawn specialist reviewers in parallel:
+
+```
+Agent(subagent_type="claude-tech-squad:security-reviewer",  name="security-rev",  prompt="Review this refactor for security issues. Changed code: {{aggregated_diffs}}. Return findings as a checklist. Do NOT chain.")
+Agent(subagent_type="claude-tech-squad:privacy-reviewer",   name="privacy-rev",   prompt="Review this refactor for privacy/PII issues. Changed code: {{aggregated_diffs}}. Return findings as a checklist. Do NOT chain.")
+Agent(subagent_type="claude-tech-squad:performance-engineer", name="perf-eng",    prompt="Review this refactor for performance regressions. Changed code: {{aggregated_diffs}}. Return findings as a checklist. Do NOT chain.")
+Agent(subagent_type="claude-tech-squad:code-quality",       name="code-quality",  prompt="Run lint ({{lint_command}}) on the changed files. Report violations that would fail CI. Return findings as a checklist. Do NOT chain.")
+```
+
+Emit: `[Batch Spawned] quality-bench | Teammates: security-rev, privacy-rev, perf-eng, code-quality`
+
+**After all return**, classify findings:
+- **BLOCKING** (security vulns, PII leaks, CI-breaking lint): spawn implementation agent with fix mandate, re-run flagging reviewers — max 2 cycles
+- **WARNING** only: surface to user `[A]ccept / [F]ix before advancing`
+
+Emit: `[Gate] Quality Bench Complete | Advancing to final test run`
 
 ### Step 8 — Final test run
 

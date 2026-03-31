@@ -1,5 +1,49 @@
 # Changelog
 
+## [5.20.0] - 2026-03-31 — Segunda auditoria: release failure protocol, feature_slug, pm-uat conformance, squad mappings completos
+
+### Fixed
+
+**`/release` — Teammate Failure Protocol adicionado:**
+O único skill que spawna agentes sem Teammate Failure Protocol. Adicionada seção completa com detecção de falha silenciosa, re-spawn automático e gate [R]/[S]/[X] ao usuário na segunda falha consecutiva.
+
+**`/discovery` — `{{feature_slug}}` extraído no Step 1 (antes de qualquer uso):**
+`feature_slug` era usado em Step 12b (feature flag), Step 13b (ADR paths) e Step 14 (SEP log) mas nunca era definido. Agora extraído no Step 1 como kebab-case do request do usuário, disponível em todo o run.
+
+**`/implement` — `pm-uat` recebe `{{conformance_output}}` do TechLead Conformance Audit:**
+PM UAT validava ACs contra `qa_output` e `quality_bench_output` mas não contra `conformance_output`. Agora recebe os três, com instrução explícita de mapear cada AC para evidência + PASS/MISSING.
+
+**`/squad` — Mapeamentos Phase 1 completos (specialist batch + quality baseline batch):**
+Tabela de mapeamentos Phase 1 continha apenas 11 agentes da chain principal. Specialist batch (16 agentes: backend-arch, frontend-arch, api-designer, data-arch, ux-designer, devops, ci-cd, dba, ai-engineer, rag-engineer, etc.) e quality baseline batch (5 agentes: security-baseline, privacy-baseline, compliance-baseline, perf-baseline, observability-baseline) agora têm mapeamentos explícitos name→subagent_type.
+
+## [5.19.0] - 2026-03-31 — Quality Bench em /refactor, reviewer gates em /multi-service e /migration-plan, SEP logs completos, contexto do docs-writer, feature flag antes do TDD
+
+### Added
+
+**`/refactor` — Quality Bench (Step 7b) após reviewer APPROVED:**
+Código refatorado agora passa por security-reviewer, privacy-reviewer, performance-engineer e code-quality antes de ser considerado pronto. Issues BLOCKING reenviam para o agente de implementação com mandato de correção. Sem essa gate, código refatorado saía sem auditoria de segurança/privacidade/perf.
+
+**`/multi-service` — Reviewer Gate (Step 7b) após SRE e antes do delivery package:**
+Reviewer agora valida contratos cross-service, sequência de deploy, estratégia de rollback e plano de testes de integração antes de o pacote de entrega ser gerado. Issues identificados são resolvidos com o integration-engineer ou architect antes de avançar.
+
+**`/migration-plan` — Reviewer Gate (Step 6b) e SEP log:**
+Reviewer agora valida scripts de rollback, ordenação de migrations, steps de validação de dados e operações irreversíveis antes de salvar o plano. SEP log adicionado ao final — permite que `/factory-retrospective` rastreie histórico de migration plans.
+
+**`/bug-fix` — SEP log (Step 6b):**
+Cada bug fix agora grava log estruturado em `ai-docs/.squad-log/` com root cause, arquivos alterados, evidência de teste e resultado do reviewer. `/factory-retrospective` pode agora detectar padrões de bugs recorrentes.
+
+**`/cloud-debug` — SEP log (Step 7b):**
+Diagnósticos de produção agora são registrados em `ai-docs/.squad-log/` com severidade, hipótese de root cause, serviços afetados e se escalou para hotfix. Garante rastreabilidade de todos os incidentes investigados.
+
+**`/implement` — docs-writer recebe contexto completo (Step 8):**
+docs-writer agora recebe `{{acceptance_criteria}}`, `{{test_plan}}`, `{{qa_output}}` e `{{conformance_output}}` além da implementação e arquitetura. Permite documentar o mapeamento AC → comportamento implementado → teste que cobre.
+
+**`/implement` — extração de variáveis no Step 1:**
+`{{feature_slug}}`, `{{acceptance_criteria}}`, `{{test_plan}}` e `{{architecture}}` agora são extraídos do blueprint no Step 1 antes de qualquer spawn. Elimina o `{{feature_slug}}` undefined no SEP log e garante que todos os agentes downstream recebem essas variáveis.
+
+**`/discovery` — Feature Flag Assessment movido para Step 12b (antes do TDD Specialist):**
+Feature Flag Assessment executava após o TDD Specialist, impedindo que testes flag-gated fossem planejados. Agora roda antes (Step 12b), passa `{{feature_flag_strategy}}` para o TDD Specialist, que inclui ciclos red-green para flag=false e flag=true quando necessário.
+
 ## [5.18.0] - 2026-03-31 — Code quality em todos os fluxos e resolução obrigatória de issues do Quality Bench
 
 ### Added

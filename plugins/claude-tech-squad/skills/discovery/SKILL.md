@@ -83,12 +83,18 @@ Options:
 
 ## Execution
 
-### Step 1 — Repository Recon
+### Step 1 — Repository Recon and Variable Extraction
 
 Read the following files to understand the project:
 - README.md, CLAUDE.md, package.json, pyproject.toml, requirements.txt
 - List the main directories and identify the tech stack
 - Note any existing architecture patterns, conventions, or constraints
+
+Extract and store for use throughout this discovery run:
+- `{{feature_slug}}` — derived from the user's request as lowercase kebab-case (e.g. "user authentication with OAuth2" → `user-auth-oauth2`, or use ticket ID if provided)
+- `{{user_request_one_line}}` — the user's request summarized in one line
+
+`{{feature_slug}}` is used for ADR paths (`ai-docs/{{feature_slug}}/adr/`), blueprint path, feature flag naming, and the SEP log. Derive it immediately so all downstream steps have a consistent identifier.
 
 ### Step 2 — Create Discovery Team
 
@@ -459,9 +465,36 @@ Do NOT chain to other agents.
 
 Emit: `[Teammate Spawned] test-planner | pane: test-planner`
 
+### Step 12b — Feature Flag Assessment (proactive, before TDD)
+
+Before spawning the TDD Specialist, assess whether this feature requires a feature flag. The TDD Specialist needs this information to write flag-gated tests.
+
+Evaluate based on the blueprint:
+- Does the feature change user-facing behavior gradually? (rollout candidate)
+- Is the feature risky enough to warrant instant rollback without deploy? (safety flag)
+- Does the feature need A/B testing? (experiment flag)
+- Is the feature behind a permission level that may vary by user/tenant? (entitlement flag)
+
+If **any** applies, produce a feature flag strategy and store as `{{feature_flag_strategy}}`:
+
+```markdown
+## Feature Flag Strategy
+
+**Flag name:** `{{feature_slug}}_enabled`
+**Type:** rollout | safety | experiment | entitlement
+**Default:** false (off by default — enable explicitly per environment)
+**Rollout plan:** internal → staging → 5% → 25% → 100%
+**Cleanup:** remove flag after full rollout confirmed stable (suggested: 2 sprints)
+**Tests required:** flag=false path + flag=true path must both have test coverage
+```
+
+If no flag is needed, set `{{feature_flag_strategy}}` to "No flag required — full rollout on deploy".
+
+Emit: `[Feature Flag] Required — strategy defined` or `[Feature Flag] Not required`
+
 ### Step 13 — TDD Specialist Teammate (Final Gate)
 
-Spawn TDD Specialist:
+Spawn TDD Specialist with the feature flag strategy so it can write flag-aware tests:
 
 ```
 Agent(
@@ -480,10 +513,14 @@ Agent(
 ### Architecture
 {{architect_output}}
 
+### Feature Flag Strategy
+{{feature_flag_strategy}}
+
 ---
 You are the TDD Specialist. Convert the approved scope into executable red-green-refactor
 cycles. Define the first failing tests, minimal implementation targets, and refactor
 checkpoints using the repository's real test stack.
+If a feature flag is required, include test cycles for both the flag=false path and the flag=true path.
 Return the TDD Delivery Plan.
 Do NOT chain to other agents.
 """
@@ -535,34 +572,6 @@ Write one file per decision to `ai-docs/{{feature_slug}}/adr/ADR-NNN-{{slug}}.md
 ```
 
 Emit: `[ADRs Generated] N decisions recorded in ai-docs/{{feature_slug}}/adr/`
-
-### Step 13c — Feature Flag Assessment (proactive)
-
-After blueprint confirmation, automatically assess whether this feature requires a feature flag.
-
-Evaluate based on the blueprint:
-- Does the feature change user-facing behavior gradually? (rollout candidate)
-- Is the feature risky enough to warrant instant rollback without deploy? (safety flag)
-- Does the feature need A/B testing? (experiment flag)
-- Is the feature behind a permission level that may vary by user/tenant? (entitlement flag)
-
-If **any** applies, add a section to the blueprint:
-
-```markdown
-## Feature Flag Strategy
-
-**Flag name:** `{{feature_slug}}_enabled`
-**Type:** rollout | safety | experiment | entitlement
-**Default:** false (off by default — enable explicitly per environment)
-**Rollout plan:** internal → staging → 5% → 25% → 100%
-**Cleanup:** remove flag after full rollout confirmed stable (suggested: 2 sprints)
-```
-
-If no flag is needed, emit:
-`[Feature Flag] Not required for this feature — full rollout on deploy`
-
-If a flag is needed:
-`[Feature Flag] Required — strategy added to blueprint`
 
 ### Step 14 — Write Execution Log (SEP Contrato 1)
 

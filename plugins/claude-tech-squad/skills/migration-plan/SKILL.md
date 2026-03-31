@@ -214,12 +214,77 @@ Generate a structured plan:
 ## Commands Reference
 ```
 
+### Step 6b — Reviewer Gate
+
+Before saving, spawn reviewer to validate the migration plan:
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:reviewer",
+  prompt = """
+## Migration Plan Review
+
+### Migration Plan
+{{migration_plan}}
+
+### Data Architect Analysis
+{{data_architect_output}}
+
+### DBA Safety Review
+{{dba_output}}
+
+---
+Review this migration plan for:
+1. Rollback scripts — are they syntactically correct and will they work under load?
+2. Migration ordering — is the sequence safe? Any dependency issues?
+3. Data validation steps — are they present for data migrations?
+4. Locking risks — are table locks properly addressed for large tables?
+5. Irreversible operations — are they clearly flagged with tested rollback alternatives?
+
+Return: APPROVED or CHANGES REQUESTED with specific issues.
+Do NOT chain.
+"""
+)
+```
+
+If CHANGES REQUESTED: address the specific issues in the migration plan and re-run reviewer. Max 2 review cycles.
+
+Emit: `[Gate] Migration Plan Reviewer APPROVED | Advancing to save`
+
 ### Step 7 — Save plan
 
 Create the `ai-docs/` directory if it does not exist. Write the plan to:
 ```
 ai-docs/migration-plan-YYYY-MM-DD.md
 ```
+
+### Step 7b — Write SEP log (SEP Contrato 1)
+
+```bash
+mkdir -p ai-docs/.squad-log
+```
+
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-migration-plan-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+skill: migration-plan
+timestamp: {{ISO8601}}
+status: completed
+migrations_planned: N
+risk_level: Low | Medium | High
+reviewer_result: APPROVED
+dba_result: APPROVED
+backup_verified: true | skipped (local dev)
+plan_path: ai-docs/migration-plan-YYYY-MM-DD.md
+---
+
+## Migration Summary
+{{one_paragraph_summary}}
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
 ### Step 8 — Report to user
 

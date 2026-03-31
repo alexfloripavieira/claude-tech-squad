@@ -337,6 +337,46 @@ Do NOT chain.
 
 Emit: `[Teammate Spawned] sre | pane: sre`
 
+### Step 7b — Reviewer Gate
+
+After SRE assessment, spawn reviewer to validate the full plan before the delivery package is produced:
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:reviewer",
+  prompt = """
+## Multi-Service Plan Review
+
+### Contract Changes
+{{integration_engineer_output}}
+
+### Architecture
+{{architect_output}}
+
+### Deployment Sequencing
+{{techlead_output}}
+
+### SRE Assessment
+{{sre_output}}
+
+---
+Review this multi-service delivery plan for:
+1. Cross-service contracts — are they syntactically correct and backwards-compatible?
+2. Deployment sequence — is the ordering safe? Any circular dependencies?
+3. Rollback strategy — is each service independently rollback-able?
+4. Integration test plan — is it complete enough to detect contract breaks?
+5. API versioning approach — is it sound?
+
+Return: APPROVED or CHANGES REQUESTED with specific issues.
+Do NOT chain.
+"""
+)
+```
+
+If CHANGES REQUESTED: surface issues to the relevant specialist (integration-engineer or architect) for resolution. Re-run reviewer after fix. Max 2 review cycles.
+
+Emit: `[Gate] Multi-Service Reviewer APPROVED | Advancing to delivery package`
+
 ### Step 8 — Produce delivery package
 
 Generate the full multi-service delivery package:

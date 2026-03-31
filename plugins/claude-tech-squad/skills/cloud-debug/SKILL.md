@@ -220,3 +220,32 @@ Present to the user:
 ```
 
 Do NOT save this report to a file automatically. Present it directly to the user for immediate action. Offer to save it if the user wants a record.
+
+### Step 7b — Write SEP log (SEP Contrato 1)
+
+After presenting the diagnosis, always write a SEP log regardless of whether the user requests a saved report:
+
+```bash
+mkdir -p ai-docs/.squad-log
+```
+
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-cloud-debug-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+skill: cloud-debug
+timestamp: {{ISO8601}}
+status: completed
+symptom: {{one_line_summary}}
+severity: SEV-N
+root_cause_hypothesis: {{most_likely_cause}}
+services_affected: [list]
+escalated_to_hotfix: true | false
+---
+
+## Action Plan
+{{immediate_actions}}
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
