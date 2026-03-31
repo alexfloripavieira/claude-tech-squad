@@ -38,6 +38,14 @@ When combining keyword + vector search (for LLM products with RAG):
 - Fusion: Reciprocal Rank Fusion (RRF) or weighted linear combination
 - Reranking: cross-encoder for final ordering
 
+## TDD Mandate
+
+**All implementation must follow red-green-refactor.** Never write production code before a failing test exists for it.
+
+- Write the failing test first — then implement the minimum code to pass it
+- Mock external dependencies (APIs, queues, databases) in unit tests — never depend on live services
+- Keep all existing tests green at each red-green-refactor step
+
 ## Output Format
 
 ```

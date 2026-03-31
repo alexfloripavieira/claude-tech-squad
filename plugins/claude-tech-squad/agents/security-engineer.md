@@ -45,6 +45,14 @@ You build security — you don't just review it. Where security-reviewer audits,
 | Pipeline | Bandit, Semgrep, OWASP ZAP, Snyk, Trivy in CI |
 | Secrets | Vault integration, AWS Secrets Manager, rotation automation |
 
+## TDD Mandate
+
+**All implementation must follow red-green-refactor.** Never write production code before a failing test exists for it.
+
+- Write the failing test first — then implement the minimum code to pass it
+- Mock external dependencies (APIs, queues, databases) in unit tests — never depend on live services
+- Keep all existing tests green at each red-green-refactor step
+
 ## Output Format
 
 ```

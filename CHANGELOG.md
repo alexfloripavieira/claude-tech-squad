@@ -1,5 +1,97 @@
 # Changelog
 
+## [5.18.0] - 2026-03-31 — Code quality em todos os fluxos e resolução obrigatória de issues do Quality Bench
+
+### Added
+
+**`/implement` e `/squad` — Quality Bench Issue Resolution Loop (Step 7b):**
+Após todos os agentes do Quality Bench retornarem, os findings agora são classificados por severidade: **BLOCKING** (vulns de segurança OWASP, vazamento de PII, violações de privacidade, erros de lint que quebram CI, falhas WCAG A/AA) e **WARNING** (regressões de performance, riscos de integração, dívida de qualidade). Se houver issues BLOCKING: os agentes de implementação relevantes são re-spawnados com mandato de correção, e apenas os reviewers que sinalizaram o problema são re-executados — max 2 ciclos de fix. Se após 2 ciclos ainda houver BLOCKING: gate ao usuário `[A]ccept com tech debt documentado / [X]Abort`. Se apenas WARNINGs: summary apresentado ao usuário com `[A]ccept / [F]ix before advancing`. Garante que issues reais encontrados pelos revisores especializados não sejam silenciosamente ignorados.
+
+**`/hotfix` Step 8 — Security risk fix loop:**
+Quando security-reviewer retorna RISK, agora há obrigatoriedade de correção antes de avançar. O agente de implementação é re-spawnado com o issue de segurança como mandato, e o security-reviewer é re-executado para confirmar CLEAR. Se RISK persistir após tentativa: gate ao usuário `[A]ccept risk (documentar) / [X]Abort`.
+
+**`/implement`, `/squad`, `/bug-fix`, `/hotfix` — code-quality e lint em todos os fluxos de código:**
+Todos os workflows que geram código agora incluem o agente `code-quality` com `{{lint_command}}` detectado no Step 0. Bug-fix tem Lint Gate explícito após QA PASS. Hotfix inclui lint check inline no agente de implementação. Quality Bench do /implement e /squad inclui `code-quality` como membro permanente.
+
+## [5.17.0] - 2026-03-31 — Contexto acumulado completo, ai_feature determinístico, especialistas estruturados, fallback de comandos
+
+### Fixed
+
+**`/discovery` — Architect e TechLead recebem contexto acumulado completo:**
+Architect recebia apenas `{{planner_output}}` e `{{po_output}}`, perdendo o contexto de produto do PM e as regras de domínio do BA. TechLead igualmente. Ambos agora recebem `{{pm_output}}` e `{{ba_output}}` além dos demais outputs — eliminando redesenho de contexto e inconsistências arquiteturais por falta de informação de produto.
+
+**`/squad` — `ai_feature` com default explícito e gate quando ambíguo:**
+`ai_feature` nunca tinha default — se o grep não encontrava nada, a variável ficava undefined e o bench de AI nunca era ativado. Agora: default `false`, só vira `true` se grep retorna resultados. Se detecção é ambígua: gate ao usuário `[Y]es / [N]o` antes de spawnar qualquer agente de AI.
+
+**`techlead` agent — `### Specialists Required` com nomes exatos:**
+O TechLead listava especialistas em campo livre (`Specialist Inputs Needed`) sem formato definido. Discovery Step 9 dependia disso para spawn — mas sem estrutura, o orquestrador interpretava nomes arbitrários. Agora TechLead retorna `### Specialists Required` com lista de nomes exatos do conjunto válido de agentes e razão por especialista.
+
+**`/implement` Step 0 — gate quando comandos não detectados:**
+Se nenhum signal file (`Makefile`, `package.json`, `pyproject.toml`, etc.) continha targets reconhecíveis, `{{test_command}}` ficava undefined e agentes rodavam comandos errados silenciosamente. Agora: emite `[Gate] Commands Unknown` e bloqueia todos os spawns até o usuário confirmar os comandos manualmente.
+
+## [5.16.0] - 2026-03-31 — Workflow hardening: max retries, contexto de projeto, gate criteria, batch tracking
+
+### Fixed
+
+**`/squad` e `/implement` — max_retries em todos os loops:**
+Reviewer (max 3 ciclos), QA (max 2), Conformance Audit (max 2) e UAT (max 2) agora têm teto de iterações. Após o limite: gate ao usuário com `[A]ccept as-is / [X]Abort`. Elimina loops infinitos.
+
+**`/implement` — `{{test_command}}` e `{{build_command}}` injetados nos agentes de implementação:**
+Comandos detectados no Step 0 agora são passados explicitamente no prompt de cada agente de implementação (backend-dev, frontend-dev, platform-dev). Agentes não inferem mais `pytest`, `npm test` etc. — usam o comando real do projeto.
+
+**`/implement` — techlead-audit com output format estruturado e `[Teammate Done]`:**
+O Step 6b (Conformance Audit) agora exige output format com seções obrigatórias: `Verdict`, `Workstream Coverage`, `Architecture Violations`, `TDD Compliance`, `Requirements Traceability`, `Gaps`. O orquestrador valida a estrutura antes de avançar e emite `[Teammate Done] techlead-audit`.
+
+**`/bug-fix` — TechLead root cause com output format estruturado:**
+TechLead no bug-fix agora retorna: `Root Cause`, `Affected Files`, `Fix Strategy`, `Scope Assessment`, `Escalation`. Elimina o problema de `{{affected_files}}` undefined no agente de implementação downstream.
+
+**`/discovery` — Gates 1–4 com pass/fail criteria objetivos:**
+Cada gate agora tem checklist de critérios de aprovação (ex: Gate 1 — mínimo 3 ACs mensuráveis, escopo delimitado, métricas observáveis). Se usuário rejeitar: instrução explícita de qual gap comunicar antes de re-spawn.
+
+**`/discovery` — Batch completion tracking em specialist-bench e quality-baseline:**
+Após `[Batch Spawned]`, agora há wait explícito com `[Batch Completed] N/N agents returned`. Batches paralelos não avançam mais sem confirmação de que todos os agentes retornaram.
+
+## [5.15.0] - 2026-03-31 — Teammate Failure Protocol universal em todos os 16 skills com agentes
+
+### Added
+
+**Teammate Failure Protocol — todos os 16 skills que spawnam agentes:**
+Adicionada seção `## Teammate Failure Protocol` em `discovery`, `squad`, `implement`, `multi-service`, `iac-review`, `pr-review`, `security-audit`, `hotfix`, `bug-fix`, `refactor`, `onboarding`, `llm-eval`, `migration-plan`, `incident-postmortem`, `cloud-debug` e `prompt-review`. O protocolo define: (1) detecção de falha silenciosa (resposta vazia, erro ou output sem estrutura esperada); (2) re-spawn automático na primeira falha; (3) gate ao usuário com opções [R]etry / [S]kip / [X]Abort na segunda falha consecutiva; (4) aviso explícito que skip em agente sequencial degrada TODOS os agentes downstream; (5) agentes de batch podem ser skipped individualmente sem bloquear o lote, mas o risco é registrado no relatório final; (6) nenhum step avança até todos os teammates do step atual terem retornado output válido, sido explicitamente skipped, ou o run ter sido abortado.
+
+**`/discovery` skill — `[Teammate Retry]` adicionado ao Operator Visibility Contract:**
+O discovery não emitia `[Teammate Retry]` no contrato de visibilidade. Adicionado para consistência com squad e implement.
+
+## [5.14.0] - 2026-03-31 — TechLead Conformance Audit obrigatório após QA em /implement e /squad
+
+### Added
+
+**`/implement` skill — Step 6b: TechLead Conformance Audit (gate obrigatório):**
+Adicionado step `techlead-audit` entre QA PASS e Quality Bench. O TechLead audita: (1) cobertura de workstreams — todos os workstreams do plano de execução foram implementados; (2) conformidade arquitetural — o código segue as decisões de arquitetura (camadas Hexagonais, boundaries de DB, contratos de API); (3) TDD compliance — testes falhantes foram escritos antes do código de produção em cada ciclo; (4) rastreabilidade de requisitos — cada critério de aceitação mapeia para comportamento implementado e teste passando. Gate: CONFORMANT avança para Quality Bench; NON-CONFORMANT retorna com gaps específicos → re-implementação → re-review → re-QA → re-audit.
+
+**`/squad` skill — Phase 2: TechLead Conformance Audit adicionado ao fluxo:**
+Fluxo de Phase 2 atualizado para incluir `techlead-audit` (subagent_type: `techlead`) entre QA e Quality Bench, com mapeamento explícito no registro de teammates e no execution log.
+
+## [5.13.0] - 2026-03-31 — fix: agent name resolution em /squad + TDD Mandate obrigatório em todos os agentes de implementação
+
+### Fixed
+
+**`/squad` skill — resolução de agentes com alias curto (Phase 1 e Phase 2):**
+O template genérico `subagent_type="claude-tech-squad:<role>"` era aplicado com nomes curtos que não existem como agentes válidos, causando erro "Agent not found" ao spawnar teammates. Corrigido adicionando tabelas de mapeamento explícito (name → subagent_type) para todas as fases. Aliases afetados: `ba` → `business-analyst`, `design-principles` → `design-principles-specialist`, `tdd-impl` → `tdd-specialist`, `security-rev` → `security-reviewer`, `privacy-rev` → `privacy-reviewer`, `perf-eng` → `performance-engineer`, `access-rev` → `accessibility-reviewer`, `integ-qa` → `integration-qa`, `jira-confluence` → `jira-confluence-specialist`, `pm-uat` → `pm`.
+
+**`/onboarding` skill — agente de security audit inexistente:**
+Step 5 referenciava `claude-tech-squad:security-auditor` que não existe no squad. Corrigido para `claude-tech-squad:security-reviewer`.
+
+### Changed
+
+**`frontend-dev` agent — TDD Mandate adicionado:**
+O agente não tinha seção de TDD Mandate explícita, apenas um campo de output `### Tests Written (TDD)`. Adicionado TDD Mandate com ciclo red-green-refactor por camada (component/unit → integration/e2e), bloqueando implementação antes de testes falhantes.
+
+**`platform-dev` agent — TDD Mandate adicionado:**
+O agente não tinha nenhuma referência a TDD. Adicionado TDD Mandate com ciclo red-green-refactor por camada (unit com mocks de fila/serviço externo → integration), e campo `### Tests Written (TDD)` no Handoff Protocol.
+
+**TDD Mandate adicionado a 9 agentes de implementação restantes:**
+Os agentes `ai-engineer`, `data-engineer`, `integration-engineer`, `security-engineer`, `search-engineer`, `growth-engineer`, `devex-engineer`, `ml-engineer` e `rag-engineer` não tinham nenhuma referência a TDD. Todos receberam seção `## TDD Mandate` com regra red-green-refactor, proibição de código de produção antes de teste falhante, e instrução de mock para dependências externas em testes unitários.
+
 ## [5.12.0] - 2026-03-25 — /bug-fix: perfumaria guard e critérios de blocker no reviewer
 
 ### Changed

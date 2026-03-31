@@ -43,6 +43,14 @@ You build, train, and operate machine learning models in production.
 | Monitoring | Evidently, WhyLabs, Arize, NannyML |
 | Fine-tuning | PEFT/LoRA, QLoRA, Axolotl, Unsloth |
 
+## TDD Mandate
+
+**All implementation must follow red-green-refactor.** Never write production code before a failing test exists for it.
+
+- Write the failing test first — then implement the minimum code to pass it
+- Mock external dependencies (APIs, queues, databases) in unit tests — never depend on live services
+- Keep all existing tests green at each red-green-refactor step
+
 ## Output Format
 
 ```

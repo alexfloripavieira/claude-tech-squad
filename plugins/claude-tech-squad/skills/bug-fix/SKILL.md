@@ -39,6 +39,33 @@ Lightweight defect resolution workflow. Faster than `/squad` for isolated bugs �
 
 ## Execution
 
+## Teammate Failure Protocol
+
+A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role.
+
+**For every teammate spawned — without exception:**
+
+1. Wait for the teammate to return a structured output.
+2. If the return is empty, an error, or structurally invalid:
+   - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
+   - Re-spawn the teammate once with the identical prompt.
+3. If the second attempt also fails:
+   - Emit: `[Gate] Teammate Failure | <name> failed twice`
+   - Surface to the user:
+
+```
+Teammate <name> failed to return a valid output (attempt 1 and 2).
+
+Options:
+- [R] Retry once more with the same prompt
+- [S] Skip and continue — downstream quality WILL be degraded (log the risk)
+- [X] Abort the run
+```
+
+4. **Sequential teammates** (output feeds the next agent): [S] degrades ALL downstream teammates that depend on this output — warn the user explicitly before accepting skip.
+5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
+6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
+
 ### Step 1 — Bug Intake Gate
 
 Ask the user for:
@@ -71,6 +98,27 @@ Tasks:
 5. If architectural changes are needed, say ESCALATE and explain why
 
 Output: root cause hypothesis, affected files, fix strategy, scope assessment.
+
+Return your output in EXACTLY this format:
+```
+## Output from TechLead — Root Cause Analysis
+
+### Root Cause
+[1-2 sentences describing the exact cause]
+
+### Affected Files
+- [file_path]: [what needs to change]
+
+### Fix Strategy
+[approach in 2-3 sentences]
+
+### Scope Assessment
+CONTAINED | BROAD
+
+### Escalation
+NONE | ESCALATE: [reason]
+```
+Do NOT chain to other agents.
 ```
 
 If techlead outputs ESCALATE: stop and tell the user to use `/squad` instead.
@@ -164,6 +212,36 @@ This is a bug fix — no new features. Any new test failures are regressions and
 ```
 
 If QA fails: return to Step 4 with the failure details. Retry up to 2 times.
+
+### Lint Gate (after QA PASS)
+
+Run lint using `{{lint_command}}` detected in repository recon. If `{{lint_command}}` was not detected, skip this gate and log the risk.
+
+```
+Agent(
+  subagent_type = "claude-tech-squad:code-quality",
+  prompt = """
+## Code Quality Lint Check
+
+### Lint Command
+{{lint_command}}
+
+### Changed Files
+{{changed_files}}
+
+### Implementation Output
+{{implementation_output}}
+
+---
+You are the Code Quality specialist. Run the lint command on changed files.
+Return findings as a checklist. Flag any violations that would fail CI.
+Do NOT fix — report only.
+Do NOT chain to other agents.
+"""
+)
+```
+
+If lint violations found: return to Step 4 with violations list.
 
 ### Step 6 — Code Review
 

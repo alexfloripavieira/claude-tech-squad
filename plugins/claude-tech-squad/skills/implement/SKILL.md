@@ -66,6 +66,33 @@ Emit these lines for every teammate action:
 This command expects a Discovery & Blueprint Document (from `/discovery` or `/squad`).
 If not available, ask the user to run `/discovery` first or paste the blueprint.
 
+## Teammate Failure Protocol
+
+A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role.
+
+**For every teammate spawned — without exception:**
+
+1. Wait for the teammate to return a structured output.
+2. If the return is empty, an error, or structurally invalid:
+   - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
+   - Re-spawn the teammate once with the identical prompt.
+3. If the second attempt also fails:
+   - Emit: `[Gate] Teammate Failure | <name> failed twice`
+   - Surface to the user:
+
+```
+Teammate <name> failed to return a valid output (attempt 1 and 2).
+
+Options:
+- [R] Retry once more with the same prompt
+- [S] Skip and continue — downstream quality WILL be degraded (log the risk)
+- [X] Abort the run
+```
+
+4. **Sequential teammates** (output feeds the next agent): [S] degrades ALL downstream teammates that depend on this output — warn the user explicitly before accepting skip.
+5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
+6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
+
 ---
 
 ## Execution
@@ -83,6 +110,14 @@ Before any teammate is spawned, detect the project's real commands. Read the fol
 | `build.gradle` | `./gradlew test` | n/a | `./gradlew lint` | `./gradlew build` |
 
 Store as `{{project_commands}}` and inject into every implementation agent prompt. No agent should ever infer commands — they always receive the detected commands.
+
+If no signal file is found or test target is absent: do NOT guess. Emit `[Gate] Commands Unknown` and ask the user:
+```
+Could not detect test/build commands. Please provide:
+- Test command: (e.g. make test, pytest, npm test)
+- Build command (if applicable):
+```
+Block all agent spawns until commands are confirmed.
 
 If a `CLAUDE.md` exists, read its commands block and use those values, which override all detected values above.
 
@@ -152,6 +187,7 @@ Each implementation agent prompt must include:
 - Architecture decisions
 - Failing test files from TDD Specialist
 - Relevant specialist notes (backend-arch, frontend-arch, api-designer, etc.)
+- Detected project commands: `{{test_command}}`, `{{build_command}}` (from Step 0)
 - Design principles guardrails
 - Project commands: `{{project_commands}}` — use these exact commands, never infer
 - Instruction: "Implement until the failing tests pass. Follow TDD. When done, return a summary of files changed and test results. Do NOT chain to other agents."
@@ -248,11 +284,98 @@ If QA returns FAIL:
 - Spawn the relevant implementation agent with QA failure details
 - Repeat Steps 5–6 until QA PASS
 
+### Step 6b — TechLead Conformance Audit
+
+**MANDATORY GATE — Quality Bench MUST NOT start until TechLead confirms CONFORMANT. This step is NEVER skippable.**
+
+After QA PASS, spawn TechLead to audit conformance between the implementation and the original execution plan:
+
+```
+Agent(
+  team_name = <team>,
+  name = "techlead-audit",
+  subagent_type = "claude-tech-squad:techlead",
+  prompt = """
+## Conformance Audit
+
+### Original TechLead Execution Plan
+{{techlead_execution_plan}}
+
+### Architecture Decisions (from Discovery)
+{{architect_output}}
+
+### TDD Delivery Plan
+{{tdd_delivery_plan}}
+
+### Acceptance Criteria
+{{acceptance_criteria}}
+
+### Implementation Output (all workstreams)
+{{aggregated_implementation_output}}
+
+### QA Results
+{{qa_output}}
+
+---
+You are the Tech Lead performing a post-implementation conformance audit.
+
+Verify each of the following:
+
+1. **Workstream coverage** — Was every workstream from the execution plan implemented? List any missing or partial workstreams.
+2. **Architecture conformance** — Does the implementation follow the architecture decisions (Hexagonal layers, DB boundaries, API contracts)? Flag violations.
+3. **TDD compliance** — Were failing tests written before production code for each cycle? Does test coverage match the TDD delivery plan?
+4. **Requirements traceability** — Does each acceptance criterion map to concrete implemented behavior and a passing test? List any untraced criteria.
+5. **Technical debt introduced** — Did the implementation introduce workarounds, shortcuts, or TODOs that block production readiness?
+
+Return verdict: **CONFORMANT** or **NON-CONFORMANT**.
+
+If NON-CONFORMANT: list specific gaps with the workstream/agent responsible for each gap.
+Do NOT chain to other agents.
+
+Return your output in EXACTLY this format:
+```
+## Output from TechLead Conformance Audit
+
+### Verdict
+CONFORMANT | NON-CONFORMANT
+
+### Workstream Coverage
+- [workstream]: covered | missing | partial
+
+### Architecture Violations
+- [none | list of violations with file:line]
+
+### TDD Compliance
+- [compliant | list of missing test cycles]
+
+### Requirements Traceability
+- [AC#]: covered by [test_name] | NOT COVERED
+
+### Gaps (if NON-CONFORMANT)
+- Gap: [description] | Owned by: [agent-name] | Action: [what to fix]
+```
+"""
+)
+```
+
+Emit: `[Teammate Spawned] techlead-audit | pane: techlead-audit`
+
+Wait for techlead-audit to return. Validate return contains `## Output from TechLead Conformance Audit` and `### Verdict`.
+Emit: `[Teammate Done] techlead-audit | Output: {{CONFORMANT|NON-CONFORMANT}}`
+
+**If TechLead returns NON-CONFORMANT:**
+- Emit: `[Gate] Conformance Failure | Gaps: <summary>`
+- For each gap: re-spawn the responsible implementation agent with the gap as context
+- Re-run Steps 5–6b (reviewer → QA → conformance audit) until CONFORMANT
+
+**If TechLead returns CONFORMANT:**
+- Emit: `[Gate] Conformance Passed | Advancing to Quality Bench`
+
 ### Step 7 — Quality Bench (Parallel)
 
 **MANDATORY GATE — Step 8 (Docs) MUST NOT start until ALL Quality Bench agents have returned a structured checklist. Skipping or short-circuiting this step is FORBIDDEN.**
 
-After QA PASS, spawn quality specialist reviewers in parallel:
+After Conformance Audit CONFORMANT, spawn quality specialist reviewers in parallel:
 
 ```
 Agent(team_name=<team>, name="security-rev",  subagent_type="claude-tech-squad:security-reviewer",      prompt=...)
@@ -260,12 +383,15 @@ Agent(team_name=<team>, name="privacy-rev",   subagent_type="claude-tech-squad:p
 Agent(team_name=<team>, name="perf-eng",      subagent_type="claude-tech-squad:performance-engineer",   prompt=...)
 Agent(team_name=<team>, name="access-rev",    subagent_type="claude-tech-squad:accessibility-reviewer", prompt=...)
 Agent(team_name=<team>, name="integ-qa",      subagent_type="claude-tech-squad:integration-qa",         prompt=...)
+Agent(team_name=<team>, name="code-quality",  subagent_type="claude-tech-squad:code-quality",           prompt=...)
 ```
 
 Emit: `[Batch Spawned] quality-bench | Teammates: <list>`
 
 Only spawn reviewers relevant to this project. Each receives the full implementation output.
 Instruction per reviewer: "Review from your specialist lens. Return findings as a checklist. Do NOT chain."
+
+The `code-quality` agent prompt must include the detected `{{lint_command}}` from Step 0 and the full implementation diff.
 
 **Load test agent (conditional):** Spawn if the implementation adds or modifies HTTP endpoints, message queues, batch jobs, or any operation that processes variable input volume:
 
@@ -322,6 +448,55 @@ Before advancing to Step 8, verify:
 Emit: `[Gate] Quality Bench Complete | All N reviewers returned. Advancing to docs.`
 
 If any agent is unresolved, do NOT advance. Surface to user.
+
+### Step 7b — Quality Bench Issue Resolution
+
+After all bench agents return, classify their findings by severity:
+
+- **BLOCKING**: Security vulnerabilities (OWASP Top 10), data/PII leaks, privacy violations, failing tests, lint errors that block CI, broken accessibility (WCAG A/AA)
+- **WARNING**: Performance regressions, non-critical accessibility gaps, integration risks, code quality debt
+- **INFO**: Style suggestions, optional improvements, low-priority refactors
+
+**If BLOCKING issues exist:**
+
+1. Emit: `[Gate] Quality Bench Blocking Issues | N blocking findings across: <agents>`
+2. Group blocking issues by implementation domain (backend, frontend, infra, etc.)
+3. For each domain with blocking issues, spawn the relevant impl agent(s):
+
+```
+Agent(
+  team_name = <team>,
+  name = "<impl-agent>-fix",
+  subagent_type = "claude-tech-squad:<impl-agent>",
+  prompt = """
+## Blocking Issue Fix
+
+### Original Implementation
+{{approved_implementation}}
+
+### Blocking Issues to Fix
+{{blocking_findings_for_this_domain}}
+
+---
+Fix ONLY the blocking issues listed above. Do not refactor unrelated code. Do not add features.
+For each fix, state: Issue → Root Cause → Change Made.
+Return the updated implementation with all blocking issues resolved.
+"""
+)
+```
+
+4. After fixes, re-spawn only the quality bench agents that flagged blocking findings
+5. Repeat until no BLOCKING issues remain — **max 2 fix cycles**
+6. If blocking issues persist after 2 cycles:
+   - Emit: `[Gate] Quality Bench Unresolved | Blocking issues remain after 2 cycles`
+   - Surface to user: `[A]ccept with known issues (document as tech debt) / [X]Abort`
+
+**If only WARNING or INFO issues:**
+
+- Emit: `[Gate] Quality Bench Warnings | <N> warnings, <M> info items`
+- Surface to user: "Non-blocking issues found — [A]ccept and advance / [F]ix before advancing"
+- If [A]: advance immediately
+- If [F]: spawn impl agents for the warnings, re-run relevant bench agents, then advance
 
 ### Step 8 — Docs Writer Teammate
 
@@ -489,11 +664,11 @@ timestamp: {{ISO8601}}
 status: completed | failed
 feature_slug: {{feature_slug}}
 blueprint_source: {{blueprint_path}}
-gates_cleared: [tdd, review, qa, coverage, uat]
+gates_cleared: [tdd, review, qa, conformance, coverage, uat]
 gates_blocked: []
 retry_count: {{total_reviewer_and_qa_retries}}
 load_test_run: true | false | skipped
-teammates: [tdd-specialist, backend-dev?, frontend-dev?, reviewer, qa, security-rev?, docs-writer, jira-confluence, pm-uat]
+teammates: [tdd-specialist, backend-dev?, frontend-dev?, reviewer, qa, techlead-audit, security-rev?, code-quality, docs-writer, jira-confluence, pm-uat]
 uat_result: APPROVED | REJECTED
 ---
 

@@ -32,6 +32,33 @@ Sets up a new repository to work with `claude-tech-squad`. Detects the stack, cr
 
 ## Execution
 
+## Teammate Failure Protocol
+
+A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role.
+
+**For every teammate spawned — without exception:**
+
+1. Wait for the teammate to return a structured output.
+2. If the return is empty, an error, or structurally invalid:
+   - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
+   - Re-spawn the teammate once with the identical prompt.
+3. If the second attempt also fails:
+   - Emit: `[Gate] Teammate Failure | <name> failed twice`
+   - Surface to the user:
+
+```
+Teammate <name> failed to return a valid output (attempt 1 and 2).
+
+Options:
+- [R] Retry once more with the same prompt
+- [S] Skip and continue — downstream quality WILL be degraded (log the risk)
+- [X] Abort the run
+```
+
+4. **Sequential teammates** (output feeds the next agent): [S] degrades ALL downstream teammates that depend on this output — warn the user explicitly before accepting skip.
+5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
+6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
+
 ### Step 1 — Detect project stack
 
 Read the following files to determine the stack:
@@ -171,7 +198,7 @@ Invoke `/security-audit` inline:
 
 ```
 Agent(
-  subagent_type = "claude-tech-squad:security-auditor",
+  subagent_type = "claude-tech-squad:security-reviewer",
   prompt = """
 Run a quick security baseline scan on this project.
 Focus on: hardcoded secrets, known CVEs in dependencies, obvious injection risks.

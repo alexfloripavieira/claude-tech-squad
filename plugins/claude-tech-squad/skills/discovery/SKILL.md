@@ -47,9 +47,37 @@ Emit these lines for every teammate action:
 
 - `[Team Created] <team-name>`
 - `[Teammate Spawned] <role> | pane: <name>`
-- `[Gate] <gate-name> | Waiting for user input`
 - `[Teammate Done] <role> | Output: <one-line summary>`
+- `[Teammate Retry] <role> | Reason: <failure>`
+- `[Gate] <gate-name> | Waiting for user input`
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
+
+## Teammate Failure Protocol
+
+A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role.
+
+**For every teammate spawned — without exception:**
+
+1. Wait for the teammate to return a structured output.
+2. If the return is empty, an error, or structurally invalid:
+   - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
+   - Re-spawn the teammate once with the identical prompt.
+3. If the second attempt also fails:
+   - Emit: `[Gate] Teammate Failure | <name> failed twice`
+   - Surface to the user:
+
+```
+Teammate <name> failed to return a valid output (attempt 1 and 2).
+
+Options:
+- [R] Retry once more with the same prompt
+- [S] Skip and continue — downstream quality WILL be degraded (log the risk)
+- [X] Abort the run
+```
+
+4. **Sequential teammates** (output feeds the next agent): [S] degrades ALL downstream teammates that depend on this output — warn the user explicitly before accepting skip.
+5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
+6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
 
 ---
 
@@ -106,6 +134,13 @@ Do NOT chain to other agents — the orchestrator handles sequencing.
 Emit: `[Teammate Spawned] pm | pane: pm`
 
 Wait for PM to complete. Present output as **Gate 1: Product Definition**. Ask user to confirm before continuing.
+
+**Gate 1 Pass Criteria:**
+- [ ] At least 3 measurable acceptance criteria defined
+- [ ] Scope is bounded (no open-ended "and anything else needed")
+- [ ] Success metrics are observable (testable behavior, not feelings)
+
+If user is unsatisfied: ask specifically what is missing, re-spawn PM with that gap as context.
 
 ### Step 4 — Business Analyst Teammate
 
@@ -167,6 +202,13 @@ Emit: `[Teammate Spawned] po | pane: po`
 
 Present PO output as **Gate 2: Scope Validation**. Ask user to confirm or cut scope before continuing.
 
+**Gate 2 Pass Criteria:**
+- [ ] Scope cut is explicit — what is OUT is listed
+- [ ] Must-have vs nice-to-have distinction is clear
+- [ ] Release slice fits a single deployment
+
+If user is unsatisfied: ask specifically what scope decision is wrong, re-spawn PO with that feedback.
+
 ### Step 6 — Planner Teammate (Gate 3)
 
 Spawn Planner with full context so far:
@@ -204,6 +246,13 @@ Emit: `[Teammate Spawned] planner | pane: planner`
 
 Present Planner output as **Gate 3: Technical Tradeoffs**. User selects the preferred implementation path.
 
+**Gate 3 Pass Criteria:**
+- [ ] At least 2 technical options were presented
+- [ ] Selected option has rationale (not just "best practice")
+- [ ] Breaking changes or migration risks are identified
+
+If user is unsatisfied: ask which tradeoff decision needs revisiting, re-spawn Planner with that context.
+
 ### Step 7 — Architect Teammate
 
 Spawn Architect with accumulated context:
@@ -215,6 +264,12 @@ Agent(
   subagent_type = "claude-tech-squad:architect",
   prompt = """
 ## Architecture Design
+
+### PM Output (product requirements)
+{{pm_output}}
+
+### BA Output (domain rules and workflows)
+{{ba_output}}
 
 ### Planner Output (selected path)
 {{planner_output}}
@@ -255,6 +310,12 @@ Agent(
 ### Planner Output
 {{planner_output}}
 
+### PM Output (product requirements)
+{{pm_output}}
+
+### BA Output (domain rules and workflows)
+{{ba_output}}
+
 ### Scope
 {{po_output}}
 
@@ -274,6 +335,13 @@ Emit: `[Teammate Spawned] techlead | pane: techlead`
 
 Present TechLead output as **Gate 4: Architecture Direction**. Confirm specialist set before spawning.
 
+**Gate 4 Pass Criteria:**
+- [ ] Workstream ownership is assigned (who builds what)
+- [ ] Sequencing is explicit (what blocks what)
+- [ ] Architecture layer violations are flagged or cleared
+
+If user is unsatisfied: ask which workstream assignment or sequencing decision is wrong, re-spawn TechLead with that context.
+
 ### Step 9 — Specialist Batch (Parallel)
 
 Based on TechLead's specialist list, spawn relevant teammates in parallel.
@@ -289,6 +357,10 @@ Agent(team_name=<team>, name="ux",             subagent_type="claude-tech-squad:
 ```
 
 Emit: `[Batch Spawned] specialist-bench | Teammates: <list of spawned roles>`
+
+Wait for ALL spawned specialist agents to return. Do NOT advance until every agent in this batch has returned a valid output block.
+- For each agent that fails silently: apply the Teammate Failure Protocol defined above.
+- Emit: `[Batch Completed] specialist-bench | N/N agents returned`
 
 Each specialist prompt must include:
 - TechLead execution plan
@@ -312,6 +384,10 @@ Agent(team_name=<team>, name="observ",       subagent_type="claude-tech-squad:ob
 ```
 
 Emit: `[Batch Spawned] quality-baseline | Teammates: <list>`
+
+Wait for ALL quality-baseline agents to return before proceeding.
+- For each agent that fails silently: apply the Teammate Failure Protocol.
+- Emit: `[Batch Completed] quality-baseline | N/N agents returned`
 
 Each reviewer receives: architecture decisions + specialist notes + repository context.
 Instruction: "Produce a quality baseline checklist for this feature. Do NOT chain."

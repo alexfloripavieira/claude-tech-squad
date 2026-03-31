@@ -54,6 +54,14 @@ When designing or reviewing any AI feature, verify all of the following:
 - **Human-in-the-loop gates:** Are destructive or irreversible tool calls behind a human confirmation gate?
 - **State management:** Is agent state persisted and recoverable? Can a failed agent resume without re-running completed steps?
 
+## TDD Mandate
+
+**All implementation must follow red-green-refactor.** Never write production code before a failing test exists for it.
+
+- Write the failing test first — then implement the minimum code to pass it
+- Mock external dependencies (APIs, queues, databases) in unit tests — never depend on live services
+- Keep all existing tests green at each red-green-refactor step
+
 ## Output Format
 
 ```

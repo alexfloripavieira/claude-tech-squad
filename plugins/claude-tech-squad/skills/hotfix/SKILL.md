@@ -35,6 +35,33 @@ Lightweight emergency fix workflow. Faster than `/bug-fix` for known production 
 
 ## Execution
 
+## Teammate Failure Protocol
+
+A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role.
+
+**For every teammate spawned — without exception:**
+
+1. Wait for the teammate to return a structured output.
+2. If the return is empty, an error, or structurally invalid:
+   - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
+   - Re-spawn the teammate once with the identical prompt.
+3. If the second attempt also fails:
+   - Emit: `[Gate] Teammate Failure | <name> failed twice`
+   - Surface to the user:
+
+```
+Teammate <name> failed to return a valid output (attempt 1 and 2).
+
+Options:
+- [R] Retry once more with the same prompt
+- [S] Skip and continue — downstream quality WILL be degraded (log the risk)
+- [X] Abort the run
+```
+
+4. **Sequential teammates** (output feeds the next agent): [S] degrades ALL downstream teammates that depend on this output — warn the user explicitly before accepting skip.
+5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
+6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
+
 ### Step 1 — Hotfix Intake Gate
 
 Ask the user for (if not already provided):
@@ -150,6 +177,8 @@ Agent(
 Implement the minimal fix. Write or update the test that proves the bug is fixed.
 Run {{test_command}} and confirm PASS.
 
+Run lint check: `{{lint_command}}` on changed files. If lint violations are found, fix before proceeding. If `{{lint_command}}` was not detected, skip and log.
+
 Return:
 ## Completion Block
 - Files changed: [list]
@@ -217,6 +246,12 @@ Do NOT chain.
 ```
 
 Skip this step if the bug is unrelated to security surface (UI layout, config typo, etc.).
+
+If security-reviewer returns RISK:
+- Emit: `[Gate] Security Risk Found | Issue: <summary>`
+- Spawn the implementation agent again with the specific security issue as a fix mandate — do NOT advance until resolved
+- Re-run security-reviewer after fix to confirm CLEAR
+- If RISK persists after fix attempt: surface to user `[A]ccept risk (document) / [X]Abort`
 
 ### Step 9 — Commit and push
 

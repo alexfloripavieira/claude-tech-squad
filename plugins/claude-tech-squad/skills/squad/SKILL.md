@@ -73,6 +73,33 @@ Emit these lines for every teammate action:
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
 - `[Phase Done] <phase-name> | Outcome: <summary>`
 
+## Teammate Failure Protocol
+
+A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role.
+
+**For every teammate spawned — without exception:**
+
+1. Wait for the teammate to return a structured output.
+2. If the return is empty, an error, or structurally invalid:
+   - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
+   - Re-spawn the teammate once with the identical prompt.
+3. If the second attempt also fails:
+   - Emit: `[Gate] Teammate Failure | <name> failed twice`
+   - Surface to the user:
+
+```
+Teammate <name> failed to return a valid output (attempt 1 and 2).
+
+Options:
+- [R] Retry once more with the same prompt
+- [S] Skip and continue — downstream quality WILL be degraded (log the risk)
+- [X] Abort the run
+```
+
+4. **Sequential teammates** (output feeds the next agent): [S] degrades ALL downstream teammates that depend on this output — warn the user explicitly before accepting skip.
+5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
+6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
+
 ---
 
 ## Execution
@@ -106,7 +133,8 @@ grep -rl "tool_call\|function_call\|agent_executor\|AgentExecutor\|tool_use" \
   --exclude-dir=node_modules --exclude-dir=.venv . 2>/dev/null | head -10
 ```
 
-If AI/LLM usage is detected, set `ai_feature: true` and activate the **LLM-enhanced bench** in Phase 1 and Phase 2 (described below). Emit: `[AI Detected] LLM/AI features found — activating AI specialist bench`
+Default: `ai_feature: false`. If any of the above grep commands returns results, set `ai_feature: true` and activate the **LLM-enhanced bench** in Phase 1 and Phase 2. Emit: `[AI Detected] LLM/AI features found — activating AI specialist bench`
+If grep returns no results and detection is ambiguous: emit `[Gate] AI Detection Ambiguous` and ask user: 'Does this task involve LLM/AI features? [Y]es / [N]o'
 
 ### Step 2 — Create Squad Team
 
@@ -126,7 +154,7 @@ Follow the same teammate sequence as `/discovery` Steps 3–13:
 
 **Sequential chain with gates:**
 1. Spawn `pm` → **Gate 1: Product Definition**
-2. Spawn `ba` with PM output
+2. Spawn `business-analyst` with PM output
 3. Spawn `po` → **Gate 2: Scope Validation**
 4. Spawn `planner` → **Gate 3: Technical Tradeoffs**
 5. Spawn `architect`
@@ -140,7 +168,20 @@ Follow the same teammate sequence as `/discovery` Steps 3–13:
 12. If `ai_feature: true`: Spawn `llm-eval-specialist` for eval plan (after blueprint) — no gate, automatic
 13. If `ai_feature: true`: Spawn `llm-safety-reviewer` for threat model (after blueprint) — no gate, automatic
 
-Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-tech-squad:<role>", prompt=...)`
+Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-tech-squad:<subagent>", prompt=...)`
+
+**Phase 1 explicit subagent_type mappings** (name → subagent_type):
+- `pm` → `pm`
+- `business-analyst` → `business-analyst`
+- `po` → `po`
+- `planner` → `planner`
+- `architect` → `architect`
+- `techlead` → `techlead`
+- `design-principles` → `design-principles-specialist`
+- `test-planner` → `test-planner`
+- `tdd-specialist` → `tdd-specialist`
+- `llm-eval-specialist` → `llm-eval-specialist`
+- `llm-safety-reviewer` → `llm-safety-reviewer`
 
 All agents receive the full accumulated context from prior teammates.
 All agents end with: "Do NOT chain to other agents — the orchestrator handles sequencing."
@@ -155,22 +196,53 @@ Emit: `[Phase Start] implementation`
 
 **Sequential with parallel batches:**
 
-1. Spawn `tdd-impl` (tdd-specialist) — write first failing tests
+1. Spawn `tdd-impl` (subagent_type: `tdd-specialist`) — write first failing tests
 2. Spawn implementation batch in parallel:
    - `backend-dev`, `frontend-dev`, `platform-dev` (only relevant ones)
 3. Spawn `reviewer` — review implementation
-   - If CHANGES REQUESTED: retry relevant impl agent(s)
+   - If CHANGES REQUESTED: retry relevant impl agent(s) — **max 3 review cycles**
+   - After 3rd CHANGES REQUESTED: emit `[Gate] Review Limit Reached` and surface to user: `[A]ccept as-is / [S]kip review / [X]Abort`
 4. Spawn `qa` — run real tests against implementation
-   - If FAIL: retry relevant impl agent(s), then re-review and re-qa
-5. Spawn quality bench in parallel (after QA PASS):
-   - `security-rev`, `privacy-rev`, `perf-eng`, `access-rev`, `integ-qa`
+   - If FAIL: retry relevant impl agent(s), then re-review and re-qa — **max 2 QA cycles**
+   - After 2nd FAIL: emit `[Gate] QA Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
+5. Spawn `techlead-audit` (subagent_type: `techlead`) → **Conformance Gate**: verifica workstreams cobertos, conformidade arquitetural, TDD compliance e rastreabilidade de requisitos
+   - If NON-CONFORMANT: retry impl agent(s) for each gap, then re-run reviewer → QA → techlead-audit — **max 2 conformance cycles**
+   - After 2nd NON-CONFORMANT: emit `[Gate] Conformance Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
+6. Spawn quality bench in parallel (after Conformance CONFORMANT):
+   - `security-rev` (subagent_type: `security-reviewer`), `privacy-rev` (subagent_type: `privacy-reviewer`), `perf-eng` (subagent_type: `performance-engineer`), `access-rev` (subagent_type: `accessibility-reviewer`), `integ-qa` (subagent_type: `integration-qa`), `code-quality` (subagent_type: `code-quality`)
    - If `ai_feature: true`: add `llm-safety-reviewer` to quality bench (prompt injection + tool authorization review)
    - If `ai_feature: true`: spawn `llm-eval-specialist` for eval gate (runs `/llm-eval` inline) — if eval score REGRESSED, present to user before UAT
-6. Spawn `docs-writer`
-7. Spawn `jira-confluence`
-8. Spawn `pm-uat` → **Gate 6: UAT Approval**
+   - **After all bench agents return**, classify findings by severity:
+     - **BLOCKING** (must fix): security vulns, PII/data leaks, privacy violations, CI-breaking lint errors, WCAG A/AA failures
+     - **WARNING** (should fix): perf regressions, non-critical accessibility, integration risks, code quality debt
+   - If BLOCKING issues: emit `[Gate] Quality Bench Blocking Issues | N findings`, spawn the relevant impl agent(s) to fix, re-run only the agents that flagged issues — **max 2 fix cycles**
+   - If blocking persists after 2 cycles: emit `[Gate] Quality Bench Unresolved` → surface `[A]ccept with known issues / [X]Abort`
+   - If only WARNINGS: surface summary → `[A]ccept and advance / [F]ix before advancing`
+7. Spawn `docs-writer`
+8. Spawn `jira-confluence` (subagent_type: `jira-confluence-specialist`)
+9. Spawn `pm-uat` (subagent_type: `pm`) → **Gate 6: UAT Approval**
+   - If REJECTED: fix gaps and re-run reviewer → QA → techlead-audit → quality bench → UAT — **max 2 UAT cycles**
+   - After 2nd REJECTION: emit `[Gate] UAT Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
 
-Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-tech-squad:<role>", prompt=...)`
+**Phase 2 explicit subagent_type mappings** (name → subagent_type):
+- `tdd-impl` → `tdd-specialist`
+- `backend-dev` → `backend-dev`
+- `frontend-dev` → `frontend-dev`
+- `platform-dev` → `platform-dev`
+- `reviewer` → `reviewer`
+- `qa` → `qa`
+- `techlead-audit` → `techlead`
+- `security-rev` → `security-reviewer`
+- `privacy-rev` → `privacy-reviewer`
+- `perf-eng` → `performance-engineer`
+- `access-rev` → `accessibility-reviewer`
+- `integ-qa` → `integration-qa`
+- `code-quality` → `code-quality`
+- `docs-writer` → `docs-writer`
+- `jira-confluence` → `jira-confluence-specialist`
+- `pm-uat` → `pm`
+
+Each spawn: `Agent(team_name=<squad-team>, name=<name>, subagent_type="claude-tech-squad:<subagent>", prompt=...)`
 
 Emit: `[Phase Done] implementation | UAT approved`
 
@@ -248,7 +320,7 @@ Emit: `[Phase Done] release | SRE sign-off received`
 - Team: squad
 - Phase: discovery
   - Teammate: pm | Status: completed
-  - Teammate: ba | Status: completed
+  - Teammate: business-analyst | Status: completed
   - Teammate: po | Status: completed (Gate 2 passed)
   - Teammate: planner | Status: completed (Gate 3 passed)
   - Teammate: architect | Status: completed
@@ -263,7 +335,8 @@ Emit: `[Phase Done] release | SRE sign-off received`
   - Batch: implementation | Teammates: [...] | Status: completed
   - Teammate: reviewer | Status: APPROVED
   - Teammate: qa | Status: PASS
-  - Batch: quality-bench | Teammates: [...] | Status: completed
+  - Teammate: techlead-audit | Status: CONFORMANT
+  - Batch: quality-bench | Teammates: [..., code-quality] | Status: completed
   - Teammate: docs-writer | Status: completed
   - Teammate: jira-confluence | Status: completed
   - Teammate: pm-uat | Status: APPROVED (Gate 6 passed)

@@ -36,6 +36,14 @@ You build the systems that measure, experiment, and improve product growth — n
 | Funnel tracking | Amplitude, Mixpanel, custom events |
 | Referral systems | ReferralHero, Viral Loops, custom |
 
+## TDD Mandate
+
+**All implementation must follow red-green-refactor.** Never write production code before a failing test exists for it.
+
+- Write the failing test first — then implement the minimum code to pass it
+- Mock external dependencies (APIs, queues, databases) in unit tests — never depend on live services
+- Keep all existing tests green at each red-green-refactor step
+
 ## Output Format
 
 ```

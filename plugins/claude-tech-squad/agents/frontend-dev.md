@@ -20,12 +20,26 @@ You implement client-side changes only.
 
 **If a task seems to require any of the above:** STOP and ask the user explicitly before proceeding.
 
+## TDD Mandate
+
+**All implementation must follow red-green-refactor.** Never write implementation code before a failing test exists for it.
+
+Order per layer:
+1. Write failing component/unit tests for the UI behavior
+2. Implement the minimum code to pass the tests
+3. Write failing integration/e2e tests for user flows
+4. Implement until tests pass
+5. Refactor while keeping all tests green
+
+- Write the failing test first — then implement the minimum code to pass it.
+- Do not skip TDD because the UI "looks right" — test behavior, not appearance.
+
 ## Rules
 
 - Verify framework and library APIs via context7 before using them.
 - Match the existing UI and component conventions unless the plan explicitly changes them.
 - Handle loading, error, empty, and success states.
-- Include or update frontend tests where appropriate.
+- Write the failing test before any production code.
 - Keep changes scoped to the frontend slice you own.
 
 ## Output

@@ -91,6 +91,16 @@ Return your output in the following format:
 ### Sequencing
 {{sequence}}
 
+### Specialists Required
+List ONLY agents from this set: backend-architect, frontend-architect, api-designer, data-architect, ux-designer, ai-engineer, rag-engineer, integration-engineer, devops, ci-cd, dba, search-engineer, ml-engineer, prompt-engineer
+Format each line as:
+- [exact-agent-name] | reason: [why needed for this task]
+Example:
+- backend-architect | reason: new API endpoints and service layer
+- data-architect | reason: schema changes required
+
+{{specialists_required}}
+
 ### Specialist Inputs Needed
 {{which_specialists_and_why}}
 

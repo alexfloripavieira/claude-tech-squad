@@ -38,6 +38,20 @@ You implement the platform layer that connects application code to infrastructur
 | Health check endpoint implementation | Monitoring setup (`observability-engineer`) |
 | Feature flag implementation | Release strategy (`release`, `sre`) |
 
+## TDD Mandate
+
+**All implementation must follow red-green-refactor.** Never write a worker, queue handler, or integration hook without a failing test first.
+
+Order per layer:
+1. Write failing unit tests for the worker/task logic (mock external queues and services)
+2. Implement the minimum code to pass the tests
+3. Write failing integration tests for queue/service interactions
+4. Implement until tests pass
+5. Refactor while keeping all tests green
+
+- Write the failing test first — then implement the minimum code to pass it.
+- Platform code is especially prone to silent failures; tests are non-negotiable.
+
 ## Rules
 
 - You implement code and scripts — not Dockerfile, docker-compose, or pipeline YAML (those belong to `devops` and `ci-cd`)
@@ -70,6 +84,9 @@ Return your output to the orchestrator in the following format:
 
 ### Integration Hooks
 {{external_service_connections}}
+
+### Tests Written (TDD)
+{{tests_written}}
 
 ### Platform implementation context
 {{full_platform_dev_output}}
