@@ -250,6 +250,8 @@ If QA returns FAIL:
 
 ### Step 7 — Quality Bench (Parallel)
 
+**MANDATORY GATE — Step 8 (Docs) MUST NOT start until ALL Quality Bench agents have returned a structured checklist. Skipping or short-circuiting this step is FORBIDDEN.**
+
 After QA PASS, spawn quality specialist reviewers in parallel:
 
 ```
@@ -290,6 +292,36 @@ If load testing tools are available (k6, locust, Artillery, JMeter), provide rea
 Return findings as a checklist. Do NOT chain.
 """)
 ```
+
+**Failure Recovery — Quality Bench agents:**
+
+After spawning, track each agent's return. A valid return is a structured checklist (markdown list with findings or "no issues found"). An agent has FAILED silently if it returns an error, an empty response, or no checklist.
+
+For each agent that fails:
+1. Emit: `[Teammate Retry] <agent-name> | Reason: silent failure or error — re-spawning`
+2. Re-spawn the agent once with the same prompt
+3. If the re-spawn also fails: emit `[Gate] Quality Bench Failure | <agent-name> failed twice` and surface to the user:
+
+```
+Quality Bench agent <agent-name> failed to complete (attempt 1 and 2).
+
+Options:
+- [R] Retry once more
+- [S] Skip this reviewer and continue (accept the risk)
+- [X] Abort the run
+```
+
+Block Step 8 until the user resolves every failed agent.
+
+**Quality Bench Completion Gate:**
+
+Before advancing to Step 8, verify:
+- Every spawned quality bench agent has returned a structured checklist
+- No agent is in a failed/unresolved state
+
+Emit: `[Gate] Quality Bench Complete | All N reviewers returned. Advancing to docs.`
+
+If any agent is unresolved, do NOT advance. Surface to user.
 
 ### Step 8 — Docs Writer Teammate
 
