@@ -2,6 +2,11 @@ name: validate
 
 on:
   push:
+    paths-ignore:
+      - .claude-plugin/marketplace.json
+      - plugins/claude-tech-squad/.claude-plugin/plugin.json
+      - docs/MANUAL.md
+      - CHANGELOG.md
   pull_request:
 
 jobs:

@@ -45,6 +45,7 @@ test -f "$ROOT/scripts/smoke-test.sh"
 test -f "$ROOT/scripts/dogfood.sh"
 test -f "$ROOT/scripts/dogfood-report.sh"
 test -f "$ROOT/scripts/start-golden-run.sh"
+test -f "$ROOT/scripts/prepare-release-metadata.sh"
 test -f "$ROOT/scripts/verify-release.sh"
 test -f "$ROOT/scripts/build-release-bundle.sh"
 test -f "$PLUGIN_DIR/runtime-policy.yaml"
@@ -245,6 +246,16 @@ for release_step in 'bash scripts/verify-release.sh' 'bash scripts/build-release
     exit 1
   fi
 done
+
+if ! grep -q 'bash scripts/prepare-release-metadata.sh' "$ROOT/.github/workflows/release.yml"; then
+  echo "release workflow must run scripts/prepare-release-metadata.sh"
+  exit 1
+fi
+
+if ! grep -q 'paths-ignore:' "$ROOT/.github/workflows/release.yml"; then
+  echo "release workflow must ignore metadata-only pushes to avoid recursion"
+  exit 1
+fi
 
 for path in 'ai-docs/.squad-log/*' 'ai-docs/dogfood-runs/*'; do
   if ! grep -F -q "$path" "$ROOT/.gitignore"; then

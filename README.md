@@ -21,7 +21,8 @@ See [DOGFOODING.md](docs/DOGFOODING.md) for layered, hexagonal, and hotfix smoke
 See [GOLDEN-RUNS.md](docs/GOLDEN-RUNS.md) for real-run capture and scorecard validation.
 See [ENGINEERING-OPERATING-SYSTEM.md](docs/ENGINEERING-OPERATING-SYSTEM.md) for the governance model used to run this plugin like an engineering organization.
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) for contribution and vulnerability-handling rules.
-See [RELEASING.md](docs/RELEASING.md) for the official GitHub Actions publish path from `main`.
+See [RELEASING.md](docs/RELEASING.md) for the official GitHub Actions publish path from `main`, including automatic semver, changelog, manifest, and manual updates.
+See [HOW-TO-CHANGE-AND-PUBLISH.md](docs/HOW-TO-CHANGE-AND-PUBLISH.md) for the operator checklist when changing the plugin and shipping a new version.
 Run `bash scripts/dogfood.sh` to validate the local dogfooding pack and `bash scripts/dogfood.sh --print-prompts` to print the fixture prompts.
 Run `bash scripts/dogfood-report.sh --schema-only` to validate the golden-run contract and `bash scripts/dogfood-report.sh` when real runs are available under `ai-docs/dogfood-runs/`.
 Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a real golden-run capture.
