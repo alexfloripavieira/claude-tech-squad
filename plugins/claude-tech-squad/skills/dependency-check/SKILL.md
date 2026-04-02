@@ -111,7 +111,9 @@ Organize all findings into four categories:
 
 ### Step 4 — Invoke planner agent for risk assessment
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:planner"`.
+Use TeamCreate to create a team named "dependency-check-team". Then spawn the agent using the Agent tool with `team_name="dependency-check-team"` and a descriptive `name`.
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:planner"`, `team_name: "dependency-check-team"`, `name: "planner"`.
 
 Prompt:
 ```

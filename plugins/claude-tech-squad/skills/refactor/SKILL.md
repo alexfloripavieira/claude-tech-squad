@@ -92,9 +92,13 @@ Store as `{{test_command}}`. CLAUDE.md overrides take priority.
 
 ### Step 3 — Spawn design-principles-specialist for analysis
 
+Use TeamCreate to create a team named "refactor-team". Then spawn each agent using the Agent tool with `team_name="refactor-team"` and a descriptive `name` for each agent.
+
 ```
 Agent(
   subagent_type = "claude-tech-squad:design-principles-specialist",
+  team_name = "refactor-team",
+  name = "design-principles-specialist",
   prompt = """
 ## Refactor Analysis
 
@@ -150,6 +154,8 @@ Spawn test-automation-engineer to write tests that lock current behavior:
 ```
 Agent(
   subagent_type = "claude-tech-squad:test-automation-engineer",
+  team_name = "refactor-team",
+  name = "test-automation-engineer",
   prompt = """
 ## Characterization Tests
 
@@ -197,6 +203,8 @@ For each step in the refactor plan:
 ```
 Agent(
   subagent_type = "claude-tech-squad:backend-dev",  # or frontend-dev
+  team_name = "refactor-team",
+  name = "backend-dev",  # or frontend-dev
   prompt = """
 ## Refactor Step {{N}} of {{total}}
 
@@ -245,6 +253,8 @@ After all steps complete:
 ```
 Agent(
   subagent_type = "claude-tech-squad:reviewer",
+  team_name = "refactor-team",
+  name = "reviewer",
   prompt = """
 ## Refactor Review
 
@@ -277,10 +287,10 @@ If CHANGES REQUESTED: spawn the implementation agent again with the specific fee
 After reviewer APPROVED, spawn specialist reviewers in parallel:
 
 ```
-Agent(subagent_type="claude-tech-squad:security-reviewer",  name="security-rev",  prompt="Review this refactor for security issues. Changed code: {{aggregated_diffs}}. Return findings as a checklist. Do NOT chain.")
-Agent(subagent_type="claude-tech-squad:privacy-reviewer",   name="privacy-rev",   prompt="Review this refactor for privacy/PII issues. Changed code: {{aggregated_diffs}}. Return findings as a checklist. Do NOT chain.")
-Agent(subagent_type="claude-tech-squad:performance-engineer", name="perf-eng",    prompt="Review this refactor for performance regressions. Changed code: {{aggregated_diffs}}. Return findings as a checklist. Do NOT chain.")
-Agent(subagent_type="claude-tech-squad:code-quality",       name="code-quality",  prompt="Run lint ({{lint_command}}) on the changed files. Report violations that would fail CI. Return findings as a checklist. Do NOT chain.")
+Agent(subagent_type="claude-tech-squad:security-reviewer",  team_name="refactor-team", name="security-rev",  prompt="Review this refactor for security issues. Changed code: {{aggregated_diffs}}. Return findings as a checklist. Do NOT chain.")
+Agent(subagent_type="claude-tech-squad:privacy-reviewer",   team_name="refactor-team", name="privacy-rev",   prompt="Review this refactor for privacy/PII issues. Changed code: {{aggregated_diffs}}. Return findings as a checklist. Do NOT chain.")
+Agent(subagent_type="claude-tech-squad:performance-engineer", team_name="refactor-team", name="perf-eng",    prompt="Review this refactor for performance regressions. Changed code: {{aggregated_diffs}}. Return findings as a checklist. Do NOT chain.")
+Agent(subagent_type="claude-tech-squad:code-quality",       team_name="refactor-team", name="code-quality",  prompt="Run lint ({{lint_command}}) on the changed files. Report violations that would fail CI. Return findings as a checklist. Do NOT chain.")
 ```
 
 Emit: `[Batch Spawned] quality-bench | Teammates: security-rev, privacy-rev, perf-eng, code-quality`

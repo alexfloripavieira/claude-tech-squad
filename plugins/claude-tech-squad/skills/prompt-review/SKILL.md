@@ -97,9 +97,13 @@ If not found: emit `[Warning] No golden examples found for regression testing. Q
 
 ### Step 3 — Spawn prompt-engineer for review and regression
 
+Use TeamCreate to create a team named "prompt-review-team". Then spawn the agent using the Agent tool with `team_name="prompt-review-team"` and a descriptive `name`.
+
 ```
 Agent(
   subagent_type = "claude-tech-squad:prompt-engineer",
+  team_name = "prompt-review-team",
+  name = "prompt-engineer",
   prompt = """
 ## Prompt Change Review
 

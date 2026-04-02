@@ -109,7 +109,9 @@ Read `CLAUDE.md` from the project root (if it exists). Look for:
 
 ### Step 4 — Invoke tech lead for synthesis
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:techlead"`.
+Use TeamCreate to create a team named "factory-retrospective-team". Then spawn the agent using the Agent tool with `team_name="factory-retrospective-team"` and a descriptive `name`.
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:techlead"`, `team_name: "factory-retrospective-team"`, `name: "techlead"`.
 
 Prompt:
 ```

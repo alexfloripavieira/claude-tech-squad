@@ -99,9 +99,13 @@ Emit: `[Hotfix Branch] hotfix/{{slug}} created from {{base_branch}}`
 
 ### Step 4 — Spawn TechLead in root-cause mode
 
+Use TeamCreate to create a team named "hotfix-team". Then spawn each agent using the Agent tool with `team_name="hotfix-team"` and a descriptive `name` for each agent.
+
 ```
 Agent(
   subagent_type = "claude-tech-squad:techlead",
+  team_name = "hotfix-team",
+  name = "techlead",
   prompt = """
 ## Emergency Fix Investigation
 
@@ -149,6 +153,8 @@ Based on scope, spawn the appropriate implementation agent:
 ```
 Agent(
   subagent_type = "claude-tech-squad:backend-dev",  # or frontend-dev, mobile-dev
+  team_name = "hotfix-team",
+  name = "hotfix-impl",
   prompt = """
 ## Hotfix Implementation
 
@@ -198,6 +204,8 @@ Spawn reviewer for a lightweight review of the patch only:
 ```
 Agent(
   subagent_type = "claude-tech-squad:reviewer",
+  team_name = "hotfix-team",
+  name = "reviewer",
   prompt = """
 ## Hotfix Review
 
@@ -230,6 +238,8 @@ If the bug involves auth, input handling, data access, or secret exposure, spawn
 ```
 Agent(
   subagent_type = "claude-tech-squad:security-reviewer",
+  team_name = "hotfix-team",
+  name = "security-reviewer",
   prompt = """
 ## Security Spot-Check — Hotfix
 

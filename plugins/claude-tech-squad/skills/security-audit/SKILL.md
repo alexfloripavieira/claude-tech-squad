@@ -102,7 +102,9 @@ Use Grep to search for patterns that indicate hardcoded secrets:
 
 ### Step 3 — Invoke security reviewer agent
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:security-reviewer"`.
+Use TeamCreate to create a team named "security-audit-team". Then spawn the agent using the Agent tool with `team_name="security-audit-team"` and a descriptive `name`.
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:security-reviewer"`, `team_name: "security-audit-team"`, `name: "security-reviewer"`.
 
 Prompt:
 ```

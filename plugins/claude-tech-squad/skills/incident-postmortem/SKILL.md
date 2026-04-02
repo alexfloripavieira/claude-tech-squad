@@ -118,9 +118,13 @@ Total duration: detection-to-resolution = X minutes
 
 ### Step 4 — Spawn incident-manager for root cause analysis
 
+Use TeamCreate to create a team named "incident-postmortem-team". Then spawn each agent using the Agent tool with `team_name="incident-postmortem-team"` and a descriptive `name` for each agent.
+
 ```
 Agent(
   subagent_type = "claude-tech-squad:incident-manager",
+  team_name = "incident-postmortem-team",
+  name = "incident-manager",
   prompt = """
 ## Post-Mortem Root Cause Analysis
 
@@ -157,6 +161,8 @@ Do NOT chain to other agents.
 ```
 Agent(
   subagent_type = "claude-tech-squad:sre",
+  team_name = "incident-postmortem-team",
+  name = "sre",
   prompt = """
 ## Post-Mortem: Reliability Gap Analysis
 
@@ -199,6 +205,8 @@ For each P1 action item, spawn sre to produce the runbook step:
 ```
 Agent(
   subagent_type = "claude-tech-squad:sre",
+  team_name = "incident-postmortem-team",
+  name = "sre-runbook",
   prompt = """
 ## Runbook Generation
 

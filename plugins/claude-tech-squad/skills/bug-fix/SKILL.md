@@ -78,7 +78,9 @@ Do not proceed until you have at least symptom + expected behavior.
 
 ### Step 2 — Root Cause Analysis
 
-Invoke the Agent tool with `subagent_type: "claude-tech-squad:techlead"`.
+Use TeamCreate to create a team named "bug-fix-team". Then spawn each agent using the Agent tool with `team_name="bug-fix-team"` and a descriptive `name` for each agent.
+
+Invoke the Agent tool with `subagent_type: "claude-tech-squad:techlead"`, `team_name: "bug-fix-team"`, `name: "techlead"`.
 
 Prompt:
 ```
@@ -125,7 +127,7 @@ If techlead outputs ESCALATE: stop and tell the user to use `/squad` instead.
 
 ### Step 3 — Write Failing Test
 
-Invoke the Agent tool with `subagent_type: "claude-tech-squad:tdd-specialist"`.
+Invoke the Agent tool with `subagent_type: "claude-tech-squad:tdd-specialist"`, `team_name: "bug-fix-team"`, `name: "tdd-specialist"`.
 
 Prompt:
 ```
@@ -150,13 +152,13 @@ Output: test file path, test name, the test code.
 Based on the affected files, invoke the appropriate implementation agent.
 
 **If the bug is in backend/server-side code:**
-Invoke `subagent_type: "claude-tech-squad:backend-dev"`.
+Invoke `subagent_type: "claude-tech-squad:backend-dev"`, `team_name: "bug-fix-team"`, `name: "backend-dev"`.
 
 **If the bug is in frontend/UI code:**
-Invoke `subagent_type: "claude-tech-squad:frontend-dev"`.
+Invoke `subagent_type: "claude-tech-squad:frontend-dev"`, `team_name: "bug-fix-team"`, `name: "frontend-dev"`.
 
 **If the bug spans both:**
-Invoke both agents sequentially — backend first, then frontend.
+Invoke both agents sequentially — backend first, then frontend. Use `name: "backend-dev"` and `name: "frontend-dev"` respectively.
 
 Prompt template:
 ```
@@ -193,7 +195,7 @@ Output: list of changed files with a one-line description of each change.
 
 ### Step 5 — Validate Fix (Real Tool Execution)
 
-Invoke the Agent tool with `subagent_type: "claude-tech-squad:qa"`.
+Invoke the Agent tool with `subagent_type: "claude-tech-squad:qa"`, `team_name: "bug-fix-team"`, `name: "qa"`.
 
 Prompt:
 ```
@@ -220,6 +222,8 @@ Run lint using `{{lint_command}}` detected in repository recon. If `{{lint_comma
 ```
 Agent(
   subagent_type = "claude-tech-squad:code-quality",
+  team_name = "bug-fix-team",
+  name = "code-quality",
   prompt = """
 ## Code Quality Lint Check
 
@@ -245,7 +249,7 @@ If lint violations found: return to Step 4 with violations list.
 
 ### Step 6 — Code Review
 
-Invoke the Agent tool with `subagent_type: "claude-tech-squad:reviewer"`.
+Invoke the Agent tool with `subagent_type: "claude-tech-squad:reviewer"`, `team_name: "bug-fix-team"`, `name: "reviewer"`.
 
 Prompt:
 ```

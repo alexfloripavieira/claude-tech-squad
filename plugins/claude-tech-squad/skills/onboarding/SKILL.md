@@ -194,11 +194,15 @@ Review and update it manually if needed.
 
 ### Step 5 — Run initial security audit
 
+Use TeamCreate to create a team named "onboarding-team". Then spawn the agent using the Agent tool with `team_name="onboarding-team"` and a descriptive `name`.
+
 Invoke `/security-audit` inline:
 
 ```
 Agent(
   subagent_type = "claude-tech-squad:security-reviewer",
+  team_name = "onboarding-team",
+  name = "security-reviewer",
   prompt = """
 Run a quick security baseline scan on this project.
 Focus on: hardcoded secrets, known CVEs in dependencies, obvious injection risks.

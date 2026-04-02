@@ -102,7 +102,9 @@ python manage.py makemigrations --dry-run --check 2>/dev/null || docker compose 
 
 ### Step 4 — Invoke data architect agent
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:data-architect"`.
+Use TeamCreate to create a team named "migration-plan-team". Then spawn each agent using the Agent tool with `team_name="migration-plan-team"` and a descriptive `name` for each agent.
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:data-architect"`, `team_name: "migration-plan-team"`, `name: "data-architect"`.
 
 Prompt:
 ```
@@ -129,7 +131,7 @@ Produce:
 
 ### Step 5 — Invoke DBA agent for safety review
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:dba"`.
+Use the Agent tool with `subagent_type: "claude-tech-squad:dba"`, `team_name: "migration-plan-team"`, `name: "dba"`.
 
 Prompt:
 ```
@@ -221,6 +223,8 @@ Before saving, spawn reviewer to validate the migration plan:
 ```
 Agent(
   subagent_type = "claude-tech-squad:reviewer",
+  team_name = "migration-plan-team",
+  name = "reviewer",
   prompt = """
 ## Migration Plan Review
 

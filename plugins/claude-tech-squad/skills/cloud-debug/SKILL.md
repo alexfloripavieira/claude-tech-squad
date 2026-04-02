@@ -118,7 +118,9 @@ Use Grep to search collected logs and codebase for:
 
 ### Step 4 — Invoke observability engineer agent
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:observability-engineer"`.
+Use TeamCreate to create a team named "cloud-debug-team". Then spawn each agent using the Agent tool with `team_name="cloud-debug-team"` and a descriptive `name` for each agent.
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:observability-engineer"`, `team_name: "cloud-debug-team"`, `name: "observability-engineer"`.
 
 Prompt:
 ```
@@ -142,7 +144,7 @@ Produce:
 
 ### Step 5 — Invoke SRE agent for blast radius
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:sre"`.
+Use the Agent tool with `subagent_type: "claude-tech-squad:sre"`, `team_name: "cloud-debug-team"`, `name: "sre"`.
 
 Prompt:
 ```
@@ -161,7 +163,7 @@ Evaluate:
 
 ### Step 6 — Invoke tech lead for fix proposal
 
-Use the Agent tool with `subagent_type: "claude-tech-squad:techlead"`.
+Use the Agent tool with `subagent_type: "claude-tech-squad:techlead"`, `team_name: "cloud-debug-team"`, `name: "techlead"`.
 
 Prompt:
 ```

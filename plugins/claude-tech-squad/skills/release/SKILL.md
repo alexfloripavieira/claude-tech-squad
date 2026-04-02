@@ -139,9 +139,13 @@ Emit notices for:
 
 ### Step 4 — Spawn release agent for rollback plan
 
+Use TeamCreate to create a team named "release-team". Then spawn each agent using the Agent tool with `team_name="release-team"` and a descriptive `name` for each agent.
+
 ```
 Agent(
   subagent_type = "claude-tech-squad:release",
+  team_name = "release-team",
+  name = "release-agent",
   prompt = """
 ## Release Preparation
 
@@ -186,6 +190,8 @@ If release agent returns NO-GO: present blockers to user and halt. Do NOT procee
 ```
 Agent(
   subagent_type = "claude-tech-squad:sre",
+  team_name = "release-team",
+  name = "sre",
   prompt = """
 ## SRE Release Review
 
@@ -219,6 +225,8 @@ Automatically spawn cost-optimizer to assess whether this release introduces new
 ```
 Agent(
   subagent_type = "claude-tech-squad:cost-optimizer",
+  team_name = "release-team",
+  name = "cost-optimizer",
   prompt = """
 ## Pre-Release Cost Analysis
 

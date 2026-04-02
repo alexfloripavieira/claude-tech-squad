@@ -115,9 +115,13 @@ Identify:
 
 ### Step 3 — Spawn integration-engineer for contract analysis
 
+Use TeamCreate to create a team named "multi-service-team". Then spawn each agent using the Agent tool with `team_name="multi-service-team"` and a descriptive `name` for each agent.
+
 ```
 Agent(
   subagent_type = "claude-tech-squad:integration-engineer",
+  team_name = "multi-service-team",
+  name = "integration-engineer",
   prompt = """
 ## Cross-Service Contract Analysis
 
@@ -169,6 +173,8 @@ Emit: `[Teammate Spawned] integration-engineer | pane: integration-engineer`
 ```
 Agent(
   subagent_type = "claude-tech-squad:architect",
+  team_name = "multi-service-team",
+  name = "architect",
   prompt = """
 ## Cross-Service Architecture Review
 
@@ -241,6 +247,8 @@ Proceed with this approach? [Y/N/modify]
 ```
 Agent(
   subagent_type = "claude-tech-squad:techlead",
+  team_name = "multi-service-team",
+  name = "techlead",
   prompt = """
 ## Multi-Service Delivery Plan
 
@@ -294,6 +302,8 @@ Emit: `[Teammate Spawned] techlead | pane: techlead`
 ```
 Agent(
   subagent_type = "claude-tech-squad:sre",
+  team_name = "multi-service-team",
+  name = "sre",
   prompt = """
 ## Multi-Service Blast Radius Assessment
 
@@ -344,6 +354,8 @@ After SRE assessment, spawn reviewer to validate the full plan before the delive
 ```
 Agent(
   subagent_type = "claude-tech-squad:reviewer",
+  team_name = "multi-service-team",
+  name = "reviewer",
   prompt = """
 ## Multi-Service Plan Review
 

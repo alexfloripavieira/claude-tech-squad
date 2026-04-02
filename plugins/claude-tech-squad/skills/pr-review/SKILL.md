@@ -101,11 +101,15 @@ From the changed files, determine which specialist reviewers are relevant:
 
 ### Step 4 — Spawn reviewer bench (parallel)
 
+Use TeamCreate to create a team named "pr-review-team". Then spawn each reviewer using the Agent tool with `team_name="pr-review-team"` and a descriptive `name` for each agent.
+
 Spawn all relevant reviewers in parallel. Each receives the full diff and file list.
 
 ```
 Agent(
   subagent_type = "claude-tech-squad:reviewer",
+  team_name = "pr-review-team",
+  name = "reviewer",
   prompt = """
 ## Pull Request Review
 
@@ -131,7 +135,7 @@ Return findings as a structured list. Do NOT chain to other agents.
 )
 ```
 
-Spawn security-reviewer, privacy-reviewer, performance-engineer, accessibility-reviewer, api-designer, dba with equivalent prompts adapted to their specialist lens.
+Spawn security-reviewer (`name: "security-rev"`), privacy-reviewer (`name: "privacy-rev"`), performance-engineer (`name: "perf-eng"`), accessibility-reviewer (`name: "access-rev"`), api-designer (`name: "api-designer"`), dba (`name: "dba"`) with equivalent prompts adapted to their specialist lens. All use `team_name="pr-review-team"`.
 
 Emit: `[Batch Spawned] review-bench | Teammates: reviewer, security-rev, privacy-rev, ...`
 

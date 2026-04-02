@@ -144,9 +144,13 @@ Parse all tool output. Categorize findings: CRITICAL / HIGH / MEDIUM / LOW.
 
 ### Step 4 — Spawn devops for blast radius assessment
 
+Use TeamCreate to create a team named "iac-review-team". Then spawn each agent using the Agent tool with `team_name="iac-review-team"` and a descriptive `name` for each agent.
+
 ```
 Agent(
   subagent_type = "claude-tech-squad:devops",
+  team_name = "iac-review-team",
+  name = "devops",
   prompt = """
 ## IaC Change Blast Radius Assessment
 
@@ -199,6 +203,8 @@ Emit: `[Teammate Spawned] devops | pane: devops`
 ```
 Agent(
   subagent_type = "claude-tech-squad:cloud-architect",
+  team_name = "iac-review-team",
+  name = "cloud-architect",
   prompt = """
 ## IaC Security and Architecture Review
 
@@ -254,6 +260,8 @@ Emit: `[Teammate Spawned] cloud-architect | pane: cloud-architect`
 ```
 Agent(
   subagent_type = "claude-tech-squad:cost-optimizer",
+  team_name = "iac-review-team",
+  name = "cost-optimizer",
   prompt = """
 ## IaC Cost Impact Analysis
 

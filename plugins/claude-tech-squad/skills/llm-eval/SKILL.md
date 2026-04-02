@@ -105,9 +105,13 @@ If no eval framework is installed, emit:
 
 ### Step 2 — Spawn llm-eval-specialist for eval plan
 
+Use TeamCreate to create a team named "llm-eval-team". Then spawn each agent using the Agent tool with `team_name="llm-eval-team"` and a descriptive `name` for each agent.
+
 ```
 Agent(
   subagent_type = "claude-tech-squad:llm-eval-specialist",
+  team_name = "llm-eval-team",
+  name = "llm-eval-specialist",
   prompt = """
 ## LLM Eval Planning
 
@@ -204,6 +208,8 @@ If RAG was detected:
 ```
 Agent(
   subagent_type = "claude-tech-squad:rag-engineer",
+  team_name = "llm-eval-team",
+  name = "rag-engineer",
   prompt = """
 ## RAG Quality Review
 
