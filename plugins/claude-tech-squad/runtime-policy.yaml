@@ -1,0 +1,175 @@
+version: 5.22.0
+
+docs_lookup:
+  preferred: context7
+  fallback: repo-fallback
+  fallback_requires:
+    - cite repository files used
+    - state assumptions explicitly
+    - do not block the workflow on documentation tool absence alone
+
+failure_handling:
+  structural_retry_same_prompt_max: 2
+  fallback_attempt_max: 1
+  unresolved_action_gate:
+    options: [R, S, X]
+    meanings:
+      R: retry once more with the same prompt
+      S: skip and continue with explicit risk logging
+      X: abort the run
+
+retry_budgets:
+  review_cycles_max: 3
+  qa_cycles_max: 2
+  conformance_cycles_max: 2
+  quality_fix_cycles_max: 2
+  uat_cycles_max: 2
+
+severity_policy:
+  blocking:
+    - security vulnerability
+    - pii or secret leak
+    - privacy violation
+    - failing required tests
+    - ci-breaking lint or static-analysis failure
+    - wcag a or aa failure
+    - contract-breaking api or schema regression
+  warning:
+    - performance regression without outage risk
+    - non-critical accessibility issue
+    - integration fragility
+    - code quality debt
+    - operational observability gap
+  info:
+    - optional refactor
+    - style suggestion
+    - documentation improvement
+
+fallback_matrix:
+  discovery:
+    pm:
+      - claude-tech-squad:po
+    business-analyst:
+      - claude-tech-squad:planner
+    po:
+      - claude-tech-squad:pm
+    planner:
+      - claude-tech-squad:techlead
+    architect:
+      - claude-tech-squad:backend-architect
+      - claude-tech-squad:solutions-architect
+    techlead:
+      - claude-tech-squad:architect
+    design-principles:
+      - claude-tech-squad:techlead
+    test-planner:
+      - claude-tech-squad:tdd-specialist
+    tdd-specialist:
+      - claude-tech-squad:test-planner
+  implement:
+    tdd-specialist:
+      - claude-tech-squad:test-planner
+    reviewer:
+      - claude-tech-squad:code-quality
+      - claude-tech-squad:techlead
+    qa:
+      - claude-tech-squad:integration-qa
+      - claude-tech-squad:test-automation-engineer
+    techlead-audit:
+      - claude-tech-squad:architect
+      - claude-tech-squad:backend-architect
+    security-rev:
+      - claude-tech-squad:security-engineer
+    privacy-rev:
+      - claude-tech-squad:compliance-reviewer
+    perf-eng:
+      - claude-tech-squad:observability-engineer
+    access-rev:
+      - claude-tech-squad:ux-designer
+    integ-qa:
+      - claude-tech-squad:test-automation-engineer
+    code-quality:
+      - claude-tech-squad:reviewer
+      - claude-tech-squad:techlead
+    docs-writer:
+      - claude-tech-squad:tech-writer
+    jira-confluence:
+      - claude-tech-squad:developer-relations
+    pm-uat:
+      - claude-tech-squad:po
+  squad:
+    pm:
+      - claude-tech-squad:po
+    planner:
+      - claude-tech-squad:techlead
+    architect:
+      - claude-tech-squad:backend-architect
+      - claude-tech-squad:solutions-architect
+    reviewer:
+      - claude-tech-squad:code-quality
+      - claude-tech-squad:techlead
+    qa:
+      - claude-tech-squad:integration-qa
+      - claude-tech-squad:test-automation-engineer
+    techlead-audit:
+      - claude-tech-squad:architect
+    release:
+      - claude-tech-squad:sre
+    sre:
+      - claude-tech-squad:release
+
+checkpoint_resume:
+  write_to_sep_log: true
+  fields:
+    - checkpoint_cursor
+    - completed_checkpoints
+    - resume_from
+    - fallback_invocations
+    - teammate_reliability
+  discovery:
+    checkpoints:
+      - preflight-passed
+      - gate-1-approved
+      - gate-2-approved
+      - gate-3-approved
+      - gate-4-approved
+      - specialist-bench-complete
+      - quality-baseline-complete
+      - blueprint-confirmed
+    resume_rule: resume from the highest completed checkpoint unless inputs materially changed
+  implement:
+    checkpoints:
+      - preflight-passed
+      - commands-confirmed
+      - blueprint-validated
+      - tdd-ready
+      - implementation-batch-complete
+      - reviewer-approved
+      - qa-pass
+      - conformance-pass
+      - quality-bench-cleared
+      - docs-complete
+      - uat-approved
+    resume_rule: resume from the highest completed checkpoint and only rerun failed downstream gates
+  squad:
+    checkpoints:
+      - preflight-passed
+      - discovery-confirmed
+      - implementation-complete
+      - release-signed-off
+    resume_rule: resume from the last completed phase boundary unless the user requests a full rerun
+
+reliability_metrics:
+  tracked:
+    - retry_count
+    - fallback_invocations
+    - checkpoint_cursor
+    - completed_checkpoints
+    - resume_from
+    - teammate_reliability
+  teammate_reliability_states:
+    - primary
+    - primary-after-retry
+    - fallback-used
+    - skipped-with-risk
+    - unresolved

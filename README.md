@@ -17,13 +17,23 @@ This repository is the execution layer. It provides the specialist team and work
 See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for installation, teammate mode setup, commands, and prompt examples.
 See [EXECUTION-TRACE.md](docs/EXECUTION-TRACE.md) for how to interpret visible agent execution.
 See [OPERATIONAL-PLAYBOOK.md](docs/OPERATIONAL-PLAYBOOK.md) for common execution scenarios.
+See [DOGFOODING.md](docs/DOGFOODING.md) for layered, hexagonal, and hotfix smoke scenarios.
+See [GOLDEN-RUNS.md](docs/GOLDEN-RUNS.md) for real-run capture and scorecard validation.
+See [ENGINEERING-OPERATING-SYSTEM.md](docs/ENGINEERING-OPERATING-SYSTEM.md) for the governance model used to run this plugin like an engineering organization.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) for contribution and vulnerability-handling rules.
+See [RELEASING.md](docs/RELEASING.md) for the official GitHub Actions publish path from `main`.
+Run `bash scripts/dogfood.sh` to validate the local dogfooding pack and `bash scripts/dogfood.sh --print-prompts` to print the fixture prompts.
+Run `bash scripts/dogfood-report.sh --schema-only` to validate the golden-run contract and `bash scripts/dogfood-report.sh` when real runs are available under `ai-docs/dogfood-runs/`.
+Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a real golden-run capture.
 
 ## What This Repository Contains
 
 - one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
-- 60 specialist agents for software delivery
+- 61 specialist agents for software delivery
 - 20 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
+- one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml`
+- one local dogfooding pack plus golden-run contract
 
 ## Commands
 
@@ -95,8 +105,12 @@ The workflows expose squad execution in the Claude output.
 
 You should see:
 
+- `[Preflight Passed] discovery | execution_mode=... | ... | runtime_policy=...`
 - `[Team Created] discovery` or `[Team Created] squad`
 - `[Teammate Spawned] pm | pane: pm`
+- `[Checkpoint Saved] discovery | cursor=...`
+- `[Resume From] implement | checkpoint=...`
+- `[Fallback Invoked] reviewer -> claude-tech-squad:code-quality | Reason: ...`
 - `[Gate] Scope Validation | Waiting for user input`
 - `[Batch Spawned] specialist-bench | Teammates: backend-arch, frontend-arch, api-designer`
 - `[Teammate Done] reviewer | Status: APPROVED`
@@ -124,7 +138,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 /claude-tech-squad:prompt-review # before merging any prompt file change
 ```
 
-## Specialist Roster (60 agents)
+## Specialist Roster (61 agents)
 
 ### Discovery & Planning
 - PM
@@ -136,6 +150,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 
 ### Architecture Specialists
 - Backend Architect
+- Hexagonal Architect
 - Frontend Architect
 - API Designer
 - Data Architect
@@ -294,7 +309,7 @@ Additional safety for LLM features:
 
 ## Documentation Standard
 
-Every agent in the squad is required to use **Context7** to look up current documentation before using any library, framework, or external API — regardless of stack. Training data is never used as the source of truth for API signatures or method behavior.
+Every agent in the squad should use **Context7** first when it is available to look up current documentation before using any library, framework, or external API — regardless of stack. If Context7 is unavailable, the fallback is repository evidence, local installed docs, and explicit assumptions in the output. Training data is never the source of truth for API signatures or method behavior.
 
 Mandatory workflow for every library used:
 
@@ -303,7 +318,7 @@ mcp__plugin_context7_context7__resolve-library-id("library-name")
 mcp__plugin_context7_context7__query-docs(libraryId, topic="specific feature")
 ```
 
-Applies to: npm, PyPI, Go modules, Maven, cloud SDKs (AWS, GCP, Azure), frameworks (Django, React, Spring, Rails), database drivers, and any third-party integration. If Context7 does not have documentation for the library, the agent must declare it explicitly and flag assumptions.
+Applies to: npm, PyPI, Go modules, Maven, cloud SDKs (AWS, GCP, Azure), frameworks (Django, React, Spring, Rails), database drivers, and any third-party integration. If Context7 is unavailable or does not have documentation for the library, the agent must declare it explicitly and flag assumptions.
 
 ## Validation and Release
 

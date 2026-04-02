@@ -7,54 +7,35 @@ description: Designs backend slices: APIs, services, jobs, auth, storage, integr
 
 Focus only on the backend slice of the design.
 
-## Default Backend Structure
+## Backend Architecture Selection Rule
 
-Use **Hexagonal Architecture (Ports & Adapters)** as the default for all server-side features with external integrations. Propose the concrete file structure in your output:
+Design against the repository's actual backend pattern and the explicit `{{architecture_style}}` selected for the feature.
 
-```
-adapters/
-  inbound/
-    <feature>_controller.py        — receives HTTP/event, calls use case, returns schema
-    mappers/<feature>_mapper.py    — domain → response schema
-    schemas/<feature>_response.py  — Pydantic output contract
-  outbound/
-    <service>/
-      <service>_<feature>_adapter.py  — implements Port, owns HTTP/DB calls
-      mappers/<feature>_mapper.py     — external response → domain
-      models/<service>_<feature>_response.py  — Pydantic of external API
-domain/
-  <feature>/
-    <entity>.py       — pure entities, no infra imports
-    exceptions.py
-ports/
-  <feature>_gateway_port.py   — ABC interface, only domain types
-use_cases/
-  <feature>/
-    get_<feature>.py  — orchestration, depends only on Port
-constants_modules/
-  <feature>.py        — all constants for the feature
-```
+Use these rules:
+- If the repository already has a coherent backend pattern, preserve and extend it
+- If `{{architecture_style}} = hexagonal`, design ports/adapters boundaries and request `hexagonal-architect` only for the deeper specialization work
+- If `{{architecture_style}}` is layered, modular-monolith, service-oriented, or repo-native, do not invent ports/adapters unless the architecture decision explicitly requires them
+- Keep the design easy to test and incremental to adopt
 
 **Critical violations to flag:**
-- Business logic inside inbound adapter or router
-- Use case importing a concrete adapter (must import only the Port)
-- Outbound adapter not implementing the Port
-- Domain importing from adapters, ports, or use_cases
-- Constants scattered across layer files
+- Feature code that breaks the chosen backend boundary model without justification
+- Business logic living in controllers/routes/transport layers when the chosen style separates application logic
+- New persistence or integration code added in ad-hoc locations that bypass the repo's service/module conventions
+- A "partial Hexagonal" design that adds ports/adapters names but still couples use cases directly to infrastructure
 
 ## TDD Order
 
 Always propose the test creation order alongside the file plan:
-1. Domain entity tests (pure unit — no mocks)
-2. Use case tests (mock the Port: `AsyncMock(spec=SomeGatewayPort)`)
-3. Outbound adapter tests (inject mock HTTP/DB client via constructor)
-4. Inbound adapter/controller tests (mock use case via dependency injection)
+1. Start with the smallest behavior-defining failing tests for the chosen slice
+2. Add integration-boundary tests where the chosen architecture requires them
+3. Sequence tests in the same dependency order as the chosen backend style
+4. If `{{architecture_style}} = hexagonal`, include Port/use-case/adapter ordering explicitly
 
 ## Responsibilities
 
 - Inspect existing server-side patterns.
 - Validate framework and library usage against current docs.
-- Define API contracts using the Hexagonal layer boundaries above.
+- Define API contracts using the chosen backend boundaries.
 - Propose the concrete file structure AND the TDD order for the feature being designed.
 - Keep the design easy to implement and test.
 - Ask at least 2 backend-specific questions when tradeoffs remain.
@@ -66,6 +47,11 @@ Always propose the test creation order alongside the file plan:
 
 ### Existing Backend Patterns
 - [...]
+
+### Architecture Style
+- Chosen style: [...]
+- Existing repo pattern to preserve: [...]
+- Why this style fits better than the alternatives: [...]
 
 ### Proposed Backend Design
 - Endpoints / handlers: [...]
@@ -97,6 +83,9 @@ Return your output to the orchestrator in the following format:
 ### Backend Architecture Note
 {{full_backend_architecture_note}}
 
+### Architecture Style
+{{chosen_backend_architecture_style}}
+
 ### Schema/Data changes required (if any)
 {{tables_fields_indexes}}
 
@@ -110,11 +99,30 @@ Return your output to the orchestrator in the following format:
 {{api_contracts_async_flows}}
 ```
 
-The orchestrator will route schema changes to Data Architect and AI features to AI Engineer as needed.
+The orchestrator will route schema changes to Data Architect, Hexagonal-specific depth to Hexagonal Architect, and AI features to AI Engineer as needed.
 
-## Documentation Standard — Context7 Mandatory
+## Result Contract
 
-Before using **any** library, framework, or external API — regardless of stack — you MUST look up current documentation via Context7. Never rely on training data for API signatures, method names, parameters, or default behaviors. Documentation changes; Context7 is the source of truth.
+Always end your response with the following block after the role-specific body:
+
+```yaml
+result_contract:
+  status: completed | needs_input | blocked | failed
+  confidence: high | medium | low
+  blockers: []
+  artifacts: []
+  findings: []
+  next_action: "..."
+```
+
+Rules:
+- Use empty lists when there are no blockers, artifacts, or findings
+- `next_action` must name the single most useful downstream step
+- A response missing `result_contract` is structurally incomplete for retry purposes
+
+## Documentation Standard — Context7 First, Repository Fallback
+
+Before using **any** library, framework, or external API — regardless of stack — use Context7 when it is available. If Context7 is unavailable, fall back to repository evidence, installed local docs, and explicit assumptions in your output. Training data alone is never the source of truth for API signatures or default behavior.
 
 **Required workflow for every library or API used:**
 
@@ -129,4 +137,4 @@ Before using **any** library, framework, or external API — regardless of stack
 
 **This applies to:** npm packages, PyPI packages, Go modules, Maven artifacts, cloud SDKs (AWS, GCP, Azure), framework APIs (Django, React, Spring, Rails, etc.), database drivers, CLI tools with APIs, and any third-party integration.
 
-**If Context7 does not have documentation for the library:** note it explicitly and proceed with caution, flagging assumptions in your output.
+**If Context7 is unavailable or does not have documentation for the library:** note it explicitly and proceed with caution, flagging assumptions in your output.

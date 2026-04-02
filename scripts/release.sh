@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
+# Fallback only.
+# Official release flow is GitHub Actions automation that versions, tags, and publishes.
 # Usage: ./scripts/release.sh 5.2.0
-# Bumps versions in marketplace.json and plugin.json, commits, tags, and pushes.
 
 set -euo pipefail
 
@@ -21,7 +22,7 @@ fi
 echo "Releasing v$VERSION..."
 
 # Validate plugin before touching anything
-bash "$ROOT/scripts/validate.sh"
+bash "$ROOT/scripts/smoke-test.sh"
 
 # Bump marketplace.json
 python3 - <<EOF
@@ -50,11 +51,11 @@ if ! grep -q "## \[$VERSION\]" "$ROOT/CHANGELOG.md"; then
 fi
 
 # Validate again after bumps
-bash "$ROOT/scripts/validate.sh"
+bash "$ROOT/scripts/smoke-test.sh"
 
 # Commit and tag
 cd "$ROOT"
-git add .claude-plugin/marketplace.json plugins/claude-tech-squad/.claude-plugin/plugin.json
+git add .claude-plugin/marketplace.json plugins/claude-tech-squad/.claude-plugin/plugin.json docs/MANUAL.md CHANGELOG.md
 git commit -m "chore: release v$VERSION"
 git tag "v$VERSION"
 git push origin main

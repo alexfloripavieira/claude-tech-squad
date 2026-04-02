@@ -45,16 +45,22 @@ This workflow creates a team and spawns each specialist as a real teammate (sepa
 
 Emit these lines for every teammate action:
 
+- `[Preflight Start] <workflow-name>`
+- `[Preflight Warning] <summary>`
+- `[Preflight Passed] <workflow-name> | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version>`
 - `[Team Created] <team-name>`
 - `[Teammate Spawned] <role> | pane: <name>`
 - `[Teammate Done] <role> | Output: <one-line summary>`
 - `[Teammate Retry] <role> | Reason: <failure>`
+- `[Fallback Invoked] <failed-role> -> <fallback-subagent> | Reason: <summary>`
+- `[Resume From] <workflow-name> | checkpoint=<checkpoint>`
+- `[Checkpoint Saved] <workflow-name> | cursor=<checkpoint>`
 - `[Gate] <gate-name> | Waiting for user input`
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
 
 ## Teammate Failure Protocol
 
-A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role.
+A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role, including the required `result_contract` block.
 
 **For every teammate spawned — without exception:**
 
@@ -63,7 +69,13 @@ A teammate has **failed silently** if it returns an empty response, an error, or
    - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
    - Re-spawn the teammate once with the identical prompt.
 3. If the second attempt also fails:
-   - Emit: `[Gate] Teammate Failure | <name> failed twice`
+   - Read `plugins/claude-tech-squad/runtime-policy.yaml` and consult `fallback_matrix.discovery.<name>`
+   - If a fallback subagent is listed:
+     - Emit: `[Fallback Invoked] <name> -> <fallback-subagent> | Reason: primary failed twice`
+     - Spawn the fallback once with the same context and an explicit instruction that it is acting as a surrogate for `<name>`
+     - If the fallback returns a valid output, continue and record the event in `fallback_invocations` and `teammate_reliability`
+   - If no fallback exists, or the fallback also fails:
+     - Emit: `[Gate] Teammate Failure | <name> failed twice and fallback did not recover`
    - Surface to the user:
 
 ```
@@ -79,9 +91,85 @@ Options:
 5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
 6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
 
+## Agent Result Contract (ARC)
+
+A teammate response is only considered structurally valid when it contains both:
+- the role-specific body requested by that agent
+- a final `result_contract` block
+
+Required block:
+
+```yaml
+result_contract:
+  status: completed | needs_input | blocked | failed
+  confidence: high | medium | low
+  blockers: []
+  artifacts: []
+  findings: []
+  next_action: "..."
+```
+
+Validation rules:
+- `status` must reflect the real execution outcome
+- `blockers`, `artifacts`, and `findings` use empty lists when there is nothing to report
+- `next_action` must identify the single best downstream step
+- Missing `result_contract` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
+
+## Runtime Resilience Contract
+
+Load `plugins/claude-tech-squad/runtime-policy.yaml` before creating the team. This file is the source of truth for:
+- retry budgets
+- fallback matrix
+- severity policy
+- checkpoint/resume rules
+- reliability metrics recorded in SEP logs
+
+If the runtime policy file is missing or unreadable, stop the run and surface `[Gate] Runtime Policy Missing`. Do not silently continue with hardcoded defaults.
+
 ---
 
 ## Execution
+
+### Preflight Gate
+
+Before creating the team, validate the run contract and emit explicit preflight lines.
+
+Check and store:
+- `execution_mode` — `tmux` if teammate mode is available, otherwise `inline`
+- `resume_key` — provisional lowercase kebab-case derived from the user request before formal `{{feature_slug}}` extraction
+- `{{architecture_style}}` — explicit or defaulted to `existing-repo-pattern`
+- `{{lint_profile}}` — detected tool list or `none-detected`
+- `docs_lookup_mode` — `context7` when available, otherwise `repo-fallback`
+- `runtime_policy_version` — from `plugins/claude-tech-squad/runtime-policy.yaml`
+
+Preflight rules:
+- Emit `[Preflight Start] discovery`
+- Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
+- If `{{architecture_style}}` had to be defaulted, emit `[Preflight Warning] architecture_style ambiguous — defaulting to existing-repo-pattern`
+- If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`
+- Inspect the latest `ai-docs/.squad-log/*-discovery-*.md` for the same `resume_key` when resuming an interrupted run
+- If a prior partial discovery exists and inputs did not materially change, emit `[Resume From] discovery | checkpoint=<highest_completed_checkpoint>`
+- Emit `[Preflight Passed] discovery | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version>`
+
+### Checkpoint / Resume Rules
+
+Use `checkpoint_resume.discovery` from `runtime-policy.yaml`.
+
+Save a checkpoint whenever one of these milestones is completed:
+- `preflight-passed`
+- `gate-1-approved`
+- `gate-2-approved`
+- `gate-3-approved`
+- `gate-4-approved`
+- `specialist-bench-complete`
+- `quality-baseline-complete`
+- `blueprint-confirmed`
+
+Checkpoint behavior:
+- Emit `[Checkpoint Saved] discovery | cursor=<checkpoint>` whenever a checkpoint is reached
+- On resume, skip already-completed checkpoints unless the user changed scope, architecture style, or repository context in a way that invalidates prior outputs
+- Record `checkpoint_cursor`, `completed_checkpoints`, `resume_from`, `fallback_invocations`, and `teammate_reliability` in the SEP log
 
 ### Step 1 — Repository Recon and Variable Extraction
 
@@ -93,8 +181,11 @@ Read the following files to understand the project:
 Extract and store for use throughout this discovery run:
 - `{{feature_slug}}` — derived from the user's request as lowercase kebab-case (e.g. "user authentication with OAuth2" → `user-auth-oauth2`, or use ticket ID if provided)
 - `{{user_request_one_line}}` — the user's request summarized in one line
+- `{{architecture_style}}` — explicit architecture style for this feature (`existing-repo-pattern`, `layered`, `hexagonal`, `clean-architecture`, `modular-monolith`, `event-driven`, `other`). Default to `existing-repo-pattern` unless the repo or user clearly selects another style
+- `{{lint_profile}}` — actual lint/format/static-analysis tools detected in the repository
 
 `{{feature_slug}}` is used for ADR paths (`ai-docs/{{feature_slug}}/adr/`), blueprint path, feature flag naming, and the SEP log. Derive it immediately so all downstream steps have a consistent identifier.
+`{{architecture_style}}` and `{{lint_profile}}` are used by Architect, TechLead, Reviewer, Design Principles, and Conformance Audit so the squad does not force a single style on every repository.
 
 ### Step 2 — Create Discovery Team
 
@@ -283,13 +374,17 @@ Agent(
 ### Repository Context
 {{stack_and_structure}}
 
+### Architecture Style
+{{architecture_style}}
+
 ### Product Scope
 {{po_output}}
 
 ---
 You are the Architect. Design the overall solution: options, system decomposition,
 workstream boundaries, sequencing, and implementation blueprint.
-Align with Hexagonal Architecture if applicable to the stack.
+Preserve the repository's current pattern unless there is a strong reason to adopt another explicit style.
+Use Hexagonal Architecture only when the feature or repository explicitly benefits from it.
 Return structured architecture decisions for TechLead.
 Do NOT chain to other agents.
 """
@@ -325,11 +420,14 @@ Agent(
 ### Scope
 {{po_output}}
 
+### Architecture Style
+{{architecture_style}}
+
 ---
 You are the Tech Lead. Reconcile architecture and specialist inputs.
 Choose the implementation path, assign workstream boundaries, and produce an
 execution sequence. Identify which specialists are needed from this list:
-backend-architect, frontend-architect, api-designer, data-architect, ux-designer,
+backend-architect, hexagonal-architect, frontend-architect, api-designer, data-architect, ux-designer,
 ai-engineer, integration-engineer, devops, ci-cd, dba.
 Return the execution plan and a list of required specialists.
 Do NOT chain to other agents.
@@ -356,6 +454,7 @@ Only spawn specialists that apply to this project and task.
 ```
 # Example: spawn all that apply in parallel
 Agent(team_name=<team>, name="backend-arch",   subagent_type="claude-tech-squad:backend-architect",  prompt=...)
+Agent(team_name=<team>, name="hexagonal-arch", subagent_type="claude-tech-squad:hexagonal-architect", prompt=...)
 Agent(team_name=<team>, name="frontend-arch",  subagent_type="claude-tech-squad:frontend-architect", prompt=...)
 Agent(team_name=<team>, name="api-designer",   subagent_type="claude-tech-squad:api-designer",       prompt=...)
 Agent(team_name=<team>, name="data-arch",      subagent_type="claude-tech-squad:data-architect",     prompt=...)
@@ -371,6 +470,7 @@ Wait for ALL spawned specialist agents to return. Do NOT advance until every age
 Each specialist prompt must include:
 - TechLead execution plan
 - Architecture decisions
+- Chosen architecture style: `{{architecture_style}}`
 - Product scope
 - Repository context
 - Instruction: "Return your specialist design notes. Do NOT chain to other agents."
@@ -419,10 +519,13 @@ Agent(
 ### Repository Context
 {{stack_and_structure}}
 
+### Architecture Style
+{{architecture_style}}
+
 ---
 You are the Design Principles Specialist. Review boundaries, dependency direction,
 cohesion, coupling, testability, and Clean Architecture tradeoffs using the repository's
-real structure. Return guardrails for the implementation phase.
+real structure and the chosen architecture style. Return guardrails for the implementation phase.
 Do NOT chain to other agents.
 """
 )
@@ -590,10 +693,27 @@ parent_run_id: null
 skill: discovery
 timestamp: {{ISO8601}}
 status: completed
+runtime_policy_version: {{runtime_policy_version}}
 feature_slug: {{feature_slug}}
+checkpoint_cursor: blueprint-confirmed
+completed_checkpoints: [preflight-passed, gate-1-approved, gate-2-approved, gate-3-approved, gate-4-approved, specialist-bench-complete, quality-baseline-complete, blueprint-confirmed]
+resume_from: {{resume_checkpoint | none}}
 gates_cleared: [1, 2, 3, 4, final]
 gates_blocked: []
 retry_count: 0
+fallback_invocations: []
+teammate_reliability:
+  pm: primary
+  ba: primary
+  po: primary
+  planner: primary
+  architect: primary
+  techlead: primary
+  specialist-bench: primary
+  quality-baseline: primary
+  design-principles: primary
+  test-planner: primary
+  tdd-specialist: primary
 teammates: [pm, ba, po, planner, architect, techlead, specialist-bench, quality-baseline, design-principles, test-planner, tdd-specialist]
 output_artifact: ai-docs/{{feature_slug}}/blueprint.md
 adrs_generated: N

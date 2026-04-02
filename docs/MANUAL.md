@@ -1,6 +1,6 @@
 # Claude Tech Squad — Manual Técnico
 
-**Versão:** 5.11.0
+**Versão:** 5.27.0
 **Plugin:** `claude-tech-squad`
 
 ---
@@ -12,7 +12,7 @@
 3. [Teammate Mode — panes tmux por agente](#3-teammate-mode--panes-tmux-por-agente)
 4. [Skills disponíveis e quando usar cada uma](#4-skills-disponíveis-e-quando-usar-cada-uma)
 5. [Fluxo completo de cada skill](#5-fluxo-completo-de-cada-skill)
-6. [Os 60 agentes — papéis e especialidades](#6-os-60-agentes--papéis-e-especialidades)
+6. [Os 61 agentes — papéis e especialidades](#6-os-61-agentes--papéis-e-especialidades)
 7. [Arquitetura da esteira](#7-arquitetura-da-esteira)
 8. [Gates de usuário](#8-gates-de-usuário)
 9. [Visibilidade de execução](#9-visibilidade-de-execução)
@@ -296,6 +296,8 @@ TeamCreate → time "squad" (persiste por todas as fases)
 
 **Gates de usuário:** 5
 
+**Saída SEP:** `ai-docs/.squad-log/{timestamp}-squad-{run_id}.md` com `runtime_policy_version`, `checkpoint_cursor`, `fallback_invocations` e `release_result`.
+
 ---
 
 ### /bug-fix
@@ -333,7 +335,7 @@ TeamCreate → time "squad" (persiste por todas as fases)
     │
     ├─ git checkout -b hotfix/{{slug}} origin/{{base}}
     │
-    ├─ code-debugger (root cause analysis, sem implementar)
+    ├─ techlead em modo root-cause (análise sem implementar)
     │
     ├─ [GATE 2: confirmação do diagnóstico]
     │
@@ -708,7 +710,7 @@ Veja [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md) para exemplos de uso de 
 
 ---
 
-## 6. Os 60 agentes — papéis e especialidades
+## 6. Os 61 agentes — papéis e especialidades
 
 ### Discovery & Planning
 
@@ -726,6 +728,7 @@ Veja [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md) para exemplos de uso de 
 | Agente | Especialidade |
 |---|---|
 | `backend-architect` | APIs, services, domain layer, auth, storage |
+| `hexagonal-architect` | Especialista em Ports & Adapters, port contracts, adapter seams, migração para Hexagonal |
 | `frontend-architect` | UI structure, routing, state, client error handling |
 | `api-designer` | REST/GraphQL/RPC contracts, versioning, error models |
 | `data-architect` | Schema evolution, migrations, event flows, data contracts |
@@ -1119,15 +1122,15 @@ Exigem **confirmação escrita explícita do usuário** antes de qualquer execu�
 | Criar tag/release com CI falhando | Código não testado não é deploy — é aposta |
 | Migrar banco de dados sem backup confirmado | Operação irreversível sem rede de segurança |
 
-### Documentation Standard — Context7 Mandatory (v5.11.0+)
+### Documentation Standard — Context7 First, Repository Fallback (v5.21.0+)
 
-Todos os **60 agentes** são obrigados a consultar documentação atualizada via Context7 antes de usar qualquer biblioteca, framework ou API externa — independente da stack. Dados de treinamento nunca são fonte de verdade para assinaturas de API, nomes de métodos ou comportamentos default.
+Todos os **61 agentes** usam o Context7 primeiro quando ele está disponível para consultar documentação atualizada antes de usar qualquer biblioteca, framework ou API externa — independente da stack. Se o Context7 estiver indisponível, o fallback é evidência do próprio repositório, documentação local instalada e suposições explícitas no output. Dados de treinamento nunca são fonte de verdade para assinaturas de API, nomes de métodos ou comportamentos default.
 
 **Fluxo obrigatório para toda lib usada:**
 1. `mcp__plugin_context7_context7__resolve-library-id("nome-da-lib")`
 2. `mcp__plugin_context7_context7__query-docs(libraryId, topic="funcionalidade específica")`
 
-Se o Context7 não tiver documentação para a lib, o agente declara explicitamente e sinaliza suposições no output.
+Se o Context7 estiver indisponível ou não tiver documentação para a lib, o agente declara explicitamente e sinaliza suposições no output.
 
 ### Global Safety Contract
 
@@ -1151,16 +1154,18 @@ O contrato é lido por todos os agentes independentemente de operarem como inlin
 
 ## 13. Squad Execution Protocol (SEP) — artefatos e rastreabilidade
 
-O SEP é um conjunto de quatro contratos stack-agnósticos que cobrem observabilidade, continuidade e remediação em todos os workflows da squad. Funciona tanto quando Claude opera como **inline subagent** quanto como **teammate em painel tmux separado** — o log persiste no disco independentemente do modo de execução.
+O SEP é um conjunto de seis contratos stack-agnósticos que cobrem observabilidade, continuidade e remediação em todos os workflows da squad. Funciona tanto quando Claude opera como **inline subagent** quanto como **teammate em painel tmux separado** — o log persiste no disco independentemente do modo de execução.
 
 ### Contratos
 
 | Contrato | Nome | Skills que implementam |
 |---|---|---|
-| C1 | Execution Log | `/discovery`, `/implement`, `/security-audit`, `/dependency-check`, `/hotfix`, `/pr-review`, `/onboarding`, `/release`, `/incident-postmortem`, `/refactor` |
+| C1 | Execution Log | `/discovery`, `/implement`, `/squad`, `/security-audit`, `/dependency-check`, `/hotfix`, `/pr-review`, `/onboarding`, `/release`, `/incident-postmortem`, `/refactor` |
 | C2 | Remediation Tasks | `/security-audit`, `/dependency-check` |
 | C3 | Discovery → Implement Bridge Gate | `/discovery` |
 | C4 | Task Completion Block | `/implement` (por agente de implementação) |
+| C5 | Runtime Fallback Matrix | `/discovery`, `/implement`, `/squad` |
+| C6 | Checkpoint / Resume Cursor | `/discovery`, `/implement`, `/squad` |
 
 ---
 
@@ -1177,11 +1182,19 @@ ai-docs/.squad-log/YYYY-MM-DDTHH-MM-SS-{skill}-{run_id}.md
 ```yaml
 ---
 run_id: abc123
-skill: discovery | implement | security-audit | dependency-check
+skill: discovery | implement | squad | security-audit | dependency-check
 timestamp: 2026-03-24T14:30:00Z
 status: completed | failed | partial
+runtime_policy_version: 5.22.0
 retry_count: 0
+checkpoint_cursor: qa-pass
+completed_checkpoints: [preflight-passed, commands-confirmed, blueprint-validated, tdd-ready, implementation-batch-complete, reviewer-approved, qa-pass]
+resume_from: preflight-passed | none
 gates_blocked: []
+fallback_invocations: []
+teammate_reliability:
+  reviewer: primary
+  qa: fallback-used
 implement_triggered: false          # apenas /discovery
 findings_critical: 0                # apenas /security-audit
 findings_high: 0                    # apenas /security-audit
@@ -1189,10 +1202,11 @@ vulnerabilities_critical: 0        # apenas /dependency-check
 major_updates: 0                    # apenas /dependency-check
 remediation_artifact: ai-docs/...  # C2, quando aplicável
 uat_result: PASS | REJECTED         # apenas /implement
+release_result: GO | NO-GO          # /squad ou /release
 ---
 ```
 
-Os logs são a fonte primária do `/factory-retrospective` para calcular métricas: taxa de rejeição UAT, gates bloqueados com mais frequência, tempo médio de retry por skill, descobertas sem implementação.
+Os logs são a fonte primária do `/factory-retrospective` para calcular métricas: taxa de rejeição UAT, gates bloqueados com mais frequência, tempo médio de retry por skill, descobertas sem implementação, uso de fallback e pontos mais frequentes de retomada.
 
 ---
 
@@ -1256,6 +1270,37 @@ O orchestrador usa esses blocos para validar progresso e detectar falhas silenci
 
 ---
 
+### C5 — Runtime Fallback Matrix
+
+`plugins/claude-tech-squad/runtime-policy.yaml` é a fonte única de verdade para fallback de runtime. Quando um agente falha duas vezes com o mesmo prompt, o orchestrador consulta `fallback_matrix` antes de abrir gate para o usuário.
+
+Exemplos:
+- `reviewer` → `code-quality`, depois `techlead`
+- `qa` → `integration-qa`, depois `test-automation-engineer`
+- `architect` → `backend-architect`, depois `solutions-architect`
+
+Todo fallback bem-sucedido deve aparecer:
+- na saída visível: `[Fallback Invoked] ...`
+- no log SEP: `fallback_invocations` + `teammate_reliability`
+
+---
+
+### C6 — Checkpoint / Resume Cursor
+
+`/discovery`, `/implement` e `/squad` gravam checkpoints de fase/gate e podem retomar da última fronteira consistente quando a entrada não mudou materialmente.
+
+Campos SEP usados:
+- `checkpoint_cursor` — checkpoint mais avançado atingido
+- `completed_checkpoints` — lista completa de marcos concluídos
+- `resume_from` — checkpoint de onde a execução retomou, ou `none`
+
+Exemplos de checkpoints:
+- `/discovery`: `gate-1-approved`, `specialist-bench-complete`, `blueprint-confirmed`
+- `/implement`: `commands-confirmed`, `qa-pass`, `quality-bench-cleared`, `uat-approved`
+- `/squad`: `discovery-confirmed`, `implementation-complete`, `release-signed-off`
+
+---
+
 ### Stack Command Detection (Step 0 do /implement)
 
 Para garantir que os agentes usem os comandos corretos independentemente da stack do projeto, o `/implement` detecta automaticamente os comandos disponíveis antes de iniciar:
@@ -1279,8 +1324,9 @@ ai-docs/
 ├── .squad-log/                              ← C1: logs de execução (todos os runs)
 │   ├── 2026-03-24T14-30-00-discovery-abc123.md
 │   ├── 2026-03-24T15-00-00-implement-def456.md
-│   ├── 2026-03-24T16-00-00-security-audit-ghi789.md
-│   └── 2026-03-24T17-00-00-dependency-check-jkl012.md
+│   ├── 2026-03-24T15-30-00-squad-ghi789.md
+│   ├── 2026-03-24T16-00-00-security-audit-jkl012.md
+│   └── 2026-03-24T17-00-00-dependency-check-mno345.md
 ├── security-remediation-2026-03-24.md       ← C2: tarefas de remediação de segurança
 ├── dependency-remediation-2026-03-24.md     ← C2: tarefas de remediação de dependências
 ├── .last-retro                              ← timestamp do último /factory-retrospective
@@ -1299,6 +1345,9 @@ Quando logs SEP existem em `ai-docs/.squad-log/`, o `/factory-retrospective` ext
 | Taxa de rejeição UAT | `uat_result: REJECTED` | % de runs do `/implement` rejeitados no gate UAT |
 | Retry médio por skill | `retry_count` | Média de retries necessários por skill |
 | Gates mais bloqueados | `gates_blocked` | Gates que mais frequentemente pararam o workflow |
+| Uso de fallback | `fallback_invocations` | Frequência e agentes que precisaram de substituição |
+| Ponto de retomada mais comum | `resume_from` / `checkpoint_cursor` | Onde os runs mais frequentemente quebram e retomam |
+| Confiabilidade por teammate | `teammate_reliability` | Quem mais opera em retry, fallback ou skip-with-risk |
 | Orphaned discoveries | `implement_triggered: false` | Blueprints gerados mas nunca implementados |
 | Hotfixes sem post-mortem | `postmortem_recommended: true` sem `parent_run_id` correspondente | Incidentes não revisados |
 | Releases com risco de custo | `cost_risk: true` em logs de release | Releases que passaram com alertas de custo |

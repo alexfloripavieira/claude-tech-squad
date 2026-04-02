@@ -27,6 +27,9 @@ See [GETTING-STARTED.md](GETTING-STARTED.md) for setup instructions.
 A healthy run shows:
 
 ```text
+[Preflight Start] discovery
+[Preflight Passed] discovery | execution_mode=inline | architecture_style=layered | lint_profile=eslint,prettier | docs_lookup_mode=context7 | runtime_policy=5.22.0
+[Checkpoint Saved] discovery | cursor=preflight-passed
 [Phase Start] discovery
 [Agent Start] PM | claude-tech-squad:pm | First-pass product analysis
 [Agent Done] PM | Status: completed | Output: scope options and open questions
@@ -44,9 +47,13 @@ A healthy run shows:
 ### Teammate mode trace
 
 ```text
+[Preflight Start] discovery
+[Resume From] discovery | checkpoint=gate-3-approved
+[Preflight Passed] discovery | execution_mode=tmux | architecture_style=hexagonal | lint_profile=ruff,mypy | docs_lookup_mode=repo-fallback | runtime_policy=5.22.0
 [Team Created] discovery
 [Teammate Spawned] pm | pane: pm
 [Teammate Spawned] ba | pane: ba
+[Fallback Invoked] planner -> claude-tech-squad:techlead | Reason: primary failed twice
 [Gate] Scope Validation | Waiting for user input
 [Batch Spawned] specialist-bench | Teammates: backend-arch, rag-engineer, prompt-engineer, agent-architect
 [Teammate Done] backend-arch | Output: hexagonal layers defined
@@ -82,9 +89,22 @@ A healthy run shows:
 - Workflow cannot proceed — missing user decision, input, or access
 - A blocked line is a visible gate, not a bug
 
+`[Preflight Start]`, `[Preflight Warning]`, `[Preflight Passed]`
+- Confirms the workflow validated execution mode, architecture style, lint profile, and docs lookup mode before spawning teammates
+- Confirms the workflow also loaded the central runtime policy
+- If these lines are missing, the run skipped the runtime contract checks
+
 `[Agent Retry]`
 - Workflow looped after review or validation failure
 - Healthy when tied to a concrete reason: failed QA, reviewer request, specialist finding
+
+`[Fallback Invoked]`
+- The primary teammate failed twice and the workflow invoked the runtime policy fallback matrix
+- This is expected in a resilient run and should also appear in the SEP log
+
+`[Resume From]` and `[Checkpoint Saved]`
+- The workflow resumed from or persisted a runtime checkpoint
+- These lines prove that phase resume is active instead of restarting the whole pipeline blindly
 
 ### Teammate mode lines
 
@@ -113,8 +133,11 @@ A healthy run shows:
 - Each phase has the expected specialist handoffs
 - Starts and completions are balanced
 - Batch runs are followed by individual agent lines
+- Preflight appears before team or phase creation
+- Checkpoint or resume lines appear when a run is resumed or a major gate/phase is cleared
 - The final `Agent Execution Log` matches the visible trace
 - The final report contains real artifact output, not only the trace
+- Specialist outputs include role-specific content plus `result_contract`
 
 ---
 
@@ -127,6 +150,8 @@ These patterns mean the run did not execute as intended:
 - The workflow jumps from Discovery straight to Release with no intermediate activity
 - The `Agent Execution Log` lists agents that never appeared in the visible trace
 - The output claims a specialist reviewed something but gives no role-specific summary
+- Specialist outputs do not include `result_contract`
+- A resumed run starts from the beginning with no `[Resume From]` line even though a checkpoint exists
 - In teammate mode: no tmux panes open (Claude Code not started inside tmux, or env vars missing)
 
 ---
@@ -153,10 +178,31 @@ Run a very small discovery-only smoke test in this repository and show explicit 
 
 Expected result:
 
+- at least one `[Preflight Start]`
+- at least one `[Preflight Passed]` or `[Preflight Warning]`
 - at least one `[Phase Start]` or `[Team Created]`
 - at least one `[Agent Start]` or `[Teammate Spawned]`
 - at least one matching completion line
 - a final `Agent Execution Log`
+
+## Static Contract Test
+
+Run:
+
+```bash
+bash scripts/smoke-test.sh
+bash scripts/dogfood.sh
+bash scripts/dogfood-report.sh --schema-only
+```
+
+Expected result:
+
+- `claude-tech-squad validation passed`
+- `claude-tech-squad smoke test passed`
+- `claude-tech-squad dogfood fixtures passed`
+- `claude-tech-squad golden run schema passed`
+- no stale `code-debugger` references
+- main orchestrators contain preflight, ARC, runtime policy, and checkpoint/resume sections
 
 ---
 

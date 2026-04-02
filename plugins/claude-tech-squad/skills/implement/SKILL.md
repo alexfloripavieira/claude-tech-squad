@@ -52,10 +52,16 @@ This workflow creates a team and spawns each specialist as a real teammate (sepa
 
 Emit these lines for every teammate action:
 
+- `[Preflight Start] <workflow-name>`
+- `[Preflight Warning] <summary>`
+- `[Preflight Passed] <workflow-name> | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version>`
 - `[Team Created] <team-name>`
 - `[Teammate Spawned] <role> | pane: <name>`
 - `[Teammate Done] <role> | Output: <one-line summary>`
 - `[Teammate Retry] <role> | Reason: <review or validation failure>`
+- `[Fallback Invoked] <failed-role> -> <fallback-subagent> | Reason: <summary>`
+- `[Resume From] <workflow-name> | checkpoint=<checkpoint>`
+- `[Checkpoint Saved] <workflow-name> | cursor=<checkpoint>`
 - `[Gate] <gate-name> | Waiting for user input`
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
 
@@ -68,7 +74,7 @@ If not available, ask the user to run `/discovery` first or paste the blueprint.
 
 ## Teammate Failure Protocol
 
-A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role.
+A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role, including the required `result_contract` block.
 
 **For every teammate spawned — without exception:**
 
@@ -77,7 +83,13 @@ A teammate has **failed silently** if it returns an empty response, an error, or
    - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
    - Re-spawn the teammate once with the identical prompt.
 3. If the second attempt also fails:
-   - Emit: `[Gate] Teammate Failure | <name> failed twice`
+   - Read `plugins/claude-tech-squad/runtime-policy.yaml` and consult `fallback_matrix.implement.<name>`
+   - If a fallback subagent is listed:
+     - Emit: `[Fallback Invoked] <name> -> <fallback-subagent> | Reason: primary failed twice`
+     - Spawn the fallback once with the same context and an explicit instruction that it is acting as a surrogate for `<name>`
+     - If the fallback returns a valid output, continue and record the event in `fallback_invocations` and `teammate_reliability`
+   - If no fallback exists, or the fallback also fails:
+     - Emit: `[Gate] Teammate Failure | <name> failed twice and fallback did not recover`
    - Surface to the user:
 
 ```
@@ -93,9 +105,99 @@ Options:
 5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
 6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
 
+## Agent Result Contract (ARC)
+
+A teammate response is only considered structurally valid when it contains both:
+- the role-specific body requested by that agent
+- a final `result_contract` block
+
+Required block:
+
+```yaml
+result_contract:
+  status: completed | needs_input | blocked | failed
+  confidence: high | medium | low
+  blockers: []
+  artifacts: []
+  findings: []
+  next_action: "..."
+```
+
+Validation rules:
+- `status` must reflect the real execution outcome
+- `blockers`, `artifacts`, and `findings` use empty lists when there is nothing to report
+- `next_action` must identify the single best downstream step
+- Missing `result_contract` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
+
+## Runtime Resilience Contract
+
+Load `plugins/claude-tech-squad/runtime-policy.yaml` before command detection or team creation. This file is the source of truth for:
+- retry budgets
+- fallback matrix
+- severity policy
+- checkpoint/resume rules
+- reliability metrics recorded in SEP logs
+
+If the runtime policy file is missing or unreadable, stop the run and surface `[Gate] Runtime Policy Missing`. Do not silently continue with hardcoded defaults.
+
 ---
 
 ## Execution
+
+### Preflight Gate
+
+Before command detection and team creation, validate the run contract and emit explicit preflight lines.
+
+Check and store:
+- `execution_mode` — `tmux` if teammate mode is available, otherwise `inline`
+- `resume_key` — blueprint path or provisional slug derived before formal `{{feature_slug}}` extraction
+- `{{architecture_style}}` — from the blueprint or defaulted to `existing-repo-pattern`
+- `{{lint_profile}}` — detected tool list or `none-detected`
+- `docs_lookup_mode` — `context7` when available, otherwise `repo-fallback`
+- `runtime_policy_version` — from `plugins/claude-tech-squad/runtime-policy.yaml`
+
+Preflight rules:
+- Emit `[Preflight Start] implement`
+- Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
+- If `{{architecture_style}}` is missing from the blueprint, emit `[Preflight Warning] architecture_style missing — defaulting to existing-repo-pattern`
+- If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`
+- Inspect the latest `ai-docs/.squad-log/*-implement-*.md` for the same `resume_key` when resuming an interrupted run
+- If a prior partial implementation exists and inputs did not materially change, emit `[Resume From] implement | checkpoint=<highest_completed_checkpoint>`
+- Do not mark preflight as passed until command detection succeeds or the user resolves `[Gate] Commands Unknown`
+- Emit `[Preflight Passed] implement | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version>`
+
+### Checkpoint / Resume Rules
+
+Use `checkpoint_resume.implement` from `runtime-policy.yaml`.
+
+Save a checkpoint whenever one of these milestones is completed:
+- `preflight-passed`
+- `commands-confirmed`
+- `blueprint-validated`
+- `tdd-ready`
+- `implementation-batch-complete`
+- `reviewer-approved`
+- `qa-pass`
+- `conformance-pass`
+- `quality-bench-cleared`
+- `docs-complete`
+- `uat-approved`
+
+Checkpoint behavior:
+- Emit `[Checkpoint Saved] implement | cursor=<checkpoint>` whenever a checkpoint is reached
+- On resume, skip already-completed checkpoints unless inputs, acceptance criteria, or code under review changed materially
+- Record `checkpoint_cursor`, `completed_checkpoints`, `resume_from`, `fallback_invocations`, and `teammate_reliability` in the SEP log
+
+### Execution Budgets
+
+Values must match `retry_budgets` in `plugins/claude-tech-squad/runtime-policy.yaml`.
+
+- `review_cycles_max = 3`
+- `qa_cycles_max = 2`
+- `conformance_cycles_max = 2`
+- `quality_fix_cycles_max = 2`
+- `uat_cycles_max = 2`
 
 ### Step 0 — Stack Command Detection (SEP Stack-Agnostic)
 
@@ -106,10 +208,15 @@ Before any teammate is spawned, detect the project's real commands. Read the fol
 | `Makefile` with `test:` target | `make test` | detect from targets | `make lint` | `make build` |
 | `package.json` scripts | `npm test` or `npm run test` | n/a | `npm run lint` | `npm run build` |
 | `pyproject.toml` with pytest | `pytest` | n/a | `ruff check .` | n/a |
+| `go.mod` | `go test ./...` | n/a | `golangci-lint run` | `go build ./...` |
+| `Cargo.toml` | `cargo test` | n/a | `cargo clippy --all-targets -- -D warnings` | `cargo build` |
+| `Gemfile` | `bundle exec rspec` | `bundle exec rails db:migrate` | `bundle exec rubocop` | n/a |
+| `composer.json` | `vendor/bin/phpunit` | `php artisan migrate` or `bin/console doctrine:migrations:migrate` | `vendor/bin/phpstan analyse` | n/a |
+| `*.csproj` / `*.sln` | `dotnet test` | `dotnet ef database update` | `dotnet format --verify-no-changes` | `dotnet build` |
 | `pom.xml` | `mvn test` | `mvn flyway:migrate` | `mvn checkstyle:check` | `mvn package` |
 | `build.gradle` | `./gradlew test` | n/a | `./gradlew lint` | `./gradlew build` |
 
-Store as `{{project_commands}}` and inject into every implementation agent prompt. No agent should ever infer commands — they always receive the detected commands.
+Store as `{{project_commands}}` and `{{lint_profile}}`, and inject them into every implementation agent prompt. No agent should ever infer commands — they always receive the detected commands.
 
 If no signal file is found or test target is absent: do NOT guess. Emit `[Gate] Commands Unknown` and ask the user:
 ```
@@ -131,8 +238,9 @@ Extract and store the following variables from the blueprint before spawning any
 - `{{acceptance_criteria}}` — full acceptance criteria list from the blueprint
 - `{{test_plan}}` — test plan from TDD/discovery output (if present)
 - `{{architecture}}` — architecture decisions from discovery (if present)
+- `{{architecture_style}}` — explicit architecture style selected during discovery (if present). If missing, default to `existing-repo-pattern`
 
-These variables are used by docs-writer, jira-confluence, and the SEP log. If any are not found in the blueprint, derive `feature_slug` from the task description and leave others as "see blueprint".
+These variables are used by docs-writer, jira-confluence, Reviewer, Conformance Audit, and the SEP log. If any are not found in the blueprint, derive `feature_slug` from the task description, default `architecture_style` to `existing-repo-pattern`, and leave others as "see blueprint".
 
 ### Step 2 — Create Implementation Team
 
@@ -162,6 +270,9 @@ Agent(
 
 ### Architecture
 {{architecture}}
+
+### Architecture Style
+{{architecture_style}}
 
 ---
 You are the TDD Specialist. Write the first failing tests for the first delivery slice.
@@ -196,6 +307,8 @@ Each implementation agent prompt must include:
 - Failing test files from TDD Specialist
 - Relevant specialist notes (backend-arch, frontend-arch, api-designer, etc.)
 - Detected project commands: `{{test_command}}`, `{{build_command}}` (from Step 0)
+- Lint/static-analysis profile: `{{lint_profile}}`
+- Chosen architecture style: `{{architecture_style}}`
 - Design principles guardrails
 - Project commands: `{{project_commands}}` — use these exact commands, never infer
 - Instruction: "Implement until the failing tests pass. Follow TDD. When done, return a summary of files changed and test results. Do NOT chain to other agents."
@@ -235,6 +348,15 @@ Agent(
 ### Architecture and Design Guardrails
 {{architecture_and_design_principles}}
 
+### Architecture Style
+{{architecture_style}}
+
+### Lint Profile
+{{lint_profile}}
+
+### Project Commands
+{{project_commands}}
+
 ### Test Plan
 {{test_plan}}
 
@@ -253,7 +375,18 @@ Emit: `[Teammate Spawned] reviewer | pane: reviewer`
 If reviewer returns CHANGES REQUESTED:
 - Emit: `[Teammate Retry] <impl-agent> | Reason: <review item>`
 - Spawn the relevant implementation agent again with the review feedback
-- Repeat Step 5 until APPROVED
+- Repeat Step 5 until APPROVED — **max 3 review cycles**
+- If the 3rd review still returns CHANGES REQUESTED, consult `fallback_matrix.implement.reviewer` and run one fallback review pass before asking the user
+- After the fallback review also returns blocking issues: emit `[Gate] Review Limit Reached` and surface to user:
+
+```
+Reviewer requested changes 3 times.
+
+Options:
+- [A] Accept current implementation and continue
+- [S] Skip review and continue with explicit risk
+- [X] Abort the run
+```
 
 ### Step 6 — QA Teammate
 
@@ -276,6 +409,9 @@ Agent(
 ### Test Plan
 {{test_plan}}
 
+### Test Command
+{{test_command}}
+
 ---
 You are QA. Run real test commands against the implementation.
 Validate all acceptance criteria. Check for regressions.
@@ -290,7 +426,17 @@ Emit: `[Teammate Spawned] qa | pane: qa`
 If QA returns FAIL:
 - Emit: `[Teammate Retry] <impl-agent> | Reason: <qa failure>`
 - Spawn the relevant implementation agent with QA failure details
-- Repeat Steps 5–6 until QA PASS
+- Repeat Steps 5–6 until QA PASS — **max 2 QA cycles**
+- If the 2nd QA cycle still FAILS, consult `fallback_matrix.implement.qa` and run one fallback verification pass before asking the user
+- After the fallback verification also FAILS: emit `[Gate] QA Limit Reached` and surface to user:
+
+```
+QA failed twice for this implementation slice.
+
+Options:
+- [A] Accept current implementation and continue
+- [X] Abort the run
+```
 
 ### Step 6b — TechLead Conformance Audit
 
@@ -315,6 +461,9 @@ Agent(
 ### TDD Delivery Plan
 {{tdd_delivery_plan}}
 
+### Architecture Style
+{{architecture_style}}
+
 ### Acceptance Criteria
 {{acceptance_criteria}}
 
@@ -330,7 +479,7 @@ You are the Tech Lead performing a post-implementation conformance audit.
 Verify each of the following:
 
 1. **Workstream coverage** — Was every workstream from the execution plan implemented? List any missing or partial workstreams.
-2. **Architecture conformance** — Does the implementation follow the architecture decisions (Hexagonal layers, DB boundaries, API contracts)? Flag violations.
+2. **Architecture conformance** — Does the implementation follow `{{architecture_style}}` and the documented boundaries, DB constraints, and API contracts? Flag violations.
 3. **TDD compliance** — Were failing tests written before production code for each cycle? Does test coverage match the TDD delivery plan?
 4. **Requirements traceability** — Does each acceptance criterion map to concrete implemented behavior and a passing test? List any untraced criteria.
 5. **Technical debt introduced** — Did the implementation introduce workarounds, shortcuts, or TODOs that block production readiness?
@@ -374,7 +523,17 @@ Emit: `[Teammate Done] techlead-audit | Output: {{CONFORMANT|NON-CONFORMANT}}`
 **If TechLead returns NON-CONFORMANT:**
 - Emit: `[Gate] Conformance Failure | Gaps: <summary>`
 - For each gap: re-spawn the responsible implementation agent with the gap as context
-- Re-run Steps 5–6b (reviewer → QA → conformance audit) until CONFORMANT
+- Re-run Steps 5–6b (reviewer → QA → conformance audit) until CONFORMANT — **max 2 conformance cycles**
+- If the 2nd conformance cycle remains NON-CONFORMANT, consult `fallback_matrix.implement.techlead-audit` and run one fallback conformance pass before asking the user
+- After the fallback conformance pass also returns NON-CONFORMANT: emit `[Gate] Conformance Limit Reached` and surface to user:
+
+```
+TechLead conformance audit remained NON-CONFORMANT after 2 cycles.
+
+Options:
+- [A] Accept current implementation and continue
+- [X] Abort the run
+```
 
 **If TechLead returns CONFORMANT:**
 - Emit: `[Gate] Conformance Passed | Advancing to Quality Bench`
@@ -434,7 +593,11 @@ After spawning, track each agent's return. A valid return is a structured checkl
 For each agent that fails:
 1. Emit: `[Teammate Retry] <agent-name> | Reason: silent failure or error — re-spawning`
 2. Re-spawn the agent once with the same prompt
-3. If the re-spawn also fails: emit `[Gate] Quality Bench Failure | <agent-name> failed twice` and surface to the user:
+3. If the re-spawn also fails:
+   - Consult `fallback_matrix.implement.<agent-name>`
+   - If a fallback exists, emit `[Fallback Invoked] <agent-name> -> <fallback-subagent> | Reason: quality bench recovery`
+   - Spawn the fallback once before surfacing a gate
+4. If the fallback also fails, or no fallback exists: emit `[Gate] Quality Bench Failure | <agent-name> failed twice` and surface to the user:
 
 ```
 Quality Bench agent <agent-name> failed to complete (attempt 1 and 2).
@@ -667,7 +830,17 @@ If user chooses [R]:
 - Emit: `[Teammate Retry] pm-uat | Reason: UAT REJECTED — re-queuing implementation`
 - Increment `retry_count`
 - Spawn the relevant implementation agents with the rejection gaps as context (same format as Step 4, prepend `## UAT Rejection Feedback\n{{gaps}}` to the prompt)
-- After fixes, re-run Steps 5–10 (review → QA → quality bench → docs → UAT)
+- After fixes, re-run Steps 5–10 (review → QA → quality bench → docs → UAT) — **max 2 UAT cycles**
+- If the 2nd UAT cycle still returns REJECTED, consult `fallback_matrix.implement.pm-uat` and run one fallback product acceptance pass before asking the user
+- After the fallback product acceptance pass also returns REJECTED: emit `[Gate] UAT Limit Reached` and surface to user:
+
+```
+PM rejected UAT twice.
+
+Options:
+- [A] Accept current implementation as-is
+- [X] Abort the run
+```
 
 Implementation is complete when user approves UAT or chooses [S].
 
@@ -688,11 +861,26 @@ parent_run_id: {{discovery_run_id_if_known | null}}
 skill: implement
 timestamp: {{ISO8601}}
 status: completed | failed
+runtime_policy_version: {{runtime_policy_version}}
 feature_slug: {{feature_slug}}
 blueprint_source: {{blueprint_path}}
+checkpoint_cursor: uat-approved
+completed_checkpoints: [preflight-passed, commands-confirmed, blueprint-validated, tdd-ready, implementation-batch-complete, reviewer-approved, qa-pass, conformance-pass, quality-bench-cleared, docs-complete, uat-approved]
+resume_from: {{resume_checkpoint | none}}
 gates_cleared: [tdd, review, qa, conformance, coverage, uat]
 gates_blocked: []
 retry_count: {{total_reviewer_and_qa_retries}}
+fallback_invocations: []
+teammate_reliability:
+  tdd-specialist: primary
+  implementation-batch: primary
+  reviewer: primary
+  qa: primary
+  techlead-audit: primary
+  quality-bench: primary
+  docs-writer: primary
+  jira-confluence: primary
+  pm-uat: primary
 load_test_run: true | false | skipped
 teammates: [tdd-specialist, backend-dev?, frontend-dev?, reviewer, qa, techlead-audit, security-rev?, code-quality, docs-writer, jira-confluence, pm-uat]
 uat_result: APPROVED | REJECTED

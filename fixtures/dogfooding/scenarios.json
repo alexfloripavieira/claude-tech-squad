@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "layered-monolith",
+      "workflow": "discovery",
+      "repo_path": "fixtures/dogfooding/layered-monolith",
+      "prompt": "/claude-tech-squad:discovery\nDesign a delivery slice for audit-log filters in an existing layered monolith. Preserve the current repository structure, propose only the specialists that are actually needed, and show explicit preflight and execution lines.",
+      "expected_architecture_style": [
+        "existing-repo-pattern",
+        "layered"
+      ],
+      "expected_agents": [
+        "backend-architect"
+      ],
+      "forbidden_default_agents": [
+        "hexagonal-architect"
+      ],
+      "required_trace_lines": [
+        "[Preflight Start] discovery",
+        "[Preflight Passed] discovery",
+        "[Checkpoint Saved] discovery",
+        "[Team Created] discovery"
+      ],
+      "forbidden_strings": [
+        "code-debugger"
+      ],
+      "artifact_contract": [
+        "prompt.txt",
+        "trace.md",
+        "final.md",
+        "metadata.yaml",
+        "scorecard.md"
+      ]
+    },
+    {
+      "id": "hexagonal-billing",
+      "workflow": "discovery+implement",
+      "repo_path": "fixtures/dogfooding/hexagonal-billing",
+      "prompt": "/claude-tech-squad:discovery\nDesign a new billing integration using Hexagonal Architecture with explicit port contracts, outbound adapters, TDD-first delivery, and visible execution lines.\n\n/claude-tech-squad:implement\nUse the approved blueprint and keep the feature in explicit Hexagonal Architecture. Show preflight lines and require structured result contracts from all specialists.",
+      "expected_architecture_style": [
+        "hexagonal"
+      ],
+      "expected_agents": [
+        "hexagonal-architect",
+        "backend-architect"
+      ],
+      "forbidden_default_agents": [],
+      "required_trace_lines": [
+        "[Preflight Start] discovery",
+        "[Preflight Passed] discovery",
+        "[Preflight Start] implement",
+        "[Preflight Passed] implement",
+        "[Checkpoint Saved] implement"
+      ],
+      "forbidden_strings": [
+        "code-debugger"
+      ],
+      "artifact_contract": [
+        "prompt.txt",
+        "trace.md",
+        "final.md",
+        "metadata.yaml",
+        "scorecard.md"
+      ]
+    },
+    {
+      "id": "hotfix-checkout",
+      "workflow": "hotfix",
+      "repo_path": "fixtures/dogfooding/hotfix-checkout",
+      "prompt": "/claude-tech-squad:hotfix\nInvestigate a production 500 error in checkout after the latest deploy. Show the diagnosis gate, minimal patch path, and explicit execution lines.",
+      "expected_architecture_style": [],
+      "expected_agents": [
+        "techlead"
+      ],
+      "forbidden_default_agents": [
+        "code-debugger"
+      ],
+      "required_trace_lines": [
+        "[Gate] diagnosis-confirm",
+        "[Gate] deploy-checklist",
+        "[Gate] postmortem-prompt"
+      ],
+      "forbidden_strings": [
+        "code-debugger"
+      ],
+      "artifact_contract": [
+        "prompt.txt",
+        "trace.md",
+        "final.md",
+        "metadata.yaml",
+        "scorecard.md"
+      ]
+    }
+  ]
+}

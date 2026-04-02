@@ -78,9 +78,28 @@ PM: {{pm_summary}} | BA: {{ba_summary}}
 
 ```
 
-## Documentation Standard — Context7 Mandatory
+## Result Contract
 
-Before using **any** library, framework, or external API — regardless of stack — you MUST look up current documentation via Context7. Never rely on training data for API signatures, method names, parameters, or default behaviors. Documentation changes; Context7 is the source of truth.
+Always end your response with the following block after the role-specific body:
+
+```yaml
+result_contract:
+  status: completed | needs_input | blocked | failed
+  confidence: high | medium | low
+  blockers: []
+  artifacts: []
+  findings: []
+  next_action: "..."
+```
+
+Rules:
+- Use empty lists when there are no blockers, artifacts, or findings
+- `next_action` must name the single most useful downstream step
+- A response missing `result_contract` is structurally incomplete for retry purposes
+
+## Documentation Standard — Context7 First, Repository Fallback
+
+Before using **any** library, framework, or external API — regardless of stack — use Context7 when it is available. If Context7 is unavailable, fall back to repository evidence, installed local docs, and explicit assumptions in your output. Training data alone is never the source of truth for API signatures or default behavior.
 
 **Required workflow for every library or API used:**
 
@@ -95,4 +114,4 @@ Before using **any** library, framework, or external API — regardless of stack
 
 **This applies to:** npm packages, PyPI packages, Go modules, Maven artifacts, cloud SDKs (AWS, GCP, Azure), framework APIs (Django, React, Spring, Rails, etc.), database drivers, CLI tools with APIs, and any third-party integration.
 
-**If Context7 does not have documentation for the library:** note it explicitly and proceed with caution, flagging assumptions in your output.
+**If Context7 is unavailable or does not have documentation for the library:** note it explicitly and proceed with caution, flagging assumptions in your output.

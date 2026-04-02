@@ -43,6 +43,7 @@ ls ai-docs/.squad-log/ 2>/dev/null | sort -r | head -30 || echo "NO_SEP_LOGS"
 
 Read all files in `ai-docs/.squad-log/` (newest first). Parse the YAML frontmatter of each file to extract:
 - `skill`, `timestamp`, `status`, `retry_count`, `gates_blocked`, `findings_*`, `uat_result`, `implement_triggered`
+- `runtime_policy_version`, `checkpoint_cursor`, `completed_checkpoints`, `resume_from`, `fallback_invocations`, `teammate_reliability`
 
 **Orphaned discovery detection:**
 From SEP logs with `skill: discovery`, collect all where `implement_triggered: false`. These are discoveries that were never implemented.
@@ -71,6 +72,10 @@ Use Glob: `ai-docs/*.md`, `tasks/*.md`
 - Skills with `gates_blocked` most often
 - `uat_result: REJECTED` rate
 - Orphaned discoveries: SEP logs with `implement_triggered: false`
+- Resume frequency: runs where `resume_from` is not `none`
+- Most common checkpoint where runs stop: `checkpoint_cursor`
+- Fallback usage rate: count and frequency of `fallback_invocations`
+- Low reliability teammates: entries in `teammate_reliability` marked `fallback-used`, `skipped-with-risk`, or `unresolved`
 - Hotfixes without post-mortem: `skill: hotfix` logs with `postmortem_recommended: true` that have no matching `skill: incident-postmortem` log with `parent_run_id` pointing to that hotfix `run_id`
 - Open remediation items: `- [ ]` count across all remediation files
 - Finding resolution rate: `- [x]` / (`- [x]` + `- [ ]`) per audit
@@ -118,6 +123,12 @@ Retry patterns found:
 
 Frequently blocked gates:
 {{blocked_gates}}
+
+Resume / checkpoint patterns:
+{{resume_patterns}}
+
+Fallback usage:
+{{fallback_patterns}}
 
 Rejected agent outputs:
 {{rejected_outputs}}
