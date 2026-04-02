@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.28.0] - 2026-04-02 — Automated feature release
+
+### Added
+
+- Automate release metadata and operator publish flow (#2)
 ## [5.27.0] - 2026-04-02 — Publish automático a partir de main
 
 ### Changed
