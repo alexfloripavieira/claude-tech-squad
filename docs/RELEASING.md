@@ -5,20 +5,26 @@
 When users install the plugin with `autoUpdate: true` in their `~/.claude/settings.json`, Claude Code periodically checks the marketplace for new versions by reading `marketplace.json` from the repository. When it detects a version bump, it updates automatically.
 
 For this to work every release must:
-1. Bump both `marketplace.json` and `plugin.json` to the same version
+1. Keep `marketplace.json` and `plugin.json` aligned
 2. Keep `docs/MANUAL.md` on the same version
 3. Have a CHANGELOG entry for the version
-4. Merge the release metadata to `main`
+4. Publish a tagged GitHub Release from `main`
 
 ## Official Release Path
 
 The official path is **GitHub Actions automation on `main`**.
 
-When your release automation updates the version files and changelog on `main`, the repository pipeline now does the rest:
+When code lands on `main`, the repository pipeline now does the rest:
 
+- derives the next semantic version from commit subjects since the last tag
+- updates `CHANGELOG.md`
+- updates `.claude-plugin/marketplace.json`
+- updates `plugins/claude-tech-squad/.claude-plugin/plugin.json`
+- updates `docs/MANUAL.md`
 - runs `scripts/smoke-test.sh`
 - verifies changelog and version alignment
 - builds a release bundle and checksum
+- commits the generated metadata back to `main`
 - creates and pushes the git tag automatically
 - creates or updates the GitHub Release
 - uploads the bundle as a release asset
@@ -38,39 +44,31 @@ bash scripts/dogfood-report.sh
 
 ## Versioning Policy
 
-Use semantic versioning.
+Use semantic versioning derived from conventional commit subjects on `main`.
 
-- **major**: workflow contract changes or roster changes that alter expected behavior
-- **minor**: new specialists, stronger docs, or meaningful workflow improvements
-- **patch**: documentation, wording, and low-risk fixes
+- **major**: `BREAKING CHANGE` in the body or `type!:` in the subject
+- **minor**: `feat:`
+- **patch**: everything else, including `fix:`, `docs:`, `refactor:`, `chore:`
+
+For reliable releases, squash-merge titles and direct commits to `main` must follow conventional commit style.
 
 ## Release Process (Automated)
 
-### Step 1 — Your automation updates release metadata
+### Step 1 — Merge releasable work to `main`
 
-Your release automation should update:
+Use conventional commit subjects in the final commits that land on `main`. The release workflow derives:
 
-- `.claude-plugin/marketplace.json`
-- `plugins/claude-tech-squad/.claude-plugin/plugin.json`
-- `docs/MANUAL.md`
-- `CHANGELOG.md`
+- semver bump
+- changelog sections
+- plugin manifest versions
+- manual version
 
-The changelog must include a section like:
+README does not participate in per-release versioning today, so it is not auto-mutated.
 
-```markdown
-## [5.2.0] - 2026-MM-DD — Short description
+### Step 2 — GitHub Actions prepares and publishes the release
 
-### Added
-- ...
-
-### Changed
-- ...
-```
-
-### Step 2 — Your automation merges the release commit to `main`
-
-When the release metadata lands on `main`, `.github/workflows/release.yml` runs automatically.
-It derives the version from `plugin.json`, validates it, creates `vX.Y.Z`, builds the bundle, and publishes the GitHub Release.
+When a non-metadata change lands on `main`, `.github/workflows/release.yml` runs automatically.
+It updates release metadata, validates the repository, commits the generated files, creates `vX.Y.Z`, builds the bundle, and publishes the GitHub Release.
 
 ### Step 3 — Verify on GitHub
 
@@ -80,6 +78,7 @@ After pushing, check:
 - release assets include the tarball and checksum
 - `marketplace.json`, `plugin.json`, and `MANUAL.md` match the release version
 - the workflow-created tag matches the release version
+- the metadata commit on `main` has subject `chore: prepare release vX.Y.Z`
 
 ## Optional Fallback Script
 
@@ -88,23 +87,12 @@ If your automation is unavailable and you need an emergency fallback, `scripts/r
 If you need to release manually:
 
 ```bash
-# 1. Bump versions manually
-# Edit .claude-plugin/marketplace.json — plugins[0].version
-# Edit plugins/claude-tech-squad/.claude-plugin/plugin.json — version
-# Edit docs/MANUAL.md — version
-
-# 2. Validate
-bash scripts/smoke-test.sh
-
-# 3. Commit
-git add .claude-plugin/marketplace.json plugins/claude-tech-squad/.claude-plugin/plugin.json docs/MANUAL.md CHANGELOG.md
-git commit -m "chore: release vX.Y.Z"
-
-# 4. Tag and push
-git tag vX.Y.Z
-git push origin main
-git push origin vX.Y.Z
+./scripts/release.sh
 ```
+
+The fallback script uses the same metadata generator as the publish workflow. It prepares the changelog and manifest versions automatically, validates the repository, pushes the metadata commit to `main`, and triggers the `publish` workflow with `workflow_dispatch`.
+
+For the day-to-day operator checklist, see [HOW-TO-CHANGE-AND-PUBLISH.md](/home/alex/claude-tech-squad/docs/HOW-TO-CHANGE-AND-PUBLISH.md).
 
 ## User Configuration for Auto-Update
 

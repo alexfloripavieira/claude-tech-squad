@@ -1,66 +1,41 @@
 #!/usr/bin/env bash
 # Fallback only.
 # Official release flow is GitHub Actions automation that versions, tags, and publishes.
-# Usage: ./scripts/release.sh 5.2.0
+# Usage: ./scripts/release.sh
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION="${1:-}"
 
-if [ -z "$VERSION" ]; then
-  echo "Usage: $0 <version>  (e.g. $0 5.2.0)"
+if ! command -v gh >/dev/null 2>&1; then
+  echo "GitHub CLI (gh) is required for the fallback release path."
   exit 1
 fi
 
-# Validate format
+VERSION="$(bash "$ROOT/scripts/prepare-release-metadata.sh")"
+VERSION="$(printf '%s\n' "$VERSION" | tail -1 | tr -d '\r')"
+
 if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-  echo "Version must be in semver format: MAJOR.MINOR.PATCH"
-  exit 1
+  echo "No releasable changes found."
+  exit 0
 fi
 
-echo "Releasing v$VERSION..."
+echo "Preparing fallback release v$VERSION..."
 
-# Validate plugin before touching anything
 bash "$ROOT/scripts/smoke-test.sh"
 
-# Bump marketplace.json
-python3 - <<EOF
-import json, pathlib
-path = pathlib.Path("$ROOT/.claude-plugin/marketplace.json")
-data = json.loads(path.read_text())
-data["plugins"][0]["version"] = "$VERSION"
-path.write_text(json.dumps(data, indent=2) + "\n")
-EOF
-
-# Bump plugin.json
-python3 - <<EOF
-import json, pathlib
-path = pathlib.Path("$ROOT/plugins/claude-tech-squad/.claude-plugin/plugin.json")
-data = json.loads(path.read_text())
-data["version"] = "$VERSION"
-path.write_text(json.dumps(data, indent=2) + "\n")
-EOF
-
-echo "Versions bumped. Checking CHANGELOG..."
-
-# Check CHANGELOG has an entry for this version
-if ! grep -q "## \[$VERSION\]" "$ROOT/CHANGELOG.md"; then
-  echo "CHANGELOG.md is missing an entry for [$VERSION]. Add it before releasing."
-  exit 1
-fi
-
-# Validate again after bumps
-bash "$ROOT/scripts/smoke-test.sh"
-
-# Commit and tag
 cd "$ROOT"
 git add .claude-plugin/marketplace.json plugins/claude-tech-squad/.claude-plugin/plugin.json docs/MANUAL.md CHANGELOG.md
-git commit -m "chore: release v$VERSION"
-git tag "v$VERSION"
-git push origin main
-git push origin "v$VERSION"
+
+if git diff --cached --quiet; then
+  echo "No metadata changes to commit."
+else
+  git commit -m "chore: prepare release v$VERSION"
+  git push origin main
+fi
+
+gh workflow run publish --ref main
 
 echo ""
-echo "Released v$VERSION."
-echo "GitHub Actions will create the release automatically."
+echo "Queued fallback release v$VERSION."
+echo "GitHub Actions publish workflow will finish the tag and release creation."

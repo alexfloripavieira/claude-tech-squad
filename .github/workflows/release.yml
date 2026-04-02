@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths-ignore:
       - .claude-plugin/marketplace.json
       - plugins/claude-tech-squad/.claude-plugin/plugin.json
       - docs/MANUAL.md
@@ -25,6 +25,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Sync to latest main
+        run: |
+          git fetch origin main --tags
+          git checkout -B publish-worktree origin/main
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -36,41 +41,78 @@ jobs:
       - name: Make scripts executable
         run: chmod +x scripts/*.sh
 
-      - name: Resolve release version
+      - name: Prepare release metadata
         id: release
         run: |
-          VERSION=$(python3 -c "import json; d=json.load(open('plugins/claude-tech-squad/.claude-plugin/plugin.json')); print(d['version'])")
+          VERSION="$(bash scripts/prepare-release-metadata.sh)"
+          VERSION="$(printf '%s\n' "$VERSION" | tail -1 | tr -d '\r')"
+
+          if printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          VERSION="$(python3 -c "import json; d=json.load(open('plugins/claude-tech-squad/.claude-plugin/plugin.json')); print(d['version'])")"
+          echo "should_release=true" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Run full repository checks
+        if: steps.release.outputs.should_release == 'true'
         run: bash scripts/smoke-test.sh
 
+      - name: Commit generated release metadata
+        if: steps.release.outputs.should_release == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .claude-plugin/marketplace.json \
+            plugins/claude-tech-squad/.claude-plugin/plugin.json \
+            docs/MANUAL.md \
+            CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No generated metadata changes to commit."
+          else
+            git commit -m "chore: prepare release v${{ steps.release.outputs.version }}"
+            git push origin HEAD:main
+          fi
+
       - name: Verify release metadata
+        if: steps.release.outputs.should_release == 'true'
         run: bash scripts/verify-release.sh "${{ steps.release.outputs.version }}"
 
-      - name: Ensure release version is new
+      - name: Ensure release tag state is compatible
+        if: steps.release.outputs.should_release == 'true'
         env:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           if git ls-remote --tags origin "refs/tags/$RELEASE_TAG" | grep -q .; then
-            echo "Tag $RELEASE_TAG already exists on origin. Bump the version before publishing again."
-            exit 1
+            echo "Tag $RELEASE_TAG already exists on origin. Continuing in resume mode."
+            exit 0
           fi
 
       - name: Build release bundle
+        if: steps.release.outputs.should_release == 'true'
         run: bash scripts/build-release-bundle.sh "${{ steps.release.outputs.version }}"
 
-      - name: Create and push tag
+      - name: Create and push tag when missing
+        if: steps.release.outputs.should_release == 'true'
         env:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --tags origin "refs/tags/$RELEASE_TAG" | grep -q .; then
+            echo "Tag $RELEASE_TAG already exists on origin."
+            exit 0
+          fi
           git tag -a "$RELEASE_TAG" -m "claude-tech-squad $RELEASE_TAG"
           git push origin "$RELEASE_TAG"
 
       - name: Extract changelog notes
+        if: steps.release.outputs.should_release == 'true'
         env:
           RELEASE_VERSION: ${{ steps.release.outputs.version }}
         run: |
@@ -81,6 +123,7 @@ jobs:
           fi
 
       - name: Upload release bundle artifact
+        if: steps.release.outputs.should_release == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: claude-tech-squad-${{ steps.release.outputs.tag }}
@@ -89,12 +132,18 @@ jobs:
             dist/*.sha256
             /tmp/release-notes.md
 
-      - name: Create GitHub Release
+      - name: Create or update GitHub Release
+        if: steps.release.outputs.should_release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
-          gh release create "$RELEASE_TAG" \
-            --title "$RELEASE_TAG" \
-            --notes-file /tmp/release-notes.md \
-            dist/*.tar.gz dist/*.sha256
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" --title "$RELEASE_TAG" --notes-file /tmp/release-notes.md
+            gh release upload "$RELEASE_TAG" dist/*.tar.gz dist/*.sha256 --clobber
+          else
+            gh release create "$RELEASE_TAG" \
+              --title "$RELEASE_TAG" \
+              --notes-file /tmp/release-notes.md \
+              dist/*.tar.gz dist/*.sha256
+          fi
