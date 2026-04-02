@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.29.0] - 2026-04-02 — Automated feature release
+
+### Added
+
+- Add TeamCreate and team_name to all skills for teammate visibility
 ## [5.28.0] - 2026-04-02 — Automated feature release
 
 ### Added
