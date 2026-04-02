@@ -1,63 +1,100 @@
-name: release
+name: publish
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
+    paths:
+      - .claude-plugin/marketplace.json
+      - plugins/claude-tech-squad/.claude-plugin/plugin.json
+      - docs/MANUAL.md
+      - CHANGELOG.md
+  workflow_dispatch:
+
+concurrency:
+  group: publish-main
+  cancel-in-progress: false
 
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      - name: Install ripgrep
+      - name: Install tooling
         run: sudo apt-get update && sudo apt-get install -y ripgrep
 
-      - name: Validate plugin
-        run: bash scripts/validate.sh
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
 
-      - name: Extract version from tag
-        id: version
+      - name: Resolve release version
+        id: release
         run: |
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          echo "version=${TAG_VERSION}" >> "$GITHUB_OUTPUT"
+          VERSION=$(python3 -c "import json; d=json.load(open('plugins/claude-tech-squad/.claude-plugin/plugin.json')); print(d['version'])")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Assert versions are consistent
+      - name: Run full repository checks
+        run: bash scripts/smoke-test.sh
+
+      - name: Verify release metadata
+        run: bash scripts/verify-release.sh "${{ steps.release.outputs.version }}"
+
+      - name: Ensure release version is new
         env:
-          TAG_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
-          MARKETPLACE_VERSION=$(python3 -c "import json; d=json.load(open('.claude-plugin/marketplace.json')); print(d['plugins'][0]['version'])")
-          PLUGIN_VERSION=$(python3 -c "import json; d=json.load(open('plugins/claude-tech-squad/.claude-plugin/plugin.json')); print(d['version'])")
-          if [ "$MARKETPLACE_VERSION" != "$TAG_VERSION" ]; then
-            echo "marketplace.json version ($MARKETPLACE_VERSION) does not match tag ($TAG_VERSION)"
+          if git ls-remote --tags origin "refs/tags/$RELEASE_TAG" | grep -q .; then
+            echo "Tag $RELEASE_TAG already exists on origin. Bump the version before publishing again."
             exit 1
           fi
-          if [ "$PLUGIN_VERSION" != "$TAG_VERSION" ]; then
-            echo "plugin.json version ($PLUGIN_VERSION) does not match tag ($TAG_VERSION)"
-            exit 1
-          fi
-          echo "Versions consistent: $TAG_VERSION"
+
+      - name: Build release bundle
+        run: bash scripts/build-release-bundle.sh "${{ steps.release.outputs.version }}"
+
+      - name: Create and push tag
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$RELEASE_TAG" -m "claude-tech-squad $RELEASE_TAG"
+          git push origin "$RELEASE_TAG"
 
       - name: Extract changelog notes
         env:
-          TAG_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
         run: |
-          awk "/^\#\# \[$TAG_VERSION\]/{found=1; next} found && /^\#\# \[/{exit} found{print}" CHANGELOG.md > /tmp/release-notes.md
-          echo "Release notes extracted."
+          awk "/^\#\# \[$RELEASE_VERSION\]/{found=1; next} found && /^\#\# \[/{exit} found{print}" CHANGELOG.md > /tmp/release-notes.md
+          if ! grep -q '[^[:space:]]' /tmp/release-notes.md; then
+            echo "Release notes are empty for $RELEASE_VERSION"
+            exit 1
+          fi
+
+      - name: Upload release bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-tech-squad-${{ steps.release.outputs.tag }}
+          path: |
+            dist/*.tar.gz
+            dist/*.sha256
+            /tmp/release-notes.md
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
-          gh release create "v${TAG_VERSION}" \
-            --title "v${TAG_VERSION}" \
-            --notes-file /tmp/release-notes.md
+          gh release create "$RELEASE_TAG" \
+            --title "$RELEASE_TAG" \
+            --notes-file /tmp/release-notes.md \
+            dist/*.tar.gz dist/*.sha256

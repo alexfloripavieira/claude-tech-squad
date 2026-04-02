@@ -19,7 +19,7 @@ Use it for:
 
 - discovery and scope clarification
 - architecture, TDD-first implementation planning, and implementation coordination
-- multi-specialist delivery across 60 specialist agents
+- multi-specialist delivery across 61 specialist agents
 - test, review, documentation, Jira/Confluence, and release follow-through
 
 If you need baseline commands, skills, rules, and templates, use `claude-config`.
@@ -306,7 +306,7 @@ Add real-time monitoring dashboards in Grafana for token cost per user and RAG r
 
 ## Documentation Standard — Context7
 
-Every agent in the squad is required to use **Context7** to look up current documentation before using any library, framework, or external API — regardless of stack. Training data is never used as the source of truth for API signatures or method behavior.
+Every agent in the squad uses **Context7** first when it is available. If Context7 is unavailable, the fallback is repository evidence, local installed docs, and explicit assumptions in the output. Training data is never used as the source of truth for API signatures or method behavior.
 
 Required workflow for every library used:
 
@@ -315,7 +315,7 @@ mcp__plugin_context7_context7__resolve-library-id("library-name")
 mcp__plugin_context7_context7__query-docs(libraryId, topic="specific feature")
 ```
 
-If Context7 does not have documentation for the library, the agent declares it explicitly and flags assumptions in the output. This applies to all 60 agents.
+If Context7 is unavailable or does not have documentation for the library, the agent declares it explicitly and flags assumptions in the output. This applies to all 61 agents.
 
 ---
 
@@ -324,7 +324,7 @@ If Context7 does not have documentation for the library, the agent declares it e
 | Category | Agents |
 |---|---|
 | Discovery | pm, business-analyst, po, planner, architect, techlead |
-| Architecture | backend-architect, frontend-architect, api-designer, data-architect, ux-designer, ai-engineer, agent-architect, integration-engineer, devops, ci-cd, dba, platform-dev, cloud-architect |
+| Architecture | backend-architect, hexagonal-architect, frontend-architect, api-designer, data-architect, ux-designer, ai-engineer, agent-architect, integration-engineer, devops, ci-cd, dba, platform-dev, cloud-architect |
 | LLM / AI | ai-engineer, prompt-engineer, rag-engineer, llm-eval-specialist, llm-safety-reviewer, agent-architect, conversational-designer, ml-engineer |
 | Implementation | backend-dev, frontend-dev, mobile-dev, data-engineer, tdd-specialist |
 | Search | search-engineer |
@@ -336,4 +336,23 @@ If Context7 does not have documentation for the library, the agent declares it e
 | Docs / DX | docs-writer, tech-writer, devex-engineer, developer-relations, jira-confluence-specialist |
 | Operations | release, sre, cost-optimizer, incident-manager |
 
-Total: 60 specialists.
+Total: 61 specialists.
+
+---
+
+## Validation Ladder
+
+Use this order after structural changes:
+
+```bash
+bash scripts/validate.sh
+bash scripts/smoke-test.sh
+bash scripts/dogfood.sh
+bash scripts/dogfood-report.sh --schema-only
+```
+
+When you have real captured runs under `ai-docs/dogfood-runs/`, then run:
+
+```bash
+bash scripts/dogfood-report.sh
+```

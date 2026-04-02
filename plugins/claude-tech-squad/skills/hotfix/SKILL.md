@@ -97,11 +97,11 @@ Where `{{slug}}` is a short descriptor (e.g. `hotfix/null-pointer-checkout`).
 
 Emit: `[Hotfix Branch] hotfix/{{slug}} created from {{base_branch}}`
 
-### Step 4 — Spawn code-debugger for root cause
+### Step 4 — Spawn TechLead in root-cause mode
 
 ```
 Agent(
-  subagent_type = "code-debugger",
+  subagent_type = "claude-tech-squad:techlead",
   prompt = """
 ## Emergency Fix Investigation
 
@@ -115,7 +115,7 @@ Agent(
 {{error}}
 
 ---
-Identify the root cause and the minimal change required to fix it.
+You are acting in rapid root-cause mode. Identify the root cause and the minimal change required to fix it.
 Produce:
 1. Root cause (1-3 sentences)
 2. Minimal patch — exact files and lines to change

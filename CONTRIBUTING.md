@@ -1,0 +1,87 @@
+# Contributing
+
+Use this repository as an engineering system, not as a prompt dump.
+
+## Contribution Standard
+
+Every meaningful change must answer four questions:
+
+1. What behavior changed?
+2. How is it validated?
+3. What operational risk did it introduce?
+4. Which docs or contracts were updated?
+
+If you cannot answer those clearly, the change is not ready.
+
+## Change Classes
+
+Follow the change classes in [ENGINEERING-OPERATING-SYSTEM.md](/home/alex/claude-tech-squad/docs/ENGINEERING-OPERATING-SYSTEM.md).
+
+- Class A: prompt or doc only
+- Class B: workflow contract change
+- Class C: orchestration or specialist model change
+- Class D: release-critical change
+
+## Required Validation
+
+Minimum local ladder:
+
+```bash
+bash scripts/validate.sh
+bash scripts/smoke-test.sh
+bash scripts/dogfood.sh
+bash scripts/dogfood-report.sh --schema-only
+```
+
+For Class C and D changes, real golden runs are expected when the behavior changed materially.
+
+## Before Opening a PR
+
+- update `CHANGELOG.md`
+- update docs for any operator-visible behavior change
+- keep version fields aligned when preparing a release
+- add or update fixture expectations when orchestration behavior changes
+- ensure no stale references remain in skills, docs, or fixtures
+
+## Pull Request Expectations
+
+Each PR should state:
+
+- change class
+- impacted skills or agents
+- risk level
+- validation evidence
+- whether golden runs were updated, required later, or intentionally not needed
+
+Use the PR template in `.github/PULL_REQUEST_TEMPLATE.md`.
+
+## Workflow Changes
+
+If you change:
+
+- retries
+- fallback logic
+- checkpoint/resume
+- agent routing
+- release behavior
+- hotfix or incident handling
+
+then you must also update:
+
+- docs
+- dogfood expectations if behavior changed
+- relevant scorecard or operating guidance
+
+## Golden Runs
+
+To prepare a real run capture:
+
+```bash
+bash scripts/start-golden-run.sh <scenario-id> <operator>
+```
+
+Then execute the scenario in Claude, paste the visible trace and final output into the generated files, and validate with:
+
+```bash
+bash scripts/dogfood-report.sh
+```

@@ -64,18 +64,24 @@ This workflow creates a single team that persists across all phases. Use the fol
 
 Emit these lines for every teammate action:
 
+- `[Preflight Start] <workflow-name>`
+- `[Preflight Warning] <summary>`
+- `[Preflight Passed] <workflow-name> | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version>`
 - `[Team Created] <team-name>`
 - `[Phase Start] <phase-name>`
 - `[Teammate Spawned] <role> | pane: <name>`
 - `[Teammate Done] <role> | Output: <one-line summary>`
 - `[Teammate Retry] <role> | Reason: <failure>`
+- `[Fallback Invoked] <failed-role> -> <fallback-subagent> | Reason: <summary>`
+- `[Resume From] <workflow-name> | checkpoint=<checkpoint>`
+- `[Checkpoint Saved] <workflow-name> | cursor=<checkpoint>`
 - `[Gate] <gate-name> | Waiting for user input`
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
 - `[Phase Done] <phase-name> | Outcome: <summary>`
 
 ## Teammate Failure Protocol
 
-A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role.
+A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role, including the required `result_contract` block.
 
 **For every teammate spawned — without exception:**
 
@@ -84,7 +90,13 @@ A teammate has **failed silently** if it returns an empty response, an error, or
    - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
    - Re-spawn the teammate once with the identical prompt.
 3. If the second attempt also fails:
-   - Emit: `[Gate] Teammate Failure | <name> failed twice`
+   - Read `plugins/claude-tech-squad/runtime-policy.yaml` and consult `fallback_matrix.squad.<name>`
+   - If a fallback subagent is listed:
+     - Emit: `[Fallback Invoked] <name> -> <fallback-subagent> | Reason: primary failed twice`
+     - Spawn the fallback once with the same context and an explicit instruction that it is acting as a surrogate for `<name>`
+     - If the fallback returns a valid output, continue and record the event in `fallback_invocations` and `teammate_reliability`
+   - If no fallback exists, or the fallback also fails:
+     - Emit: `[Gate] Teammate Failure | <name> failed twice and fallback did not recover`
    - Surface to the user:
 
 ```
@@ -100,9 +112,81 @@ Options:
 5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
 6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
 
+## Agent Result Contract (ARC)
+
+A teammate response is only considered structurally valid when it contains both:
+- the role-specific body requested by that agent
+- a final `result_contract` block
+
+Required block:
+
+```yaml
+result_contract:
+  status: completed | needs_input | blocked | failed
+  confidence: high | medium | low
+  blockers: []
+  artifacts: []
+  findings: []
+  next_action: "..."
+```
+
+Validation rules:
+- `status` must reflect the real execution outcome
+- `blockers`, `artifacts`, and `findings` use empty lists when there is nothing to report
+- `next_action` must identify the single best downstream step
+- Missing `result_contract` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
+
+## Runtime Resilience Contract
+
+Load `plugins/claude-tech-squad/runtime-policy.yaml` before repository recon or team creation. This file is the source of truth for:
+- retry budgets
+- fallback matrix
+- severity policy
+- checkpoint/resume rules
+- reliability metrics recorded in SEP logs
+
+If the runtime policy file is missing or unreadable, stop the run and surface `[Gate] Runtime Policy Missing`. Do not silently continue with hardcoded defaults.
+
 ---
 
 ## Execution
+
+### Preflight Gate
+
+Before repository recon and team creation, validate the run contract and emit explicit preflight lines.
+
+Check and store:
+- `execution_mode` — `tmux` if teammate mode is available, otherwise `inline`
+- `resume_key` — provisional lowercase kebab-case derived from the user request before formal `{{feature_slug}}` extraction
+- `{{architecture_style}}` — explicit or defaulted to `existing-repo-pattern`
+- `{{lint_profile}}` — detected tool list or `none-detected`
+- `docs_lookup_mode` — `context7` when available, otherwise `repo-fallback`
+- `runtime_policy_version` — from `plugins/claude-tech-squad/runtime-policy.yaml`
+
+Preflight rules:
+- Emit `[Preflight Start] squad`
+- Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
+- If `{{architecture_style}}` had to be defaulted, emit `[Preflight Warning] architecture_style ambiguous — defaulting to existing-repo-pattern`
+- If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`
+- Inspect the latest `ai-docs/.squad-log/*-squad-*.md` for the same `resume_key` when resuming an interrupted run
+- If a prior partial squad run exists and inputs did not materially change, emit `[Resume From] squad | checkpoint=<highest_completed_checkpoint>`
+- Emit `[Preflight Passed] squad | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version>`
+
+### Checkpoint / Resume Rules
+
+Use `checkpoint_resume.squad` from `runtime-policy.yaml`.
+
+Save a checkpoint whenever one of these milestones is completed:
+- `preflight-passed`
+- `discovery-confirmed`
+- `implementation-complete`
+- `release-signed-off`
+
+Checkpoint behavior:
+- Emit `[Checkpoint Saved] squad | cursor=<checkpoint>` whenever a checkpoint is reached
+- On resume, skip already-completed phase boundaries unless scope, code, or release assumptions changed materially
+- Record `checkpoint_cursor`, `completed_checkpoints`, `resume_from`, `fallback_invocations`, and `teammate_reliability` in the SEP log
 
 ### Step 1 — Repository Recon
 
@@ -110,6 +194,8 @@ Read the following files to understand the project:
 - README.md, CLAUDE.md, package.json, pyproject.toml, requirements.txt
 - List the main directories and identify the tech stack
 - Note any existing architecture patterns, conventions, or constraints
+- Derive `{{architecture_style}}` for this feature (`existing-repo-pattern` by default unless the repo or user explicitly selects another style)
+- Derive `{{lint_profile}}` from the repository's actual lint/format/static-analysis tools
 
 **LLM/AI detection (automatic):**
 
@@ -187,6 +273,7 @@ Core discovery chain:
 
 Specialist batch (spawned based on TechLead requirements, any subset):
 - `backend-arch` → `backend-architect`
+- `hexagonal-arch` → `hexagonal-architect`
 - `frontend-arch` → `frontend-architect`
 - `api-designer` → `api-designer`
 - `data-arch` → `data-architect`
@@ -211,6 +298,8 @@ Quality baseline batch (always runs in parallel with specialist batch):
 - `observability-baseline` → `observability-engineer`
 
 All agents receive the full accumulated context from prior teammates.
+All architecture-sensitive agents also receive `{{architecture_style}}`.
+All review-sensitive agents also receive `{{lint_profile}}`.
 All agents end with: "Do NOT chain to other agents — the orchestrator handles sequencing."
 
 Emit: `[Phase Done] discovery | Blueprint confirmed`
@@ -228,13 +317,16 @@ Emit: `[Phase Start] implementation`
    - `backend-dev`, `frontend-dev`, `platform-dev` (only relevant ones)
 3. Spawn `reviewer` — review implementation
    - If CHANGES REQUESTED: retry relevant impl agent(s) — **max 3 review cycles**
-   - After 3rd CHANGES REQUESTED: emit `[Gate] Review Limit Reached` and surface to user: `[A]ccept as-is / [S]kip review / [X]Abort`
+   - If the 3rd review still fails: consult `fallback_matrix.squad.reviewer` and run one fallback review pass before surfacing the gate
+   - After fallback failure: emit `[Gate] Review Limit Reached` and surface to user: `[A]ccept as-is / [S]kip review / [X]Abort`
 4. Spawn `qa` — run real tests against implementation
    - If FAIL: retry relevant impl agent(s), then re-review and re-qa — **max 2 QA cycles**
-   - After 2nd FAIL: emit `[Gate] QA Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
+   - If the 2nd QA cycle still fails: consult `fallback_matrix.squad.qa` and run one fallback verification pass before surfacing the gate
+   - After fallback failure: emit `[Gate] QA Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
 5. Spawn `techlead-audit` (subagent_type: `techlead`) → **Conformance Gate**: verifica workstreams cobertos, conformidade arquitetural, TDD compliance e rastreabilidade de requisitos
    - If NON-CONFORMANT: retry impl agent(s) for each gap, then re-run reviewer → QA → techlead-audit — **max 2 conformance cycles**
-   - After 2nd NON-CONFORMANT: emit `[Gate] Conformance Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
+   - If the 2nd conformance cycle still fails: consult `fallback_matrix.squad.techlead-audit` and run one fallback conformance pass before surfacing the gate
+   - After fallback failure: emit `[Gate] Conformance Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
 6. Spawn quality bench in parallel (after Conformance CONFORMANT):
    - `security-rev` (subagent_type: `security-reviewer`), `privacy-rev` (subagent_type: `privacy-reviewer`), `perf-eng` (subagent_type: `performance-engineer`), `access-rev` (subagent_type: `accessibility-reviewer`), `integ-qa` (subagent_type: `integration-qa`), `code-quality` (subagent_type: `code-quality`)
    - If `ai_feature: true`: add `llm-safety-reviewer` to quality bench (prompt injection + tool authorization review)
@@ -243,13 +335,15 @@ Emit: `[Phase Start] implementation`
      - **BLOCKING** (must fix): security vulns, PII/data leaks, privacy violations, CI-breaking lint errors, WCAG A/AA failures
      - **WARNING** (should fix): perf regressions, non-critical accessibility, integration risks, code quality debt
    - If BLOCKING issues: emit `[Gate] Quality Bench Blocking Issues | N findings`, spawn the relevant impl agent(s) to fix, re-run only the agents that flagged issues — **max 2 fix cycles**
+   - If a bench agent fails structurally: consult `fallback_matrix.squad.<agent-name>` before surfacing the failure gate
    - If blocking persists after 2 cycles: emit `[Gate] Quality Bench Unresolved` → surface `[A]ccept with known issues / [X]Abort`
    - If only WARNINGS: surface summary → `[A]ccept and advance / [F]ix before advancing`
 7. Spawn `docs-writer`
 8. Spawn `jira-confluence` (subagent_type: `jira-confluence-specialist`)
 9. Spawn `pm-uat` (subagent_type: `pm`) → **Gate 6: UAT Approval**
    - If REJECTED: fix gaps and re-run reviewer → QA → techlead-audit → quality bench → UAT — **max 2 UAT cycles**
-   - After 2nd REJECTION: emit `[Gate] UAT Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
+   - If the 2nd UAT cycle still fails: consult `fallback_matrix.squad.pm` and run one fallback product acceptance pass before surfacing the gate
+   - After fallback failure: emit `[Gate] UAT Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
 
 **Phase 2 explicit subagent_type mappings** (name → subagent_type):
 - `tdd-impl` → `tdd-specialist`
@@ -335,6 +429,73 @@ and canary/phased rollout strategy. Return a final go/no-go recommendation.
 
 Emit: `[Teammate Spawned] sre | pane: sre`
 Emit: `[Phase Done] release | SRE sign-off received`
+
+---
+
+## Step 4 — Write Execution Log (SEP Runtime Resilience)
+
+After release phase finishes, write the structured squad execution log.
+
+```bash
+mkdir -p ai-docs/.squad-log
+```
+
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-squad-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+parent_run_id: null
+skill: squad
+timestamp: {{ISO8601}}
+status: completed | failed | partial
+runtime_policy_version: {{runtime_policy_version}}
+feature_slug: {{feature_slug}}
+checkpoint_cursor: release-signed-off
+completed_checkpoints: [preflight-passed, discovery-confirmed, implementation-complete, release-signed-off]
+resume_from: {{resume_checkpoint | none}}
+gates_cleared: [1, 2, 3, 4, 5, 6]
+gates_blocked: []
+retry_count: {{total_runtime_retries}}
+fallback_invocations: []
+teammates:
+  - pm
+  - business-analyst
+  - po
+  - planner
+  - architect
+  - techlead
+  - specialist-bench
+  - quality-baseline
+  - design-principles
+  - test-planner
+  - tdd-specialist
+  - implementation-batch
+  - reviewer
+  - qa
+  - techlead-audit
+  - quality-bench
+  - docs-writer
+  - jira-confluence
+  - pm-uat
+  - release
+  - sre
+teammate_reliability:
+  discovery: primary
+  implementation: primary
+  release: primary
+uat_result: APPROVED | REJECTED
+release_result: GO | NO-GO
+---
+
+## Output Digest
+{{one_paragraph_summary_of_end_to_end_delivery}}
+
+## Findings Gerados
+{{blocking_and_warning_findings_if_any}}
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
 ---
 

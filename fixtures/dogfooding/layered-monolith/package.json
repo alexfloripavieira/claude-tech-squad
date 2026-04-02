@@ -1,0 +1,10 @@
+{
+  "name": "layered-monolith-fixture",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "lint": "eslint .",
+    "build": "tsc -p tsconfig.json"
+  }
+}

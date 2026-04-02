@@ -1,5 +1,221 @@
 # Changelog
 
+## [5.27.0] - 2026-04-02 — Publish automático a partir de main
+
+### Changed
+
+**Release agora nasce de `main`, não de tag manual:**
+`.github/workflows/release.yml` foi ajustado para disparar em push para `main` quando os arquivos de metadados de release mudam. O workflow:
+- resolve a versão a partir de `plugin.json`
+- roda `scripts/smoke-test.sh`
+- valida metadados com `scripts/verify-release.sh`
+- gera bundle e checksum
+- cria e faz push da tag automaticamente
+- cria a GitHub Release com os assets
+
+**Documentação de release alinhada ao fluxo real:**
+`docs/RELEASING.md` e `README.md` agora deixam explícito que o caminho oficial é mergear os metadados de release em `main`; a pipeline faz o resto.
+
+**Validador endurecido para o fluxo de branch publish:**
+`scripts/validate.sh` agora falha se o workflow de release não estiver configurado para publicar a partir de `main`.
+
+## [5.26.0] - 2026-04-02 — Publish pipeline completo em GitHub Actions
+
+### Added
+
+**Scripts de publish e release verification:**
+Adicionados:
+- `scripts/verify-release.sh`
+- `scripts/build-release-bundle.sh`
+
+Eles validam alinhamento entre `marketplace.json`, `plugin.json`, `MANUAL.md` e `CHANGELOG.md`, além de gerar bundle `.tar.gz` e checksum `.sha256` para cada release.
+
+### Changed
+
+**Workflow de tag agora é um publish pipeline completo:**
+`.github/workflows/release.yml` foi refeito para:
+- rodar `scripts/smoke-test.sh`
+- validar metadados de release
+- gerar release bundle e checksum
+- publicar ou atualizar a GitHub Release
+- anexar os artefatos da release
+
+**Smoke test agora cobre scripts de publish:**
+`scripts/smoke-test.sh` passou a validar `verify-release.sh` e `build-release-bundle.sh` em diretório temporário.
+
+**Release manual deixou de ser o caminho principal:**
+`docs/RELEASING.md`, `README.md` e `scripts/release.sh` foram alinhados para deixar explícito que o caminho oficial é a automação do GitHub Actions. O script local continua apenas como fallback.
+
+**Hygiene de build:**
+`dist/` passou a ser ignorado no `.gitignore`.
+
+## [5.25.0] - 2026-04-02 — CI no mesmo bar local, governance files e bootstrap de golden runs
+
+### Added
+
+**Bootstrap de golden runs reais:**
+Adicionado `scripts/start-golden-run.sh`, que gera a estrutura de captura para um cenário em `ai-docs/dogfood-runs/<scenario>/<timestamp>/` com `prompt.txt`, `trace.md`, `final.md`, `metadata.yaml` e `scorecard.md`.
+
+**Governance files de repositório:**
+Adicionados:
+- `CONTRIBUTING.md`
+- `SECURITY.md`
+- `.github/CODEOWNERS`
+- `.github/PULL_REQUEST_TEMPLATE.md`
+- `.github/ISSUE_TEMPLATE/bug-report.md`
+- `.github/ISSUE_TEMPLATE/workflow-change.md`
+
+Esses arquivos formalizam ownership, mudança por classe, evidência exigida, validação e tratamento de vulnerabilidades.
+
+**Diretórios de artefatos inicializados:**
+Adicionados `.gitkeep` para `ai-docs/.squad-log/` e `ai-docs/dogfood-runs/`, com `.gitignore` ajustado para ignorar o conteúdo gerado sem perder a estrutura do repositório.
+
+### Changed
+
+**CI do GitHub agora roda no mesmo bar do ambiente local:**
+`.github/workflows/validate.yml` e `.github/workflows/release.yml` passaram a usar `scripts/smoke-test.sh`, eliminando o gap entre validação local e remota.
+
+**Smoke test agora verifica scaffolding real de golden runs:**
+`scripts/smoke-test.sh` passou a executar `start-golden-run.sh` em diretório temporário e validar a geração dos artefatos esperados.
+
+**Validador endurecido novamente:**
+`scripts/validate.sh` agora exige governance files, templates, bootstrap scripts, `.gitkeep` dos diretórios de artefato e a presença de `smoke-test.sh` nos workflows do GitHub.
+
+**Documentação atualizada:**
+`README.md` e `docs/GOLDEN-RUNS.md` agora incluem o fluxo de scaffolding com `start-golden-run.sh`.
+
+## [5.24.0] - 2026-04-02 — Golden runs, operating system de engenharia e hygiene de release
+
+### Added
+
+**Golden-run contract real:**
+`scripts/dogfood-report.sh` valida runs reais capturados em `ai-docs/dogfood-runs/` com base no manifesto `fixtures/dogfooding/scenarios.json`. Cada cenário agora define `required_trace_lines`, `forbidden_strings` e `artifact_contract`.
+
+**Docs de governança e operação:**
+Adicionados `docs/GOLDEN-RUNS.md` e `docs/ENGINEERING-OPERATING-SYSTEM.md`, formalizando scorecards, classes de mudança, evidência exigida por workflow, cadência de revisão e métricas operacionais.
+
+**Templates de organização de engenharia:**
+Adicionados:
+- `templates/rfc-template.md`
+- `templates/service-readiness-review.md`
+- `templates/golden-run-scorecard.md`
+
+### Changed
+
+**Release pipeline endurecido:**
+`scripts/release.sh` passou a rodar `scripts/smoke-test.sh` em vez de apenas `validate.sh`, elevando o bar mínimo antes de qualquer tag.
+
+**Smoke test agora cobre schema de golden runs:**
+`scripts/smoke-test.sh` passou a executar `scripts/dogfood-report.sh --schema-only`.
+
+**`.gitignore` alinhado com artefatos gerados:**
+Agora ignora `ai-docs/.squad-log/`, `ai-docs/dogfood-runs/`, `__pycache__/` e `.pytest_cache/`.
+
+**Docs centrais atualizadas:**
+`README.md`, `docs/GETTING-STARTED.md` e `docs/RELEASING.md` agora refletem a escada de validação, o contracto de golden runs e o operating model.
+
+## [5.23.0] - 2026-04-02 — Dogfooding pack local, fixtures versionados e script de validação
+
+### Added
+
+**Dogfooding pack local em `fixtures/dogfooding/`:**
+O repositório agora inclui três cenários versionados e reproduzíveis:
+- `layered-monolith`
+- `hexagonal-billing`
+- `hotfix-checkout`
+
+Cada fixture traz `README.md`, `CLAUDE.md` e estrutura mínima de código para forçar o comportamento esperado da squad sem depender de um repositório externo.
+
+**Manifesto de cenários:**
+`fixtures/dogfooding/scenarios.json` centraliza prompts, workflow esperado, arquitetura esperada e agentes relevantes para os três cenários.
+
+**Script `scripts/dogfood.sh`:**
+Valida o dogfood pack local, checa estrutura dos fixtures, regras arquiteturais mínimas e referências inválidas. Também suporta `--print-prompts` para imprimir o prompt pack de teste.
+
+### Changed
+
+**Smoke test agora cobre o dogfood pack:**
+`scripts/smoke-test.sh` passou a executar `scripts/dogfood.sh`, tornando os fixtures parte do contrato estático do plugin.
+
+**Validador endurecido novamente:**
+`scripts/validate.sh` agora exige a presença de `scripts/dogfood.sh`, `fixtures/dogfooding/scenarios.json` e dos três fixtures principais.
+
+**Documentação atualizada:**
+`README.md` e `docs/DOGFOODING.md` agora apontam para o pack local, os caminhos dos fixtures e os comandos oficiais de validação e impressão dos prompts.
+
+## [5.22.0] - 2026-04-02 — Runtime policy central, fallback matrix, checkpoint/resume e SEP resiliente
+
+### Added
+
+**`runtime-policy.yaml` como fonte única de verdade operacional:**
+O plugin agora centraliza budgets de retry, classificação de severidade, fallback matrix, regras de checkpoint/resume e métricas de confiabilidade em `plugins/claude-tech-squad/runtime-policy.yaml`.
+
+**Checkpoint/resume nos workflows principais:**
+`/discovery`, `/implement` e `/squad` agora definem checkpoints explícitos, emitem `[Checkpoint Saved]` e podem retomar de checkpoints anteriores com `[Resume From]` quando o contexto não mudou materialmente.
+
+**SEP log para `/squad`:**
+O workflow end-to-end completo agora grava `ai-docs/.squad-log/{timestamp}-squad-{run_id}.md`, incluindo `runtime_policy_version`, `checkpoint_cursor`, `fallback_invocations`, `teammate_reliability` e `release_result`.
+
+### Changed
+
+**Falha dupla agora consulta fallback antes de abrir gate:**
+Os protocolos de falha silenciosa em `/discovery`, `/implement` e `/squad` passaram a consultar a fallback matrix antes de pedir decisão do usuário. Isso reduz abortos desnecessários e evita retry cego.
+
+**Budgets e loops críticos conectados à política central:**
+Review, QA, conformance, quality bench e UAT agora documentam explicitamente o uso da runtime policy para retries, fallback e retomada.
+
+**`/factory-retrospective` enriquecido com métricas de resiliência:**
+O retrospective agora lê `checkpoint_cursor`, `resume_from`, `fallback_invocations` e `teammate_reliability`, permitindo medir onde a esteira quebra, retoma e substitui agentes.
+
+**Validação e smoke test endurecidos novamente:**
+`scripts/validate.sh` e `scripts/smoke-test.sh` agora falham se faltarem `runtime-policy.yaml`, se os orquestradores perderem `Runtime Resilience Contract` ou `Checkpoint / Resume Rules`, se o `/squad` perder seu SEP log, ou se a documentação de trace perder linhas de fallback/resume/checkpoint.
+
+## [5.21.0] - 2026-04-02 — Arquitetura por perfil, especialista Hexagonal, validação mais rígida e loops fechados
+
+### Added
+
+**Novo agente `hexagonal-architect`:**
+Hexagonal Architecture deixa de ser implícita e passa a ser uma especialização explícita. O time agora tem um especialista dedicado para Ports & Adapters quando essa escolha for deliberada, sem forçar esse estilo em todos os repositórios.
+
+### Changed
+
+**Arquitetura repo-aware nos agentes centrais:**
+`architect`, `backend-architect`, `backend-dev`, `tdd-specialist`, `reviewer`, `design-principles-specialist` e `techlead` agora trabalham com `{{architecture_style}}` em vez de impor Hexagonal como padrão universal. O fluxo passa a preservar o padrão real do repositório por default.
+
+**`/discovery`, `/implement` e `/squad` propagam `{{architecture_style}}` e `{{lint_profile}}`:**
+Os orquestradores agora extraem essas variáveis e as repassam para arquitetura, implementação, review e conformance. Isso torna a squad mais assertiva em stacks heterogêneas.
+
+**`/implement` com budgets explícitos de retry:**
+Review, QA, conformance e UAT agora têm limites e gates formais, eliminando loops abertos no workflow de implementação.
+
+**Validador endurecido:**
+`scripts/validate.sh` agora falha se:
+- `MANUAL.md` estiver fora da versão do plugin
+- qualquer agente fora do `incident-manager` expuser a tool `Agent`
+- qualquer `subagent_type` sair do namespace `claude-tech-squad:*`
+- qualquer agente não tiver `Result Contract`
+- `discovery`, `implement` ou `squad` perderem `Preflight Gate` ou `Agent Result Contract`
+
+**Preflight gate nos workflows principais:**
+`/discovery`, `/implement` e `/squad` agora emitem preflight explícito com `execution_mode`, `architecture_style`, `lint_profile` e `docs_lookup_mode` antes de criarem times ou iniciarem fases.
+
+**Agent Result Contract padronizado:**
+Todos os agentes agora terminam com um bloco `result_contract`, usado como critério estrutural no protocolo de retries. Isso torna falha silenciosa e output inválido mais fáceis de detectar.
+
+**Context7 com fallback formal:**
+O padrão de documentação deixa de ser "mandatory or fail" e passa a ser "Context7 first, repository fallback". Se Context7 estiver indisponível, o agente declara fallback e segue com evidência do repositório + assumptions explícitas.
+
+**Smoke test e dogfooding guide:**
+Adicionados `scripts/smoke-test.sh` e `docs/DOGFOODING.md` para validar contratos estáticos, cenários layered, hexagonal e hotfix, e ausência de regressões documentais.
+
+### Fixed
+
+**`/hotfix` usava `subagent_type = "code-debugger"` fora do namespace do plugin:**
+O root-cause step agora usa um subagente válido do próprio plugin.
+
+**Exposição indevida da tool `Agent` em agentes não-orquestradores:**
+`analytics-engineer`, `code-quality`, `cost-optimizer`, `devops`, `observability-engineer`, `platform-dev` e `sre` deixaram de expor `Agent`, alinhando runtime com a regra documental de que apenas `incident-manager` pode fan-outar agentes diretamente.
+
 ## [5.20.0] - 2026-03-31 — Segunda auditoria: release failure protocol, feature_slug, pm-uat conformance, squad mappings completos
 
 ### Fixed
