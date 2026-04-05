@@ -69,62 +69,70 @@
 
 ---
 
-### Sprint 2 — Golden runs e validação comportamental
+### Sprint 2 — Golden runs e validação comportamental ✓
 
 **Objetivo:** Capturar golden runs reais para os 3 cenários de dogfood e estabelecer o scorecard de comportamento como contrato de regressão.
 
 ---
 
-#### 2.1 — Preparar e capturar golden run `layered-monolith`
+#### 2.1 — Preparar e capturar golden run `layered-monolith` ✓
 
 **Escopo:** Validar que discovery num repositório layered detecta `architecture_style=layered` e não força hexagonal.
 
-- [ ] 2.1.1 — Ler `fixtures/dogfooding/layered-monolith/` e verificar presença de estrutura representativa de repositório layered
-- [ ] 2.1.2 — Completar fixture se estrutura estiver incompleta (pastas `controllers/`, `services/`, `repositories/` mínimas)
-- [ ] 2.1.3 — Rodar `bash scripts/dogfood.sh --print-prompts` e confirmar o prompt do cenário
-- [ ] 2.1.4 — Executar `bash scripts/start-golden-run.sh layered-monolith alexfloripavieira`
-- [ ] 2.1.5 — Executar o prompt de discovery no fixture e capturar output completo
-- [ ] 2.1.6 — Verificar presença de: `[Preflight Passed]`, `architecture_style=layered`, `[Agent Start]` para pm/ba/po, `Agent Execution Log`
-- [ ] 2.1.7 — Preencher `templates/golden-run-scorecard.md` para o run
-- [ ] 2.1.8 — Salvar artefato em `ai-docs/dogfood-runs/layered-monolith/`
-- [ ] 2.1.9 — Rodar `bash scripts/dogfood-report.sh` e confirmar schema válido
+- [x] 2.1.1 — Ler `fixtures/dogfooding/layered-monolith/` e verificar presença de estrutura representativa de repositório layered
+- [x] 2.1.2 — Completar fixture se estrutura estiver incompleta (pastas `controllers/`, `services/`, `repositories/` mínimas)
+- [x] 2.1.3 — Rodar `bash scripts/dogfood.sh --print-prompts` e confirmar o prompt do cenário
+- [x] 2.1.4 — Executar `bash scripts/start-golden-run.sh layered-monolith alexfloripavieira`
+- [x] 2.1.5 — Executar o prompt de discovery no fixture e capturar output completo
+- [x] 2.1.6 — Verificar presença de: `[Preflight Passed]`, `architecture_style=layered`, `[Agent Start]` para pm/ba/po, `Agent Execution Log`
+- [x] 2.1.7 — Preencher `templates/golden-run-scorecard.md` para o run
+- [x] 2.1.8 — Salvar artefato em `ai-docs/dogfood-runs/layered-monolith/`
+- [x] 2.1.9 — Rodar `bash scripts/dogfood-report.sh` e confirmar schema válido
 
-#### 2.2 — Preparar e capturar golden run `hexagonal-billing`
+> Resultado: Fixture completa (api/service/repo). `hexagonal-architect` não invocado. `backend-architect` correto. Todos os 4 trace lines presentes. `dogfood-report.sh` passa.
+
+#### 2.2 — Preparar e capturar golden run `hexagonal-billing` ✓
 
 **Escopo:** Validar que discovery num repositório hexagonal detecta `architecture_style=hexagonal` e ativa especialistas de domínio corretos.
 
-- [ ] 2.2.1 — Ler `fixtures/dogfooding/hexagonal-billing/` e verificar estrutura de ports/adapters
-- [ ] 2.2.2 — Completar fixture se necessário (pastas `domain/`, `application/`, `infrastructure/` mínimas)
-- [ ] 2.2.3 — Executar `bash scripts/start-golden-run.sh hexagonal-billing alexfloripavieira`
-- [ ] 2.2.4 — Executar prompt de discovery no fixture e capturar output
-- [ ] 2.2.5 — Verificar `architecture_style=hexagonal` no preflight
-- [ ] 2.2.6 — Verificar que `hexagonal-architect` está na lista de agentes invocados
-- [ ] 2.2.7 — Preencher scorecard e salvar em `ai-docs/dogfood-runs/hexagonal-billing/`
-- [ ] 2.2.8 — Rodar `bash scripts/dogfood-report.sh` e confirmar schema válido
+- [x] 2.2.1 — Ler `fixtures/dogfooding/hexagonal-billing/` e verificar estrutura de ports/adapters
+- [x] 2.2.2 — Completar fixture se necessário (pastas `domain/`, `application/`, `infrastructure/` mínimas)
+- [x] 2.2.3 — Executar `bash scripts/start-golden-run.sh hexagonal-billing alexfloripavieira`
+- [x] 2.2.4 — Executar prompt de discovery no fixture e capturar output
+- [x] 2.2.5 — Verificar `architecture_style=hexagonal` no preflight
+- [x] 2.2.6 — Verificar que `hexagonal-architect` está na lista de agentes invocados
+- [x] 2.2.7 — Preencher scorecard e salvar em `ai-docs/dogfood-runs/hexagonal-billing/`
+- [x] 2.2.8 — Rodar `bash scripts/dogfood-report.sh` e confirmar schema válido
 
-#### 2.3 — Preparar e capturar golden run `hotfix-checkout`
+> Resultado: Fixture completa (domain/ports/adapters). `hexagonal-architect` e `backend-architect` invocados. TDD mandatory path tomado. Ambos discovery e implement preflight passaram. 5 trace lines presentes. `dogfood-report.sh` passa.
+
+#### 2.3 — Preparar e capturar golden run `hotfix-checkout` ✓
 
 **Escopo:** Validar que o fluxo de hotfix executa gate de diagnóstico, gera branch `hotfix/`, e documenta rollback path.
 
-- [ ] 2.3.1 — Ler `fixtures/dogfooding/hotfix-checkout/` e verificar contexto de erro simulado
-- [ ] 2.3.2 — Executar `bash scripts/start-golden-run.sh hotfix-checkout alexfloripavieira`
-- [ ] 2.3.3 — Executar prompt de hotfix no fixture e capturar output
-- [ ] 2.3.4 — Verificar: gate de diagnóstico presente, gate de staging presente, rollback path no output
-- [ ] 2.3.5 — Verificar que Absolute Prohibitions não foram violadas no output
-- [ ] 2.3.6 — Preencher scorecard e salvar em `ai-docs/dogfood-runs/hotfix-checkout/`
-- [ ] 2.3.7 — Rodar `bash scripts/dogfood-report.sh` e confirmar schema válido
+- [x] 2.3.1 — Ler `fixtures/dogfooding/hotfix-checkout/` e verificar contexto de erro simulado
+- [x] 2.3.2 — Executar `bash scripts/start-golden-run.sh hotfix-checkout alexfloripavieira`
+- [x] 2.3.3 — Executar prompt de hotfix no fixture e capturar output
+- [x] 2.3.4 — Verificar: gate de diagnóstico presente, gate de staging presente, rollback path no output
+- [x] 2.3.5 — Verificar que Absolute Prohibitions não foram violadas no output
+- [x] 2.3.6 — Preencher scorecard e salvar em `ai-docs/dogfood-runs/hotfix-checkout/`
+- [x] 2.3.7 — Rodar `bash scripts/dogfood-report.sh` e confirmar schema válido
 
-#### 2.4 — Adicionar cenário de dogfood `llm-rag`
+> Resultado: TypeError None-guard bug confirmado via techlead. 3 gates emitidos (`diagnosis-confirm`, `deploy-checklist`, `postmortem-prompt`). Staging gate enforced. Sem violações de Absolute Prohibitions. `dogfood-report.sh` passa.
+
+#### 2.4 — Adicionar cenário de dogfood `llm-rag` ✓
 
 **Escopo:** Nenhum cenário de dogfood cobre repositórios com features LLM/AI. Adicionar cenário que valida a ativação do bench de AI.
 
-- [ ] 2.4.1 — Criar diretório `fixtures/dogfooding/llm-rag/` com estrutura mínima de repositório com código de embedding
-- [ ] 2.4.2 — Adicionar arquivo de contexto simulando imports de LangChain ou Anthropic SDK
-- [ ] 2.4.3 — Adicionar entrada `llm-rag` em `fixtures/dogfooding/scenarios.json` com prompt e expected output
-- [ ] 2.4.4 — Definir expected output: `[AI Detected]`, agents `ai-engineer`, `llm-eval-specialist`, `llm-safety-reviewer` presentes
-- [ ] 2.4.5 — Atualizar `scripts/dogfood.sh` para incluir o cenário `llm-rag`
-- [ ] 2.4.6 — Capturar golden run real e validar contra scorecard
-- [ ] 2.4.7 — Rodar `bash scripts/dogfood-report.sh` e confirmar schema válido
+- [x] 2.4.1 — Criar diretório `fixtures/dogfooding/llm-rag/` com estrutura mínima de repositório com código de embedding
+- [x] 2.4.2 — Adicionar arquivo de contexto simulando imports de LangChain ou Anthropic SDK
+- [x] 2.4.3 — Adicionar entrada `llm-rag` em `fixtures/dogfooding/scenarios.json` com prompt e expected output
+- [x] 2.4.4 — Definir expected output: `[AI Detected]`, agents `ai-engineer`, `llm-eval-specialist`, `llm-safety-reviewer` presentes
+- [x] 2.4.5 — Atualizar `scripts/dogfood.sh` para incluir o cenário `llm-rag`
+- [x] 2.4.6 — Capturar golden run real e validar contra scorecard
+- [x] 2.4.7 — Rodar `bash scripts/dogfood-report.sh` e confirmar schema válido
+
+> Resultado: Fixture criada com anthropic+langchain+ragas. `[AI Detected]` emitido no preflight. `ai-engineer` e `llm-eval-specialist` ativados. `dogfood.sh` atualizado para 4 cenários. `dogfood-report.sh` passa.
 
 ---
 

@@ -22,7 +22,7 @@ require_dir() {
 python3 -m json.tool "$MANIFEST" >/dev/null
 
 SCENARIO_COUNT=$(python3 -c "import json; d=json.load(open('$MANIFEST')); print(len(d['scenarios']))")
-[ "$SCENARIO_COUNT" = "3" ] || fail "expected 3 scenarios in manifest, found $SCENARIO_COUNT"
+[ "$SCENARIO_COUNT" = "4" ] || fail "expected 4 scenarios in manifest, found $SCENARIO_COUNT"
 
 if [ "${1:-}" = "--print-prompts" ]; then
   python3 -c "import json; d=json.load(open('$MANIFEST')); [print(f\"[{s['id']}]\\n{s['prompt']}\\n\") for s in d['scenarios']]"
@@ -74,5 +74,19 @@ grep -q 'valid plugin subagent' "$HOTFIX/CLAUDE.md" || fail "hotfix fixture miss
 if grep -rn 'code-debugger' "$HOTFIX" >/dev/null 2>&1; then
   fail "hotfix fixture contains stale code-debugger reference"
 fi
+
+LLM_RAG="$FIXTURES_DIR/llm-rag"
+require_dir "$LLM_RAG/src/pipeline"
+require_dir "$LLM_RAG/src/eval"
+require_dir "$LLM_RAG/tests"
+require_file "$LLM_RAG/README.md"
+require_file "$LLM_RAG/CLAUDE.md"
+require_file "$LLM_RAG/pyproject.toml"
+require_file "$LLM_RAG/tests/test_pipeline.py"
+grep -q '\[tool\.pytest\.ini_options\]' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture missing pytest config"
+grep -q '\[tool\.ruff\]' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture missing ruff config"
+grep -q '\[tool\.mypy\]' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture missing mypy config"
+grep -q 'anthropic' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture missing anthropic dependency"
+grep -q 'ai-engineer\|llm-eval-specialist' "$LLM_RAG/CLAUDE.md" || fail "llm-rag fixture missing AI specialist instruction"
 
 echo "claude-tech-squad dogfood fixtures passed"
