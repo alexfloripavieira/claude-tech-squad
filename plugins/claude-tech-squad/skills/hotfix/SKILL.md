@@ -72,7 +72,7 @@ Ask the user for (if not already provided):
 
 Do NOT proceed until scope and deploy target are confirmed. This is a blocking gate.
 
-### Step 2 — Stack Command Detection (SEP Stack-Agnostic)
+### Step 2 — Stack Command Detection and Specialist Routing
 
 Read project files to detect test and build commands before spawning any agent:
 
@@ -85,6 +85,17 @@ Read project files to detect test and build commands before spawning any agent:
 | `build.gradle` | `./gradlew test` | `./gradlew build` |
 
 Store as `{{test_command}}` and `{{build_command}}`. CLAUDE.md overrides take priority.
+
+Also detect stack and resolve routing variables:
+
+| Variable | `django` | `react` | `vue` | `typescript` | `javascript` | `python` | `generic` |
+|---|---|---|---|---|---|---|---|
+| `{{impl_agent}}` | `django-backend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `python-developer` | `backend-dev` |
+| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
+
+For hotfixes that span both backend and frontend in Django, use `django-backend` first then `django-frontend`. For other stacks use `{{impl_agent}}` for backend and the appropriate frontend agent if needed.
+
+Emit: `[Stack Detected] {{detected_stack}} | impl={{impl_agent}} | reviewer={{reviewer_agent}}`
 
 ### Step 3 — Create hotfix branch
 
@@ -152,7 +163,7 @@ Based on scope, spawn the appropriate implementation agent:
 
 ```
 Agent(
-  subagent_type = "claude-tech-squad:backend-dev",  # or frontend-dev, mobile-dev
+  subagent_type = "claude-tech-squad:{{impl_agent}}",  # resolved from stack detection
   team_name = "hotfix-team",
   name = "hotfix-impl",
   prompt = """
@@ -203,7 +214,7 @@ Spawn reviewer for a lightweight review of the patch only:
 
 ```
 Agent(
-  subagent_type = "claude-tech-squad:reviewer",
+  subagent_type = "claude-tech-squad:{{reviewer_agent}}",
   team_name = "hotfix-team",
   name = "reviewer",
   prompt = """

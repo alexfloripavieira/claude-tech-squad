@@ -76,7 +76,7 @@ Ask the user (if not already provided):
 3. **Constraint**: What must NOT change? (public API, external behavior, DB schema)
 4. **Risk tolerance**: Is this in a hot path or critical service?
 
-### Step 2 — Stack Command Detection
+### Step 2 — Stack Command Detection and Specialist Routing
 
 Read project files to detect test command before spawning any agent:
 
@@ -89,6 +89,16 @@ Read project files to detect test command before spawning any agent:
 | `build.gradle` | `./gradlew test` |
 
 Store as `{{test_command}}`. CLAUDE.md overrides take priority.
+
+Also detect stack and resolve routing variables:
+
+| Variable | `django` | `react` | `vue` | `typescript` | `javascript` | `python` | `generic` |
+|---|---|---|---|---|---|---|---|
+| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
+| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
+| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
+
+Emit: `[Stack Detected] {{detected_stack}} | backend={{backend_agent}} | frontend={{frontend_agent}} | reviewer={{reviewer_agent}}`
 
 ### Step 3 — Spawn design-principles-specialist for analysis
 
@@ -202,7 +212,7 @@ For each step in the refactor plan:
 
 ```
 Agent(
-  subagent_type = "claude-tech-squad:backend-dev",  # or frontend-dev
+  subagent_type = "claude-tech-squad:{{backend_agent}}",  # or {{frontend_agent}} for frontend steps
   team_name = "refactor-team",
   name = "backend-dev",  # or frontend-dev
   prompt = """
@@ -252,7 +262,7 @@ After all steps complete:
 
 ```
 Agent(
-  subagent_type = "claude-tech-squad:reviewer",
+  subagent_type = "claude-tech-squad:{{reviewer_agent}}",
   team_name = "refactor-team",
   name = "reviewer",
   prompt = """

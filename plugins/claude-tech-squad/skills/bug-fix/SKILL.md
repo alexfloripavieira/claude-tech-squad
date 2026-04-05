@@ -76,6 +76,31 @@ Ask the user for:
 
 Do not proceed until you have at least symptom + expected behavior.
 
+### Step 1b — Stack Specialist Routing
+
+Before creating the team, detect the repository stack and resolve agent routing:
+
+| Signal | Detected stack |
+|---|---|
+| `manage.py` + `django` in requirements | `django` |
+| `package.json` with `"react"` | `react` |
+| `package.json` with `"vue"` | `vue` |
+| `tsconfig.json` or `typescript` in devDeps | `typescript` |
+| `package.json` (no react/vue/ts) | `javascript` |
+| `pyproject.toml`/`requirements.txt` without `manage.py` | `python` |
+| None | `generic` |
+
+Routing variables:
+
+| Variable | `django` | `react` | `vue` | `typescript` | `javascript` | `python` | `generic` |
+|---|---|---|---|---|---|---|---|
+| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
+| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
+| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
+| `{{qa_agent}}` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa` | `qa` |
+
+Emit: `[Stack Detected] {{detected_stack}} | backend={{backend_agent}} | frontend={{frontend_agent}} | reviewer={{reviewer_agent}} | qa={{qa_agent}}`
+
 ### Step 2 — Root Cause Analysis
 
 Use TeamCreate to create a team named "bug-fix-team". Then spawn each agent using the Agent tool with `team_name="bug-fix-team"` and a descriptive `name` for each agent.
@@ -152,13 +177,13 @@ Output: test file path, test name, the test code.
 Based on the affected files, invoke the appropriate implementation agent.
 
 **If the bug is in backend/server-side code:**
-Invoke `subagent_type: "claude-tech-squad:backend-dev"`, `team_name: "bug-fix-team"`, `name: "backend-dev"`.
+Invoke `subagent_type: "claude-tech-squad:{{backend_agent}}"`, `team_name: "bug-fix-team"`, `name: "backend-dev"`.
 
 **If the bug is in frontend/UI code:**
-Invoke `subagent_type: "claude-tech-squad:frontend-dev"`, `team_name: "bug-fix-team"`, `name: "frontend-dev"`.
+Invoke `subagent_type: "claude-tech-squad:{{frontend_agent}}"`, `team_name: "bug-fix-team"`, `name: "frontend-dev"`.
 
 **If the bug spans both:**
-Invoke both agents sequentially — backend first, then frontend. Use `name: "backend-dev"` and `name: "frontend-dev"` respectively.
+Invoke both agents sequentially — backend first, then frontend. Use `subagent_type: "claude-tech-squad:{{backend_agent}}"` and `subagent_type: "claude-tech-squad:{{frontend_agent}}"` respectively.
 
 Prompt template:
 ```
@@ -195,7 +220,7 @@ Output: list of changed files with a one-line description of each change.
 
 ### Step 5 — Validate Fix (Real Tool Execution)
 
-Invoke the Agent tool with `subagent_type: "claude-tech-squad:qa"`, `team_name: "bug-fix-team"`, `name: "qa"`.
+Invoke the Agent tool with `subagent_type: "claude-tech-squad:{{qa_agent}}"`, `team_name: "bug-fix-team"`, `name: "qa"`.
 
 Prompt:
 ```
@@ -249,7 +274,7 @@ If lint violations found: return to Step 4 with violations list.
 
 ### Step 6 — Code Review
 
-Invoke the Agent tool with `subagent_type: "claude-tech-squad:reviewer"`, `team_name: "bug-fix-team"`, `name: "reviewer"`.
+Invoke the Agent tool with `subagent_type: "claude-tech-squad:{{reviewer_agent}}"`, `team_name: "bug-fix-team"`, `name: "reviewer"`.
 
 Prompt:
 ```
