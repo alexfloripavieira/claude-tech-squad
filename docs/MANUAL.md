@@ -134,6 +134,40 @@ Without tmux mode, the same workflows run correctly as inline subagents — same
 | `/multi-service` | **[Distributed]** Coordinate changes affecting multiple services: contracts, deployment ordering, blast radius. |
 | `/iac-review` | **[Infra]** Review IaC changes before apply: blast radius, IAM/network security, cost impact, safe sequence. |
 
+### Stack-aware vs Stack-agnostic skills
+
+**Stack-aware** skills detect the project stack at preflight and automatically route to the correct specialist agent — you never have to specify which agent to use.
+
+| Routing variable | Django | React | Vue | TypeScript | JavaScript | Python | Generic |
+|---|---|---|---|---|---|---|---|
+| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
+| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
+| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
+| `{{qa_agent}}` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa` | `qa` |
+| `{{impl_agent}}` | `django-backend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `python-developer` | `backend-dev` |
+
+Skills with stack routing: `/squad`, `/implement`, `/discovery`, `/bug-fix`, `/hotfix`, `/refactor`, `/pr-review`.
+
+**Stack-agnostic** skills always spawn the same specialist regardless of stack — no routing needed:
+
+| Skill | Why agnostic |
+|---|---|
+| `/security-audit` | Always spawns `security-reviewer` — stack-independent analysis |
+| `/dependency-check` | Reads lock files directly; `security-reviewer` handles all ecosystems |
+| `/cloud-debug` | Infrastructure domain — spawns `cloud-architect` + `sre` |
+| `/iac-review` | Terraform/Pulumi is stack-neutral; spawns `cloud-architect` |
+| `/llm-eval` | AI domain — spawns `ai-engineer` + `ml-engineer` |
+| `/prompt-review` | Prompt analysis — spawns `ai-engineer` |
+| `/onboarding` | Read-only repo analysis; no implementation agent |
+| `/release` | Pipeline scripts — no app-stack agent |
+| `/incident-postmortem` | Documentation — no implementation agent |
+| `/factory-retrospective` | Analyzes SEP logs — no implementation agent |
+| `/pre-commit-lint` | Configures lint hooks — the lint command varies, not the agent |
+| `/migration-plan` | Schema/SQL review — `dba` is appropriate for all stacks |
+| `/multi-service` | Contract testing across services — stack-neutral orchestration |
+
+---
+
 **Escalation rule:**
 
 ```
@@ -305,11 +339,12 @@ TeamCreate → team "squad" (persists across all phases)
 ```
 /bug-fix
     ├─ [GATE: symptom + expected + repro + context]
+    ├─ Stack detection → resolves {{backend_agent}}, {{frontend_agent}}, {{reviewer_agent}}, {{qa_agent}}
     └─ techlead (root cause)
          └─ tdd-specialist (failing test that proves the bug)
-              └─ backend-dev or frontend-dev (minimal fix — PERFUMARIA GUARD active)
-                   └─ reviewer (only blocking findings: regression, crash, wrong fix)
-                        └─ qa (confirms fix + no regression)
+              └─ {{backend_agent}} or {{frontend_agent}} (minimal fix — PERFUMARIA GUARD active)
+                   └─ {{reviewer_agent}} (only blocking findings: regression, crash, wrong fix)
+                        └─ {{qa_agent}} (confirms fix + no regression)
 ```
 
 **Escalate to /squad if:** root cause reveals an architectural problem or > 5 files.
@@ -331,7 +366,7 @@ TeamCreate → team "squad" (persists across all phases)
     │
     ├─ [GATE 1: intake — symptom + scope + deploy target]
     │
-    ├─ Stack Command Detection
+    ├─ Stack detection → resolves {{impl_agent}}, {{reviewer_agent}}
     │
     ├─ git checkout -b hotfix/{{slug}} origin/{{base}}
     │
@@ -339,10 +374,10 @@ TeamCreate → team "squad" (persists across all phases)
     │
     ├─ [GATE 2: diagnosis confirmation]
     │
-    ├─ backend-dev / frontend-dev (minimal patch)
+    ├─ {{impl_agent}} (minimal patch)
     │   Rule: no refactor, no new dependencies
     │
-    ├─ reviewer (lightweight — focus on regressions)
+    ├─ {{reviewer_agent}} (lightweight — focus on regressions)
     │   CHANGES → back to impl
     │
     ├─ security-reviewer (conditional — only if auth/input/data)
@@ -373,8 +408,10 @@ TeamCreate → team "squad" (persists across all phases)
     │
     ├─ gh pr view → metadata (title, base, head, files, diff)
     │
+    ├─ Stack detection → resolves {{reviewer_agent}} (code-reviewer for Django, reviewer for others)
+    │
     ├─ Detects relevant reviewers from changed files:
-    │   always: reviewer
+    │   always: {{reviewer_agent}}
     │   auth/input/secrets → security-reviewer
     │   PII/external data → privacy-reviewer
     │   queries/loops/render → performance-engineer
@@ -526,7 +563,7 @@ Falls back to git log and markdown inference when no SEP logs exist.
 /refactor
     │
     ├─ [GATE 1: target + goal + constraints]
-    ├─ Stack Command Detection
+    ├─ Stack detection → resolves {{backend_agent}}, {{frontend_agent}}, {{reviewer_agent}}
     │
     ├─ design-principles-specialist → analysis + incremental plan
     │
@@ -536,11 +573,11 @@ Falls back to git log and markdown inference when no SEP logs exist.
     │   All tests MUST pass on current code before proceeding
     │
     ├─ For each step in the plan:
-    │   ├─ backend-dev / frontend-dev → implements step
+    │   ├─ {{backend_agent}} / {{frontend_agent}} → implements step
     │   ├─ {{test_command}} → MUST pass
     │   └─ [GATE if tests broke: Fix / Skip / Abort]
     │
-    ├─ reviewer → final review
+    ├─ {{reviewer_agent}} → final review
     └─ {{test_command}} → final confirmation
 ```
 

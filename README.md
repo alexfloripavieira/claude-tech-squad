@@ -276,6 +276,17 @@ Shell / Automation stack:
 | javascript-developer | ✅ | ✅ (browser verification) |
 | shell-developer | ✅ (CLI tools) | — |
 
+**Stack routing — resolved automatically at skill preflight:**
+
+| Routing variable | Django | React | Vue | TypeScript | JavaScript | Python | Generic |
+|---|---|---|---|---|---|---|---|
+| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
+| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
+| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
+| `{{qa_agent}}` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa` | `qa` |
+
+Skills that use this routing: `/squad`, `/implement`, `/discovery`, `/bug-fix`, `/hotfix`, `/refactor`, `/pr-review`.
+
 **Recommended delivery order for a full Django feature:**
 
 ```
