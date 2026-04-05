@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.32.0] - 2026-04-05 — Automated feature release
+
+### Added
+
+- Extend stack-aware routing to bug-fix, hotfix, refactor, and pr-review skills
 ## [5.31.0] - 2026-04-05 — Automated feature release
 
 ### Added
