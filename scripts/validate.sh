@@ -305,6 +305,7 @@ EXECUTION_AGENTS=(
   shell-developer
   typescript-developer
   vue-developer
+  qa-tester
 )
 
 for agent in "${EXECUTION_AGENTS[@]}"; do

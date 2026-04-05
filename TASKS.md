@@ -463,3 +463,44 @@
 - [x] 9.5.4 — Escada completa passou: validate.sh → smoke-test.sh → dogfood.sh → dogfood-report.sh --schema-only
 - [x] 9.5.5 — Entrada criada no CHANGELOG.md para v5.30.0 com todos os novos agentes e fixes de regex documentados
 - [x] 9.5.6 — Commit criado com todas as mudanças da sprint
+
+---
+
+### Sprint 10 — Auditoria de qualidade dos 12 stack specialists ✓
+
+**Objetivo:** Garantir que os 12 agentes integrados na Sprint 9 atendem ao mesmo nível de qualidade dos 62 agentes originais: boundary text, Absolute Prohibitions para agentes de execução, e coverage no validate.sh.
+
+---
+
+#### 10.1 — Adicionar "What this agent does NOT do" em todos os 12 stack specialists ✓
+
+**Escopo:** Sprint 7 adicionou boundary text para pares de agentes com papéis próximos. Os 12 novos agentes foram adicionados sem esse texto, criando risco de misrouting.
+
+- [x] 10.1.1 — Ler cada um dos 12 agentes e identificar responsabilidades que NÃO pertencem a eles
+- [x] 10.1.2 — Para `django-pm`: não escreve código, não faz arquitetura, não cria migrações
+- [x] 10.1.3 — Para `tech-lead`: não escreve código de produção, não implementa features, não faz revisão de PR
+- [x] 10.1.4 — Para `django-backend`: não escreve templates HTML, não implementa CSS, não testa no browser
+- [x] 10.1.5 — Para `django-frontend`: não toca models, views, ou lógica de backend; não cria migrações
+- [x] 10.1.6 — Para `code-reviewer`: não implementa os fixes que encontra, não aprova PRs automaticamente
+- [x] 10.1.7 — Para `qa-tester`: não escreve código de aplicação, não corrige bugs, não modifica templates
+- [x] 10.1.8 — Para `react-developer`: não toca backend Django, não escreve SQL, não configura infraestrutura
+- [x] 10.1.9 — Para `vue-developer`: não toca backend, não configura SSR ou Node.js, não escreve SQL
+- [x] 10.1.10 — Para `python-developer`: não escreve código Django (models/views/URLs), não escreve frontend
+- [x] 10.1.11 — Para `typescript-developer`: não configura backend, não escreve CSS/HTML de produção
+- [x] 10.1.12 — Para `javascript-developer`: não migra código para TypeScript, não configura bundlers complexos
+- [x] 10.1.13 — Para `shell-developer`: não escreve código de aplicação, não configura serviços cloud diretamente
+
+#### 10.2 — Adicionar Absolute Prohibitions ao qa-tester ✓
+
+**Escopo:** `qa-tester` usa Playwright para interagir com um browser real em ambientes de staging/produção. Isso o torna um agente de execução — ele pode navegar para URLs de produção, submeter formulários com dados reais, e acionar side effects. Precisa de Absolute Prohibitions como todos os agentes de execução.
+
+- [x] 10.2.1 — Ler `qa-tester.md` e confirmar que não tem bloco de proibições
+- [x] 10.2.2 — Adicionar `## Absolute Prohibitions` com: nunca testar em produção sem autorização explícita, nunca submeter formulários com dados reais de usuários, nunca apagar dados via browser, nunca navegar para URLs fora do escopo definido
+- [x] 10.2.3 — Atualizar `scripts/validate.sh`: adicionar `qa-tester` à lista EXECUTION_AGENTS
+- [x] 10.2.4 — Testar: remover bloco de qa-tester e confirmar que validate.sh falha; restaurar e confirmar que passa
+
+#### 10.3 — Escada de validação e commit ✓
+
+- [x] 10.3.1 — Rodar `bash scripts/validate.sh` e confirmar que passa
+- [x] 10.3.2 — Rodar `bash scripts/smoke-test.sh` e confirmar que passa
+- [x] 10.3.3 — Commitar com `feat: add boundary text and Absolute Prohibitions to stack specialists`
