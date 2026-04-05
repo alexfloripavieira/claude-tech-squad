@@ -183,41 +183,47 @@
 
 ---
 
-### Sprint 4 — Onboarding e experiência do operador
+### Sprint 4 — Onboarding e experiência do operador ✓
 
 **Objetivo:** Reduzir o tempo até primeira execução bem-sucedida e eliminar pontos de fricção no onboarding.
 
 ---
 
-#### 4.1 — Validar e documentar fluxo de instalação
+#### 4.1 — Validar e documentar fluxo de instalação ✓
 
 **Escopo:** Identificar pré-requisitos implícitos e erros comuns que um novo operador enfrenta.
 
-- [ ] 4.1.1 — Ler `docs/GETTING-STARTED.md` completo e mapear cada passo de instalação
-- [ ] 4.1.2 — Identificar pré-requisitos não documentados: versão mínima do Claude Code, se tmux é opcional ou obrigatório para modo padrão, variáveis de ambiente necessárias
-- [ ] 4.1.3 — Documentar os 5 erros mais comuns em nova seção "Troubleshooting" no `GETTING-STARTED.md`
-- [ ] 4.1.4 — Adicionar seção "Verificando a instalação" com comando de smoke test rápido que confirma que o plugin está ativo
-- [ ] 4.1.5 — Registrar tempo de instalação documentado como baseline da meta < 10 minutos
+- [x] 4.1.1 — Ler `docs/GETTING-STARTED.md` completo e mapear cada passo de instalação
+- [x] 4.1.2 — Identificar pré-requisitos não documentados: versão mínima do Claude Code, se tmux é opcional ou obrigatório para modo padrão, variáveis de ambiente necessárias
+- [x] 4.1.3 — Documentar os 5 erros mais comuns em nova seção "Troubleshooting" no `GETTING-STARTED.md`
+- [x] 4.1.4 — Adicionar seção "Verificando a instalação" com comando de smoke test rápido que confirma que o plugin está ativo
+- [x] 4.1.5 — Registrar tempo de instalação documentado como baseline da meta < 10 minutos
 
-#### 4.2 — Criar `docs/SKILL-SELECTOR.md` com decision tree
+> Resultado: Seção "Prerequisites" adicionada com tabela de pré-requisitos (Claude Code, tmux opcional, env vars). tmux documentado como opcional para modo inline. 5 erros comuns documentados (scope errado, tmux não ativo, ai-docs/ ausente, ripgrep faltando, CLAUDE.md existente). Seção "Verifying Installation" adicionada com `claude /list-skills | grep claude-tech-squad`. Baseline de < 5 min (inline) e < 10 min (teammate mode) registrado.
+
+#### 4.2 — Criar `docs/SKILL-SELECTOR.md` com decision tree ✓
 
 **Escopo:** Novo operador não sabe qual skill usar. O decision tree compacto resolve isso sem precisar ler o playbook inteiro.
 
-- [ ] 4.2.1 — Mapear critérios de decisão de cada uma das 20 skills em formato de perguntas binárias
-- [ ] 4.2.2 — Criar diagrama `flowchart TD` em mermaid com o decision tree
-- [ ] 4.2.3 — Adicionar tabela: `Skill | Quando usar | Quando NÃO usar | Escalate para`
-- [ ] 4.2.4 — Salvar em `docs/SKILL-SELECTOR.md`
-- [ ] 4.2.5 — Adicionar link no `docs/README.md` e no `README.md` raiz
+- [x] 4.2.1 — Mapear critérios de decisão de cada uma das 20 skills em formato de perguntas binárias
+- [x] 4.2.2 — Criar diagrama `flowchart TD` em mermaid com o decision tree
+- [x] 4.2.3 — Adicionar tabela: `Skill | Quando usar | Quando NÃO usar | Escalate para`
+- [x] 4.2.4 — Salvar em `docs/SKILL-SELECTOR.md`
+- [x] 4.2.5 — Adicionar link no `docs/README.md` e no `README.md` raiz
 
-#### 4.3 — Melhorar skill `/onboarding` para repositórios com LLM/AI
+> Resultado: `docs/SKILL-SELECTOR.md` criado com flowchart TD mermaid de 20 nós, tabela de referência com 20 linhas (Skill | Quando usar | Quando NÃO usar | Escalate para), e tabela de heurísticas rápidas com 13 sinais. Link adicionado em `docs/README.md` (seção "Using the Squad") e `README.md` raiz. `validate.sh` passa.
+
+#### 4.3 — Melhorar skill `/onboarding` para repositórios com LLM/AI ✓
 
 **Escopo:** Onboarding deve detectar código LLM/AI e configurar o CLAUDE.md gerado com instruções de eval e prompt review.
 
-- [ ] 4.3.1 — Ler skill `plugins/claude-tech-squad/skills/onboarding` atual
-- [ ] 4.3.2 — Verificar se detecta: imports de OpenAI, Anthropic, LangChain, LlamaIndex, pgvector
-- [ ] 4.3.3 — Adicionar detecção: se LLM code encontrado, incluir seção no CLAUDE.md gerado explicando uso de `/llm-eval` antes de qualquer release e `/prompt-review` antes de qualquer merge com mudança de prompt
-- [ ] 4.3.4 — Adicionar geração de baseline de dependências: listar dependências detectadas com flags de desatualização conhecidas
-- [ ] 4.3.5 — Testar skill em 3 tipos de repositório: layered Python sem AI, hexagonal TypeScript sem AI, repositório com imports de Anthropic SDK
+- [x] 4.3.1 — Ler skill `plugins/claude-tech-squad/skills/onboarding` atual
+- [x] 4.3.2 — Verificar se detecta: imports de OpenAI, Anthropic, LangChain, LlamaIndex, pgvector
+- [x] 4.3.3 — Adicionar detecção: se LLM code encontrado, incluir seção no CLAUDE.md gerado explicando uso de `/llm-eval` antes de qualquer release e `/prompt-review` antes de qualquer merge com mudança de prompt
+- [x] 4.3.4 — Adicionar geração de baseline de dependências: listar dependências detectadas com flags de desatualização conhecidas
+- [x] 4.3.5 — Testar skill em 3 tipos de repositório: layered Python sem AI, hexagonal TypeScript sem AI, repositório com imports de Anthropic SDK
+
+> Resultado: Step 1 expandido com grep de 15+ padrões LLM (openai, anthropic, langchain, llama.index, pgvector, chromadb, ragas, etc.) em requirements.txt, pyproject.toml, package.json e arquivos `.prompt`. Flag `llm_detected` propagada para Step 4 e Step 6. Step 4 emite seção "AI / LLM Workflow Rules" no CLAUDE.md se `llm_detected=true`, com gates obrigatórios `/llm-eval` e `/prompt-review`. Step 6 expandido com listagem de dependências e flags de versão para libs LLM conhecidas (openai < 1.0, langchain < 0.2, anthropic < 0.20). Testado contra 3 fixtures: layered-monolith (NO_LLM ✓), hexagonal-billing (NO_LLM ✓), llm-rag/pyproject.toml detecta anthropic, langchain, ragas, chromadb (LLM_DETECTED ✓).
 
 ---
 

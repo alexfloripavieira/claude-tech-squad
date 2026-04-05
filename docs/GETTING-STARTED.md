@@ -24,6 +24,25 @@ Use it for:
 
 If you need baseline commands, skills, rules, and templates, use `claude-config`.
 
+## Prerequisites
+
+Before installing, confirm the following:
+
+| Requirement | Required for | Note |
+|---|---|---|
+| **Claude Code** (any recent version) | All modes | Plugin system was introduced in Claude Code. No minimum version enforced — use the latest available. |
+| **tmux** | Teammate mode only | Inline mode (default) works without tmux. Teammate mode requires Claude Code to be started inside a tmux session. |
+| `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` | Teammate mode only | Set in `~/.claude/settings.json`. Not needed for inline mode. |
+| `CLAUDE_CODE_TEAMMATE_MODE=tmux` | Teammate mode only | Set in `~/.claude/settings.json`. Not needed for inline mode. |
+| **Python 3** | Validation scripts only | `scripts/dogfood-report.sh` uses `python3`. Not required to run squad commands. |
+| **bash** | Validation scripts only | All `scripts/` require bash. Not required to run squad commands. |
+
+> **Inline mode is the default and requires only Claude Code.** Teammate mode (separate tmux panes per specialist) adds tmux and two environment variables. Start with inline mode if you are new to the plugin.
+
+**Estimated installation time:** < 5 minutes for inline mode, < 10 minutes including teammate mode setup.
+
+---
+
 ## Install In Claude Code
 
 ### Step 1 — Add the Marketplace
@@ -337,6 +356,130 @@ If Context7 is unavailable or does not have documentation for the library, the a
 | Operations | release, sre, cost-optimizer, incident-manager |
 
 Total: 61 specialists.
+
+---
+
+## Verifying Installation
+
+Run this after installing to confirm the plugin is active and reachable:
+
+```bash
+# List all loaded skills — you should see 20 claude-tech-squad skills
+claude /list-skills 2>/dev/null | grep claude-tech-squad | wc -l
+```
+
+Expected output: `20`
+
+If you have the repository cloned locally, run the structural validation:
+
+```bash
+# Confirms all 61 agents, 20 skills, and contracts are intact
+bash scripts/validate.sh
+
+# Confirms schema-level SEP log compliance
+bash scripts/dogfood-report.sh --schema-only
+```
+
+Both commands should exit with `0` and no errors. If `validate.sh` reports missing agents or failed contracts, re-run `claude plugin install` and verify the plugin scope (`-s user`, `-s project`, or `-s local`).
+
+---
+
+## Troubleshooting
+
+### 1. Plugin not found after install (`/claude-tech-squad:squad not found`)
+
+**Cause:** Plugin installed with a different scope than the current session uses.
+
+**Fix:** Reinstall with `-s user` to make it available globally:
+
+```bash
+claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
+```
+
+Or check which scopes have the plugin loaded:
+
+```bash
+claude plugin list
+```
+
+---
+
+### 2. Agents run inline instead of separate tmux panes
+
+**Cause:** `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` or `CLAUDE_CODE_TEAMMATE_MODE` not set, or Claude Code was not started inside a tmux session.
+
+**Fix — step 1:** Confirm the env vars are in `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_TEAMMATE_MODE": "tmux"
+  }
+}
+```
+
+**Fix — step 2:** Exit Claude Code, start a tmux session, then start Claude Code inside it:
+
+```bash
+tmux new-session -s squad
+claude
+```
+
+> **Note:** Inline mode is fully functional. Tmux panes are a visibility enhancement, not a requirement. If you are new, start with inline mode.
+
+---
+
+### 3. `ai-docs/` directory missing when running `/discovery` or `/squad`
+
+**Cause:** `/onboarding` was not run before other squad commands.
+
+**Fix:** Run onboarding first in any new repository:
+
+```text
+/claude-tech-squad:onboarding
+```
+
+This creates `ai-docs/`, `.squad-log/`, and a `CLAUDE.md` template in under 2 minutes.
+
+---
+
+### 4. `scripts/smoke-test.sh` fails with `rg: command not found`
+
+**Cause:** `ripgrep` is not installed on the machine. This affects the validation scripts only — it does not affect running squad commands.
+
+**Fix (macOS):**
+
+```bash
+brew install ripgrep
+```
+
+**Fix (Ubuntu/Debian):**
+
+```bash
+apt-get install ripgrep
+```
+
+Squad commands (`/discovery`, `/implement`, `/squad`, etc.) work without `ripgrep`. The validation scripts are only needed when contributing to the plugin itself.
+
+---
+
+### 5. CLAUDE.md already exists — onboarding skips template generation
+
+**Cause:** `/onboarding` detected an existing `CLAUDE.md` and skipped overwriting it (by design — Safety Contract).
+
+**Expected behavior:** This is correct. The skill emits `[Onboarding] CLAUDE.md already exists — skipping template generation.`
+
+**Action:** Manually merge the squad workflow rules into your existing `CLAUDE.md`:
+
+```markdown
+## Workflow Rules
+
+- Bug fixes (1–2 files): fix directly or use `/claude-tech-squad:bug-fix`
+- Features (3+ files): use `/claude-tech-squad:squad`
+- Production emergency: use `/claude-tech-squad:hotfix`
+- Never commit or push without explicit authorization
+```
 
 ---
 

@@ -15,6 +15,7 @@ This repository is the execution layer. It provides the specialist team and work
 - Jira and Confluence handoff support
 
 See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for installation, teammate mode setup, commands, and prompt examples.
+See [SKILL-SELECTOR.md](docs/SKILL-SELECTOR.md) for the decision tree: which skill to run for each situation.
 See [EXECUTION-TRACE.md](docs/EXECUTION-TRACE.md) for how to interpret visible agent execution.
 See [OPERATIONAL-PLAYBOOK.md](docs/OPERATIONAL-PLAYBOOK.md) for common execution scenarios.
 See [DOGFOODING.md](docs/DOGFOODING.md) for layered, hexagonal, and hotfix smoke scenarios.
