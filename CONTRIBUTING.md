@@ -89,3 +89,162 @@ Then execute the scenario in Claude, paste the visible trace and final output in
 ```bash
 bash scripts/dogfood-report.sh
 ```
+
+---
+
+## Adding a New Agent
+
+Agents are specialist files in `plugins/claude-tech-squad/agents/`. Each agent owns exactly one specialty and is invoked by skills or other agents via `subagent_type: "claude-tech-squad:<slug>"`.
+
+### Required Fields
+
+Every agent file must have:
+
+| Field | Location | Description |
+|---|---|---|
+| `name:` | YAML frontmatter | Slug matching the filename (e.g., `backend-dev`) |
+| `description:` | YAML frontmatter | One-line specialty description used for routing |
+| `tools:` | YAML frontmatter | List of tools the agent is allowed to use |
+| **Role declaration** | Body — top section | What the agent owns and what it explicitly does NOT do |
+| `## What This Agent Does NOT Do` | Body | Boundary text — prevents orchestrators from misrouting |
+| `## Result Contract` | Body — near end | Structured `result_contract` YAML block |
+| `## Documentation Standard — Context7 First, Repository Fallback` | Body — near end | Mandatory Context7 lookup pattern |
+
+For execution agents (those that run shell commands, create PRs, deploy, or modify infrastructure), also add:
+
+| Field | Description |
+|---|---|
+| `## Absolute Prohibitions` | Hard-coded safety constraints that cannot be overridden by incident urgency or business pressure |
+
+### Registration Checklist
+
+When you create `plugins/claude-tech-squad/agents/<slug>.md`:
+
+1. **`scripts/validate.sh`** — add the slug to the `REQUIRED_AGENTS` array
+2. **`README.md`** — add the agent to the correct category in the Specialist Roster section, update the total agent count in the heading
+3. **`docs/MANUAL.md`** — section 6 lists all agents by category (auto-updated by the release pipeline on next release)
+
+### PR Checklist for a New Agent
+
+- [ ] `bash scripts/validate.sh` passes — confirms frontmatter, Result Contract, Context7 section are present
+- [ ] `bash scripts/smoke-test.sh` passes — full validation ladder
+- [ ] Boundary text (`## What This Agent Does NOT Do`) reviewed against all adjacent agents with overlapping scope
+- [ ] Agent is not self-chaining — no `Agent` tool in frontmatter, no `subagent_type` in body (only `incident-manager` is exempt)
+- [ ] If execution agent: `## Absolute Prohibitions` block added and added to `EXECUTION_AGENTS` list in `validate.sh`
+- [ ] Change class declared in PR template: Class C for new agent, Class D if it modifies routing or release behavior
+
+See `docs/AGENT-CONTRACT.md` for the full required structure and a copyable template.
+
+---
+
+## Adding a New Skill
+
+Skills are orchestration pipelines in `plugins/claude-tech-squad/skills/<slug>/SKILL.md`. Each skill defines a preflight → agent chain → gates → checkpoints → SEP log sequence.
+
+### Minimum Required Structure
+
+Every skill file must contain:
+
+| Section | Purpose |
+|---|---|
+| `name:` and `description:` frontmatter | Routing and marketplace display |
+| `## Global Safety Contract` | Hard-coded forbidden operations, inherited by all spawned agents |
+| `### Preflight Gate` | What is validated before any agent is spawned (execution mode, architecture style, lint profile) |
+| Agent chain | Numbered steps with explicit `subagent_type: "claude-tech-squad:<slug>"` for every spawn |
+| Gate blocks | `[GATE N: ...]` sections at decision points requiring human input |
+| `## Operator Visibility Contract` | Required `[...]` trace lines emitted during execution |
+| Checkpoint block | Named checkpoints for resume support |
+| SEP log instruction | Write to `ai-docs/.squad-log/<skill>-<timestamp>.json` with required fields |
+| `## Teammate Failure Protocol` | Detection, re-spawn, and gate behavior when an agent returns empty or malformed output |
+
+For orchestrator skills comparable to `discovery`, `implement`, or `squad`, also add:
+
+| Section | Purpose |
+|---|---|
+| `### Preflight Gate` | Required for validate.sh |
+| `## Agent Result Contract (ARC)` | Required for validate.sh |
+| `## Runtime Resilience Contract` | Required for validate.sh |
+| `### Checkpoint / Resume Rules` | Required for validate.sh |
+
+### Minimal Skill Template
+
+```markdown
+---
+name: my-skill
+description: One-line description of what this skill does.
+---
+
+## Global Safety Contract
+
+[Copy from an existing skill — this block is mandatory and must not be shortened.]
+
+### Preflight Gate
+
+Before spawning any agent:
+1. Confirm `{{input_variable}}` is present — if not, ask the user.
+2. Detect execution mode: `CLAUDE_CODE_TEAMMATE_MODE` env → `inline` (default) or `tmux`.
+3. Emit: `[Preflight Passed] my-skill | execution_mode={{execution_mode}}`
+
+## Operator Visibility Contract
+
+You MUST emit these lines at the specified moments:
+- `[Preflight Passed] my-skill | ...` — after preflight
+- `[Agent Start] <role>` — before each spawn
+- `[Agent Done] <role> | Status: ...` — after each return
+- `[SEP Log Written] ai-docs/.squad-log/...` — after writing the log
+
+## Step 1 — First Agent
+
+Spawn:
+```
+Agent(
+  subagent_type: "claude-tech-squad:techlead",
+  input: "..."
+)
+```
+Emit: `[Agent Start] TechLead`
+
+[... additional steps ...]
+
+## Teammate Failure Protocol
+
+If an agent returns empty output or output missing the `result_contract` block:
+1. Re-spawn once with the same input.
+2. If it fails again: present `[R]etry / [S]kip / [X]Abort` gate.
+3. Never advance past a sequential agent without valid output or explicit skip.
+
+## SEP Log
+
+At skill completion, write:
+
+```
+ai-docs/.squad-log/{{timestamp}}-my-skill-{{run_id}}.json
+```
+
+Required fields: `run_id`, `skill`, `timestamp`, `final_status`, `execution_mode`, `architecture_style`, `checkpoints`, `fallbacks_invoked`.
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{timestamp}}-my-skill-{{run_id}}.json`
+```
+
+### Registration Checklist
+
+When you create `plugins/claude-tech-squad/skills/<slug>/SKILL.md`:
+
+1. **`scripts/validate.sh`** — add the slug to `REQUIRED_SKILLS` if it should be required at all times
+2. **`scripts/smoke-test.sh`** — add an assertion verifying the SKILL.md exists and contains required sections
+3. **`README.md`** — add the command to the Commands section
+4. **`docs/GETTING-STARTED.md`** — add the command to the commands reference
+5. **`docs/MANUAL.md`** — section 4 (auto-updated by release pipeline on next release)
+
+### PR Checklist for a New Skill
+
+- [ ] `bash scripts/validate.sh` passes — confirms frontmatter, structural sections, namespace enforcement
+- [ ] `bash scripts/smoke-test.sh` passes — full ladder including the new skill assertion
+- [ ] All `subagent_type` values use `claude-tech-squad:` prefix — no external namespaces
+- [ ] Preflight emits `[Preflight Passed]` before any agent spawn
+- [ ] Every agent spawn has a matching `[Agent Start]` and `[Agent Done]` visibility line
+- [ ] SEP log instruction is present and uses the correct path pattern
+- [ ] Teammate Failure Protocol section is present
+- [ ] Change class declared in PR template: Class B for new skill, Class C if it modifies agent routing
+
+See `docs/SKILL-CONTRACT.md` for the full required structure and section-by-section guidance.

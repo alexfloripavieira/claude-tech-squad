@@ -14,7 +14,7 @@ python3 -m json.tool "$PLUGIN_DIR/.claude-plugin/plugin.json" >/dev/null
 # ── Version consistency ──────────────────────────────────────────────────────
 MARKETPLACE_VERSION=$(python3 -c "import json; d=json.load(open('$ROOT/.claude-plugin/marketplace.json')); print(d['plugins'][0]['version'])")
 PLUGIN_VERSION=$(python3 -c "import json; d=json.load(open('$PLUGIN_DIR/.claude-plugin/plugin.json')); print(d['version'])")
-MANUAL_VERSION=$(python3 -c "import re; s=open('$ROOT/docs/MANUAL.md').read(); m=re.search(r'\\*\\*Versão:\\*\\*\\s*([0-9.]+)', s); print(m.group(1) if m else '')")
+MANUAL_VERSION=$(python3 -c "import re; s=open('$ROOT/docs/MANUAL.md').read(); m=re.search(r'\*\*Version:\*\*\s*([0-9.]+)', s); print(m.group(1) if m else '')")
 
 if [ "$MARKETPLACE_VERSION" != "$PLUGIN_VERSION" ]; then
   echo "Version mismatch: marketplace.json ($MARKETPLACE_VERSION) != plugin.json ($PLUGIN_VERSION)"

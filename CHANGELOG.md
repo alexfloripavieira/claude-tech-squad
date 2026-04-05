@@ -362,6 +362,13 @@ O agente não tinha nenhuma referência a TDD. Adicionado TDD Mandate com ciclo 
 **TDD Mandate adicionado a 9 agentes de implementação restantes:**
 Os agentes `ai-engineer`, `data-engineer`, `integration-engineer`, `security-engineer`, `search-engineer`, `growth-engineer`, `devex-engineer`, `ml-engineer` e `rag-engineer` não tinham nenhuma referência a TDD. Todos receberam seção `## TDD Mandate` com regra red-green-refactor, proibição de código de produção antes de teste falhante, e instrução de mock para dependências externas em testes unitários.
 
+## [5.12.1] - 2026-03-31 — /implement: mandatory quality bench completion checks and failure recovery
+
+### Fixed
+
+**`/implement` — mandatory quality bench completion checks:**
+Quality Bench steps lacked explicit completion checks, allowing the orchestrator to advance to the docs/UAT phase before all quality bench agents had returned. Added mandatory wait and completion verification after each parallel quality bench batch, plus failure recovery steps: if a quality bench agent returns empty output, re-spawn once; if it fails again, present `[R]etry / [S]kip / [X]Abort` gate. Prevents silent quality bench bypass.
+
 ## [5.12.0] - 2026-03-25 — /bug-fix: perfumaria guard e critérios de blocker no reviewer
 
 ### Changed

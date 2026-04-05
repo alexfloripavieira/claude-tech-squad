@@ -357,53 +357,53 @@
 
 ---
 
-### Sprint 8 — Documentação e contribuição
+### Sprint 8 — Documentação e contribuição ✓
 
 **Objetivo:** Fechar gaps de documentação para que qualquer contribuidor novo possa adicionar agentes ou skills sem precisar de ajuda externa.
 
 ---
 
-#### 8.1 — Adicionar guia "Como adicionar um novo agente" ao CONTRIBUTING.md
+#### 8.1 — Adicionar guia "Como adicionar um novo agente" ao CONTRIBUTING.md ✓
 
 **Escopo:** O CONTRIBUTING.md não documenta o processo de adição de agentes, criando fricção para contribuidores.
 
-- [ ] 8.1.1 — Ler `CONTRIBUTING.md` atual e identificar o que está documentado e o que falta
-- [ ] 8.1.2 — Documentar campos obrigatórios de um novo agente: `role`, `specialty`, `boundary_text`, `result_contract`, `absolute_prohibitions` (se agente de execução)
-- [ ] 8.1.3 — Documentar onde registrar o agente: `plugins/claude-tech-squad/agents/` + README.md roster + MANUAL.md seção 6
-- [ ] 8.1.4 — Documentar o checklist de PR para novo agente: validate.sh, smoke-test.sh, boundary text revisado
-- [ ] 8.1.5 — Adicionar seção em `CONTRIBUTING.md` com o guia completo
+- [x] 8.1.1 — Ler `CONTRIBUTING.md` atual e identificar o que está documentado e o que falta
+- [x] 8.1.2 — Documentar campos obrigatórios de um novo agente: `role`, `specialty`, `boundary_text`, `result_contract`, `absolute_prohibitions` (se agente de execução)
+- [x] 8.1.3 — Documentar onde registrar o agente: `plugins/claude-tech-squad/agents/` + README.md roster + MANUAL.md seção 6
+- [x] 8.1.4 — Documentar o checklist de PR para novo agente: validate.sh, smoke-test.sh, boundary text revisado
+- [x] 8.1.5 — Adicionar seção em `CONTRIBUTING.md` com o guia completo
 
-#### 8.2 — Adicionar guia "Como adicionar uma nova skill" ao CONTRIBUTING.md
+#### 8.2 — Adicionar guia "Como adicionar uma nova skill" ao CONTRIBUTING.md ✓
 
 **Escopo:** Skills têm estrutura mínima obrigatória (preflight, SEP log, gates, result_contract). Sem documentação, contribuidores criam skills incompletas.
 
-- [ ] 8.2.1 — Documentar estrutura mínima de uma skill: preflight block, chain de agentes, gate blocks, checkpoint block, SEP log block
-- [ ] 8.2.2 — Documentar onde registrar: `plugins/claude-tech-squad/skills/` + README.md commands + MANUAL.md seção 4 + GETTING-STARTED.md commands + smoke-test.sh
-- [ ] 8.2.3 — Adicionar exemplo de skill mínima como template inline no CONTRIBUTING.md
-- [ ] 8.2.4 — Documentar checklist de PR para nova skill: todos os pontos de registro verificados, smoke test adicionado, validação passando
-- [ ] 8.2.5 — Adicionar seção em `CONTRIBUTING.md` com o guia completo
+- [x] 8.2.1 — Documentar estrutura mínima de uma skill: preflight block, chain de agentes, gate blocks, checkpoint block, SEP log block
+- [x] 8.2.2 — Documentar onde registrar: `plugins/claude-tech-squad/skills/` + README.md commands + MANUAL.md seção 4 + GETTING-STARTED.md commands + smoke-test.sh
+- [x] 8.2.3 — Adicionar exemplo de skill mínima como template inline no CONTRIBUTING.md
+- [x] 8.2.4 — Documentar checklist de PR para nova skill: todos os pontos de registro verificados, smoke test adicionado, validação passando
+- [x] 8.2.5 — Adicionar seção em `CONTRIBUTING.md` com o guia completo
 
-#### 8.3 — Traduzir `docs/MANUAL.md` para inglês
+#### 8.3 — Traduzir `docs/MANUAL.md` para inglês ✓
 
 **Escopo:** O MANUAL.md está em português. Todos os outros docs estão em inglês. Inconsistência cria barreira para contribuidores internacionais.
 
-- [ ] 8.3.1 — Ler `docs/MANUAL.md` completo e mapear todas as seções
-- [ ] 8.3.2 — Traduzir seções 1-3: O que é o plugin, Instalação e ativação, Teammate Mode
-- [ ] 8.3.3 — Traduzir seções 4-6: Skills disponíveis, Fluxo completo de cada skill, Os 61 agentes
-- [ ] 8.3.4 — Traduzir seções 7-10: Arquitetura da esteira, Gates de usuário, Visibilidade de execução, Regras de uso
-- [ ] 8.3.5 — Traduzir seções 11-13: Referência rápida, Absolute Prohibitions, SEP protocol
-- [ ] 8.3.6 — Verificar que todos os exemplos de comandos, trace lines, e outputs continuam corretos
-- [ ] 8.3.7 — Rodar `bash scripts/validate.sh` para confirmar integridade após a tradução
+- [x] 8.3.1 — Ler `docs/MANUAL.md` completo e mapear todas as seções
+- [x] 8.3.2 — Traduzir seções 1-3: O que é o plugin, Instalação e ativação, Teammate Mode
+- [x] 8.3.3 — Traduzir seções 4-6: Skills disponíveis, Fluxo completo de cada skill, Os 61 agentes
+- [x] 8.3.4 — Traduzir seções 7-10: Arquitetura da esteira, Gates de usuário, Visibilidade de execução, Regras de uso
+- [x] 8.3.5 — Traduzir seções 11-13: Referência rápida, Absolute Prohibitions, SEP protocol
+- [x] 8.3.6 — Verificar que todos os exemplos de comandos, trace lines, e outputs continuam corretos
+- [x] 8.3.7 — Rodar `bash scripts/validate.sh` para confirmar integridade após a tradução — passed (v5.29.0, 62 agents)
 
-#### 8.4 — Revisar e completar CHANGELOG.md com entradas retroativas
+#### 8.4 — Revisar e completar CHANGELOG.md com entradas retroativas ✓
 
 **Escopo:** Verificar se há versões no histórico de tags sem entrada correspondente no CHANGELOG.
 
-- [ ] 8.4.1 — Executar `git tag --sort=-v:refname` e listar todas as tags existentes
-- [ ] 8.4.2 — Comparar com entradas em `CHANGELOG.md`
-- [ ] 8.4.3 — Para cada versão sem entrada: executar `git log <tag-anterior>..<tag>` e identificar commits relevantes
-- [ ] 8.4.4 — Adicionar entrada retroativa para cada versão faltante no formato consistente com o padrão atual
-- [ ] 8.4.5 — Rodar `bash scripts/validate.sh` para confirmar que o CHANGELOG está no formato esperado pelo script de release
+- [x] 8.4.1 — Executar `git tag --sort=-v:refname` e listar todas as tags existentes
+- [x] 8.4.2 — Comparar com entradas em `CHANGELOG.md`
+- [x] 8.4.3 — Para cada versão sem entrada: executar `git log <tag-anterior>..<tag>` e identificar commits relevantes
+- [x] 8.4.4 — Adicionar entrada retroativa para cada versão faltante no formato consistente com o padrão atual — v5.12.1 era a única tag sem entrada
+- [x] 8.4.5 — Rodar `bash scripts/validate.sh` para confirmar que o CHANGELOG está no formato esperado pelo script de release
 
 ---
 
