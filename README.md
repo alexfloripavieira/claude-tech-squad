@@ -33,7 +33,7 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 - one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
 - 74 specialist agents for software delivery
-- 20 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
+- 21 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
 - one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml`
 - one local dogfooding pack plus golden-run contract
 

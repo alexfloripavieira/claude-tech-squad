@@ -83,8 +83,8 @@ flowchart TD
 | `/discovery` | Feature still needs shaping — produces a full blueprint with requirements, architecture, and test plan | Blueprint already approved | `/implement` |
 | `/implement` | Approved blueprint, ready to build — TDD-first, review, QA, docs, release | No blueprint in conversation | `/discovery` |
 | `/squad` | Full end-to-end pipeline: discovery + implementation + release in one session | Implementing from existing blueprint only | `/implement` |
+| `/bug-fix` | Isolated bug (1–2 files), non-emergency — writes a failing test to prove the bug before fixing it | Production is down — use `/hotfix` | `/hotfix` |
 | `/hotfix` | Production is broken now — minimal patch, `hotfix/` branch, PR and deploy checklist | Planned maintenance or non-urgent bug | `/incident-postmortem` after resolving |
-| `/bug-fix` | Isolated bug (1–2 files), non-emergency — writes a failing test before fixing | Production is down — use `/hotfix` | `/hotfix` |
 | `/pr-review` | Review any pull request with a specialist bench | No existing PR | `/squad` |
 | `/security-audit` | Full security audit — static analysis, CVEs, secrets, OWASP | Active production incident — use `/cloud-debug` | `/cloud-debug` |
 | `/dependency-check` | Check for CVEs and outdated packages | Need a full audit | `/security-audit` |
