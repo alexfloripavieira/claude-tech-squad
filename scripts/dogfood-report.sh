@@ -86,7 +86,7 @@ while IFS= read -r scenario_id; do
   FORBIDDEN_STRINGS=$(python3 -c "import json; d=json.load(open('$MANIFEST')); s=next(x for x in d['scenarios'] if x['id']=='$scenario_id'); [print(x) for x in s['forbidden_strings']]")
   while IFS= read -r forbidden; do
     [ -n "$forbidden" ] || continue
-    if rg -n -F "$forbidden" "$latest_run" >/dev/null 2>&1; then
+    if grep -rnF "$forbidden" "$latest_run" >/dev/null 2>&1; then
       fail "forbidden string '$forbidden' found in run artifacts for $scenario_id"
     fi
   done <<< "$FORBIDDEN_STRINGS"

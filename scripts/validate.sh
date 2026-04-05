@@ -335,7 +335,7 @@ if [ -n "$AGENT_TOOL_FILES" ]; then
 fi
 
 # ── All subagent_type references must stay inside plugin namespace ──────────
-INVALID_SUBAGENT_TYPES=$(rg -nP 'subagent_type\s*[:=]\s*"(?!claude-tech-squad:)[^"]+"' \
+INVALID_SUBAGENT_TYPES=$(grep -rnP 'subagent_type\s*[:=]\s*"(?!claude-tech-squad:)[^"]+"' \
   "$PLUGIN_DIR/skills" \
   "$PLUGIN_DIR/agents" || true)
 if [ -n "$INVALID_SUBAGENT_TYPES" ]; then
@@ -345,7 +345,7 @@ if [ -n "$INVALID_SUBAGENT_TYPES" ]; then
 fi
 
 # ── No project-specific residue ──────────────────────────────────────────────
-if rg -n "\bA1\b|Fifi|Wooba|Cangooroo|Compozy|Botpress" \
+if grep -rnEI "\bA1\b|Fifi|Wooba|Cangooroo|Compozy|Botpress" \
   "$ROOT/README.md" \
   "$ROOT/docs" \
   "$PLUGIN_DIR" >/dev/null 2>&1; then

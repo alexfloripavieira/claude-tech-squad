@@ -51,8 +51,8 @@ grep -q "## \[$NEXT_VERSION\]" "$TMP_RELEASE_REPO/CHANGELOG.md" || {
 }
 
 AGENT_COUNT=$(find "$AGENTS_DIR" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')
-RESULT_CONTRACT_COUNT=$(rg -n '^## Result Contract$' "$AGENTS_DIR"/*.md | wc -l | tr -d ' ')
-CONTEXT_FALLBACK_COUNT=$(rg -n '^## Documentation Standard — Context7 First, Repository Fallback$' "$AGENTS_DIR"/*.md | wc -l | tr -d ' ')
+RESULT_CONTRACT_COUNT=$(grep -n '^## Result Contract$' "$AGENTS_DIR"/*.md | wc -l | tr -d ' ')
+CONTEXT_FALLBACK_COUNT=$(grep -n '^## Documentation Standard — Context7 First, Repository Fallback$' "$AGENTS_DIR"/*.md | wc -l | tr -d ' ')
 
 if [ "$RESULT_CONTRACT_COUNT" != "$AGENT_COUNT" ]; then
   echo "Smoke test failed: Result Contract count ($RESULT_CONTRACT_COUNT) != agent count ($AGENT_COUNT)"
@@ -86,7 +86,16 @@ for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:'
   }
 done
 
-AGENT_TOOL_FILES=$(rg -l '^tools:\n(  - .+\n)*  - Agent' "$AGENTS_DIR"/*.md -U | sort || true)
+AGENT_TOOL_FILES=$(python3 -c "
+from pathlib import Path
+import re, sys
+d = Path(sys.argv[1])
+for f in sorted(d.glob('*.md')):
+    c = f.read_text()
+    m = re.match(r'^---\n(.*?)\n---', c, re.DOTALL)
+    if m and '- Agent' in m.group(1):
+        print(f)
+" "$AGENTS_DIR" | sort || true)
 EXPECTED_AGENT_TOOL_FILE="$AGENTS_DIR/incident-manager.md"
 if [ "$AGENT_TOOL_FILES" != "$EXPECTED_AGENT_TOOL_FILE" ]; then
   echo "Smoke test failed: unexpected Agent tool exposure"
@@ -94,7 +103,7 @@ if [ "$AGENT_TOOL_FILES" != "$EXPECTED_AGENT_TOOL_FILE" ]; then
   exit 1
 fi
 
-if rg -n 'subagent_type = "code-debugger"|Spawn code-debugger|code-debugger \(root cause analysis' \
+if grep -rnE 'subagent_type = "code-debugger"|Spawn code-debugger|code-debugger \(root cause analysis' \
   "$ROOT/README.md" \
   "$ROOT/docs" \
   "$PLUGIN_DIR" >/dev/null 2>&1; then
