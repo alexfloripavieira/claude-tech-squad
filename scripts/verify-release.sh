@@ -18,7 +18,7 @@ fi
 
 MARKETPLACE_VERSION=$(python3 -c "import json; d=json.load(open('$ROOT/.claude-plugin/marketplace.json')); print(d['plugins'][0]['version'])")
 PLUGIN_VERSION=$(python3 -c "import json; d=json.load(open('$ROOT/plugins/claude-tech-squad/.claude-plugin/plugin.json')); print(d['version'])")
-MANUAL_VERSION=$(python3 -c "import re; s=open('$ROOT/docs/MANUAL.md').read(); m=re.search(r'\\*\\*Versão:\\*\\*\\s*([0-9.]+)', s); print(m.group(1) if m else '')")
+MANUAL_VERSION=$(python3 -c "import re; s=open('$ROOT/docs/MANUAL.md').read(); m=re.search(r'\*\*Version:\*\*\s*([0-9.]+)', s); print(m.group(1) if m else '')")
 
 [ "$MARKETPLACE_VERSION" = "$VERSION" ] || { echo "marketplace.json version ($MARKETPLACE_VERSION) does not match $VERSION"; exit 1; }
 [ "$PLUGIN_VERSION" = "$VERSION" ] || { echo "plugin.json version ($PLUGIN_VERSION) does not match $VERSION"; exit 1; }

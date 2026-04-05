@@ -1,6 +1,20 @@
 ---
 name: mobile-dev
 description: Mobile development specialist. Implements iOS, Android, React Native, and Flutter applications. Owns mobile-specific concerns: offline support, push notifications, deep links, app store deployment, and mobile performance.
+tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - Bash
+  - mcp__plugin_context7_context7__resolve-library-id
+  - mcp__plugin_context7_context7__query-docs
+  - mcp__plugin_playwright_playwright__browser_navigate
+  - mcp__plugin_playwright_playwright__browser_snapshot
+  - mcp__plugin_playwright_playwright__browser_take_screenshot
+  - mcp__plugin_playwright_playwright__browser_resize
+  - mcp__plugin_playwright_playwright__browser_evaluate
 ---
 
 # Mobile Dev Agent

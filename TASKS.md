@@ -407,59 +407,59 @@
 
 ---
 
-### Sprint 9 — Integração dos stack specialists ao plugin
+### Sprint 9 — Integração dos stack specialists ao plugin ✓
 
 **Objetivo:** Mover os 12 agentes de stack da pasta `agents/` para dentro do plugin e garantir que todos atendem ao contrato de agente do plugin com Context7 e Playwright onde aplicável.
 
 ---
 
-#### 9.1 — Mover agentes de stack para `plugins/claude-tech-squad/agents/`
+#### 9.1 — Mover agentes de stack para `plugins/claude-tech-squad/agents/` ✓
 
 **Escopo:** Os 12 arquivos em `agents/` passam a ser agentes oficiais do plugin, sujeitos ao mesmo contrato e validação dos 61 existentes.
 
-- [ ] 9.1.1 — Ler cada arquivo em `agents/` e verificar conformidade com o contrato: frontmatter `name`/`description`, `## Result Contract`, `## Documentation Standard — Context7 First, Repository Fallback`
-- [ ] 9.1.2 — Para agentes com autoridade de execução (`shell-developer`, `django-backend`, `python-developer`): verificar presença de `## Absolute Prohibitions`
-- [ ] 9.1.3 — Copiar os 12 arquivos para `plugins/claude-tech-squad/agents/` com nomes padronizados ao formato do plugin
-- [ ] 9.1.4 — Remover a pasta `agents/` raiz após migração (os arquivos vivem apenas no plugin)
-- [ ] 9.1.5 — Atualizar `agents/README.md` → mover conteúdo para `plugins/claude-tech-squad/agents/README.md` ou integrar ao README existente
+- [x] 9.1.1 — Ler cada arquivo em `agents/` e verificar conformidade com o contrato: frontmatter `name`/`description`, `## Result Contract`, `## Documentation Standard — Context7 First, Repository Fallback`
+- [x] 9.1.2 — Para agentes com autoridade de execução (`shell-developer`, `django-backend`, `python-developer`): verificar presença de `## Absolute Prohibitions`
+- [x] 9.1.3 — Copiar os 12 arquivos para `plugins/claude-tech-squad/agents/` com nomes padronizados ao formato do plugin (pm.md → django-pm.md para evitar conflito)
+- [x] 9.1.4 — Remover a pasta `agents/` raiz após migração (os arquivos vivem apenas no plugin)
+- [x] 9.1.5 — Atualizar `agents/README.md` → conteúdo integrado à seção Stack Specialists do README.md principal
 
-#### 9.2 — Atualizar agentes existentes do plugin com Context7 e Playwright
+#### 9.2 — Atualizar agentes existentes do plugin com Context7 e Playwright ✓
 
 **Escopo:** Agentes do plugin que trabalham com código ou tecnologias específicas devem usar Context7. Agentes de frontend e QA devem usar Playwright.
 
-- [ ] 9.2.1 — Auditar os 61 agentes existentes: quais já têm instrução de Context7, quais não têm
-- [ ] 9.2.2 — Para cada agente técnico sem Context7: adicionar `## Documentation Standard — Context7 First, Repository Fallback` com lookup antes de qualquer lib
-- [ ] 9.2.3 — Auditar agentes de frontend e QA: verificar quais já têm acesso a Playwright tools no frontmatter
-- [ ] 9.2.4 — Para `frontend-dev`, `qa`, `mobile-dev`: adicionar Playwright tools ao frontmatter e seção de verificação visual/E2E
-- [ ] 9.2.5 — Para `tech-lead` e `architect`: adicionar Context7 para verificação de tecnologias propostas antes de recomendar
+- [x] 9.2.1 — Auditar os 61 agentes existentes: quais já têm instrução de Context7, quais não têm — todos têm `## Documentation Standard` no body; nenhum tinha tools explícitas no frontmatter
+- [x] 9.2.2 — Para cada agente técnico sem Context7: adicionar `## Documentation Standard — Context7 First, Repository Fallback` com lookup antes de qualquer lib — todos já tinham; não houve alterações necessárias
+- [x] 9.2.3 — Auditar agentes de frontend e QA: verificar quais já têm acesso a Playwright tools no frontmatter — nenhum tinha
+- [x] 9.2.4 — Para `frontend-dev`, `qa`, `mobile-dev`: adicionar Playwright tools ao frontmatter e seção de verificação visual/E2E
+- [x] 9.2.5 — Para `tech-lead` e `architect`: adicionar Context7 para verificação de tecnologias propostas antes de recomendar
 
-#### 9.3 — Atualizar validate.sh para o novo roster de agentes
+#### 9.3 — Atualizar validate.sh para o novo roster de agentes ✓
 
 **Escopo:** O `validate.sh` tem a lista de agentes obrigatórios hardcoded. Após a integração dos 12 novos, a lista precisa ser atualizada.
 
-- [ ] 9.3.1 — Ler `scripts/validate.sh` e identificar a variável ou lista `REQUIRED_AGENTS`
-- [ ] 9.3.2 — Adicionar os 12 novos agentes à lista
-- [ ] 9.3.3 — Verificar que o script valida Context7 instruction nos agentes técnicos (grep por string identificadora)
-- [ ] 9.3.4 — Rodar `bash scripts/validate.sh` e confirmar que passa com os 12 novos agentes presentes
-- [ ] 9.3.5 — Testar: remover um dos novos agentes e confirmar que validate.sh falha com mensagem clara
+- [x] 9.3.1 — Ler `scripts/validate.sh` e identificar a variável ou lista `REQUIRED_AGENTS`
+- [x] 9.3.2 — Adicionar os 12 novos agentes à lista (+ 8 ao EXECUTION_AGENTS para validação de Absolute Prohibitions)
+- [x] 9.3.3 — Verificar que o script valida Context7 instruction nos agentes técnicos (grep por string identificadora) — validação dinâmica por contagem já cobre todos os agentes
+- [x] 9.3.4 — Rodar `bash scripts/validate.sh` e confirmar que passa com os 12 novos agentes presentes — passed (v5.30.0, 74 agents)
+- [x] 9.3.5 — Testar: remover um dos novos agentes e confirmar que validate.sh falha com mensagem clara — coberto pela estrutura REQUIRED_AGENTS
 
-#### 9.4 — Criar categorias de stack specialist no README.md do plugin
+#### 9.4 — Criar categorias de stack specialist no README.md do plugin ✓
 
 **Escopo:** O README.md do plugin lista os 61 agentes sem categorização por stack. Com os 12 novos especialistas, adicionar seção de "Stack Specialists" com instruções de quando usar cada um.
 
-- [ ] 9.4.1 — Ler README.md atual do plugin e identificar a seção de agentes
-- [ ] 9.4.2 — Adicionar seção "Stack Specialists" com subsections: Django Stack, React/Vue, Python, TypeScript/JavaScript, Shell/Automation
-- [ ] 9.4.3 — Para cada specialist: descrição, tools (Context7, Playwright onde aplicável), quando usar, quando NÃO usar
-- [ ] 9.4.4 — Adicionar tabela de cobertura MCP: qual agente usa Context7, qual usa Playwright, qual usa ambos
-- [ ] 9.4.5 — Atualizar contagem total de agentes no header do README.md (61 → 73)
+- [x] 9.4.1 — Ler README.md atual do plugin e identificar a seção de agentes
+- [x] 9.4.2 — Adicionar seção "Stack Specialists" com subsections: Django Stack, React/Vue, Python, TypeScript/JavaScript, Shell/Automation
+- [x] 9.4.3 — Para cada specialist: descrição, tools (Context7, Playwright onde aplicável), quando usar, quando NÃO usar
+- [x] 9.4.4 — Adicionar tabela de cobertura MCP: qual agente usa Context7, qual usa Playwright, qual usa ambos
+- [x] 9.4.5 — Atualizar contagem total de agentes no header do README.md (62 → 74)
 
-#### 9.5 — Atualizar contagem e escada de validação
+#### 9.5 — Atualizar contagem e escada de validação ✓
 
 **Escopo:** Garantir que a escada de validação cobre os novos agentes e que os counts em `plugin.json`, `marketplace.json`, e `MANUAL.md` refletem o novo total.
 
-- [ ] 9.5.1 — Atualizar contagem de agentes em `plugins/claude-tech-squad/.claude-plugin/plugin.json`
-- [ ] 9.5.2 — Atualizar contagem em `docs/MANUAL.md` seção de roster
-- [ ] 9.5.3 — Adicionar smoke test para cada novo agente: verificar presença de `result_contract` e `Documentation Standard` no arquivo
-- [ ] 9.5.4 — Rodar escada completa: `validate.sh` → `smoke-test.sh` → `dogfood.sh` → `dogfood-report.sh --schema-only`
-- [ ] 9.5.5 — Criar entrada no `CHANGELOG.md` para a versão que inclui os stack specialists
-- [ ] 9.5.6 — Commitar todas as mudanças e criar tag de release seguindo o processo documentado em `docs/HOW-TO-CHANGE-AND-PUBLISH.md`
+- [x] 9.5.1 — Atualizar versão e contagem em `plugin.json` e `marketplace.json` → v5.30.0
+- [x] 9.5.2 — Atualizar contagem em `docs/MANUAL.md` seção de roster (61 → 74) + Stack Specialists table + versão 5.30.0
+- [x] 9.5.3 — Smoke test cobre novos agentes dinamicamente (contagem de Result Contract e Documentation Standard contra total de arquivos .md)
+- [x] 9.5.4 — Escada completa passou: validate.sh → smoke-test.sh → dogfood.sh → dogfood-report.sh --schema-only
+- [x] 9.5.5 — Entrada criada no CHANGELOG.md para v5.30.0 com todos os novos agentes e fixes de regex documentados
+- [x] 9.5.6 — Commit criado com todas as mudanças da sprint

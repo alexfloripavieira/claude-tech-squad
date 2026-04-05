@@ -32,7 +32,7 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 
 - one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
-- 61 specialist agents for software delivery
+- 74 specialist agents for software delivery
 - 20 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
 - one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml`
 - one local dogfooding pack plus golden-run contract
@@ -140,7 +140,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 /claude-tech-squad:prompt-review # before merging any prompt file change
 ```
 
-## Specialist Roster (62 agents)
+## Specialist Roster (74 agents)
 
 ### Discovery & Planning
 - PM
@@ -229,6 +229,58 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 ### Business & Growth
 - Solutions Architect
 - Growth Engineer
+
+### Stack Specialists
+
+Django stack:
+
+- `django-pm` — Product Manager for Django web projects. Shapes the problem, writes user stories, validates delivered features with UAT (Context7 + Playwright).
+- `tech-lead` — Technical lead for Django projects. Defines the approach, decomposes work into agent slices, validates technology choices via Context7. Does not write production code.
+- `django-backend` — Implements Django models, views, forms, URLs, admin, migrations, ORM queries, and API endpoints. Context7 for all Django/DRF lookups. TDD-first.
+- `django-frontend` — Implements Django Template Language templates and TailwindCSS layouts. Context7 for DTL/Tailwind lookups. Playwright for visual verification.
+- `code-reviewer` — Reviews Django backend and frontend code for correctness, N+1 queries, auth gaps, CSRF, TDD compliance, and lint. Returns APPROVED or CHANGES REQUESTED.
+- `qa-tester` — Validates delivered features in the running application using Playwright. Functional flows, responsive design, console health. Does not modify application code.
+
+React / Vue stack:
+
+- `react-developer` — Implements React components, hooks, state management, and Django backend integration. Context7 + Playwright.
+- `vue-developer` — Implements Vue 3 SFCs using the Composition API, Pinia, Vue Router, and Django backend integration. Context7 + Playwright.
+
+Python stack:
+
+- `python-developer` — Implements Python utilities, CLI tools, Celery tasks, and service integrations outside the Django web layer. Context7 for all library lookups. TDD-first.
+
+TypeScript / JavaScript stack:
+
+- `typescript-developer` — Implements TypeScript modules, type definitions, and SDK clients. Strict type safety. Context7. Playwright for bundle verification.
+- `javascript-developer` — Implements vanilla JavaScript browser scripts and Node.js utilities in non-TypeScript projects. Context7 + Playwright.
+
+Shell / Automation stack:
+
+- `shell-developer` — Writes shell scripts for automation, CI/CD, deployment, and developer tooling. `set -euo pipefail` enforced. Context7 for CLI tool lookups.
+
+**MCP coverage for stack specialists:**
+
+| Agent | Context7 | Playwright |
+|---|---|---|
+| django-pm | ✅ | ✅ (UAT) |
+| tech-lead | ✅ | — |
+| django-backend | ✅ | — |
+| django-frontend | ✅ | ✅ (visual verification) |
+| code-reviewer | — | — |
+| qa-tester | — | ✅ (full E2E) |
+| react-developer | ✅ | ✅ (visual verification) |
+| vue-developer | ✅ | ✅ (visual verification) |
+| python-developer | ✅ | — |
+| typescript-developer | ✅ | ✅ (bundle check) |
+| javascript-developer | ✅ | ✅ (browser verification) |
+| shell-developer | ✅ (CLI tools) | — |
+
+**Recommended delivery order for a full Django feature:**
+
+```
+django-pm → tech-lead → django-backend → django-frontend → code-reviewer → qa-tester
+```
 
 Testing split:
 

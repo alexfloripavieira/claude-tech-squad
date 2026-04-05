@@ -1,6 +1,12 @@
 ---
 name: architect
 description: Lead architect for the overall solution. Produces design options, decomposes the system into workstreams, aligns specialist architecture slices, and defines implementation sequencing.
+tools:
+  - Read
+  - Glob
+  - Grep
+  - mcp__plugin_context7_context7__resolve-library-id
+  - mcp__plugin_context7_context7__query-docs
 ---
 
 # Architect Agent

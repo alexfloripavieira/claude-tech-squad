@@ -148,6 +148,18 @@ REQUIRED_AGENTS=(
   test-automation-engineer
   test-planner
   ux-designer
+  code-reviewer
+  django-backend
+  django-frontend
+  django-pm
+  javascript-developer
+  python-developer
+  qa-tester
+  react-developer
+  shell-developer
+  tech-lead
+  typescript-developer
+  vue-developer
 )
 
 for agent in "${REQUIRED_AGENTS[@]}"; do
@@ -285,6 +297,14 @@ EXECUTION_AGENTS=(
   chaos-engineer
   cost-optimizer
   techlead
+  django-backend
+  django-frontend
+  javascript-developer
+  python-developer
+  react-developer
+  shell-developer
+  typescript-developer
+  vue-developer
 )
 
 for agent in "${EXECUTION_AGENTS[@]}"; do

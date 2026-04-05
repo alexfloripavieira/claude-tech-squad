@@ -1,6 +1,6 @@
 # Claude Tech Squad — Technical Manual
 
-**Version:** 5.29.0
+**Version:** 5.30.0
 **Plugin:** `claude-tech-squad`
 
 ---
@@ -12,7 +12,7 @@
 3. [Teammate Mode — tmux pane per agent](#3-teammate-mode--tmux-pane-per-agent)
 4. [Available skills and when to use each](#4-available-skills-and-when-to-use-each)
 5. [Full flow for each skill](#5-full-flow-for-each-skill)
-6. [The 61 agents — roles and specialties](#6-the-61-agents--roles-and-specialties)
+6. [The 74 agents — roles and specialties](#6-the-74-agents--roles-and-specialties)
 7. [Pipeline architecture](#7-pipeline-architecture)
 8. [User gates](#8-user-gates)
 9. [Execution visibility](#9-execution-visibility)
@@ -710,7 +710,7 @@ See [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md) for usage examples for ea
 
 ---
 
-## 6. The 61 agents — roles and specialties
+## 6. The 74 agents — roles and specialties
 
 ### Discovery & Planning
 
@@ -835,6 +835,35 @@ See [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md) for usage examples for ea
 | `sre` | SLOs, blast radius, rollback readiness, canary strategy |
 | `cost-optimizer` | Cloud spend, API costs, query costs, rightsizing |
 | `incident-manager` | Production incident coordination |
+
+### Stack Specialists
+
+Django stack (Context7 + Playwright for browser verification agents):
+
+| Agent | Specialty | Context7 | Playwright |
+|---|---|---|---|
+| `django-pm` | Problem shaping, user stories, UAT for Django projects | ✅ | ✅ |
+| `tech-lead` | Technical lead for Django projects — planning, decomposition | ✅ | — |
+| `django-backend` | Django models, views, forms, admin, ORM, migrations, API endpoints | ✅ | — |
+| `django-frontend` | Django Template Language + TailwindCSS — templates, layouts, components | ✅ | ✅ |
+| `code-reviewer` | Django backend/frontend code review — correctness, security, N+1, TDD | — | — |
+| `qa-tester` | Full E2E Playwright validation of running Django applications | — | ✅ |
+
+React / Vue stack:
+
+| Agent | Specialty | Context7 | Playwright |
+|---|---|---|---|
+| `react-developer` | React components, hooks, state management, Django backend integration | ✅ | ✅ |
+| `vue-developer` | Vue 3 SFCs, Composition API, Pinia, Vue Router, Django backend integration | ✅ | ✅ |
+
+Python / TypeScript / JavaScript / Shell stack:
+
+| Agent | Specialty | Context7 | Playwright |
+|---|---|---|---|
+| `python-developer` | Python utilities, CLI tools, Celery tasks, service integrations | ✅ | — |
+| `typescript-developer` | TypeScript modules, type definitions, SDK clients, strict type safety | ✅ | ✅ |
+| `javascript-developer` | Vanilla JavaScript browser scripts, Node.js utilities | ✅ | ✅ |
+| `shell-developer` | Shell scripts — automation, CI/CD, deployment, developer tooling | ✅ | — |
 
 ---
 
@@ -1188,7 +1217,7 @@ These restrictions are verified by `llm-safety-reviewer` during `/security-audit
 
 ### Documentation Standard — Context7 First, Repository Fallback (v5.21.0+)
 
-All **62 agents** use Context7 first when available to look up current documentation before using any library, framework, or external API — regardless of stack. If Context7 is unavailable, the fallback is repository evidence, locally installed docs, and explicit assumptions in the output. Training data is never the source of truth for API signatures, method names, or default behavior.
+All **74 agents** use Context7 first when available to look up current documentation before using any library, framework, or external API — regardless of stack. If Context7 is unavailable, the fallback is repository evidence, locally installed docs, and explicit assumptions in the output. Training data is never the source of truth for API signatures, method names, or default behavior.
 
 **Required workflow for every library used:**
 1. `mcp__plugin_context7_context7__resolve-library-id("library-name")`

@@ -158,7 +158,7 @@ plugin["version"] = version
 plugin_path.write_text(json.dumps(plugin, indent=2) + "\n")
 
 manual = manual_path.read_text()
-manual = re.sub(r"(\*\*Versão:\*\*\s*)([0-9.]+)", rf"\g<1>{version}", manual, count=1)
+manual = re.sub(r"(\*\*Version:\*\*\s*)([0-9.]+)", rf"\g<1>{version}", manual, count=1)
 manual_path.write_text(manual)
 
 changelog = changelog_path.read_text()
