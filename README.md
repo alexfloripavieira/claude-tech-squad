@@ -88,6 +88,7 @@ For less common situations — refactor, security audit, migration, LLM eval, mu
 # Project setup
 /claude-tech-squad:onboarding         # bootstrap any new repo for squad usage
 /claude-tech-squad:factory-retrospective # analyze executions and improve the process
+/claude-tech-squad:dashboard             # instant pipeline health: success rates, blocked gates, pending post-mortems
 ```
 
 ## Teammate Mode (tmux panes)

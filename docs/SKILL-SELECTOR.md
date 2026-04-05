@@ -61,7 +61,9 @@ flowchart TD
     Q17 -->|Yes| LINT[/pre-commit-lint]
 
     Q17 -->|No| Q18{Want to review past squad executions?}
-    Q18 -->|Yes| RETRO[/factory-retrospective]
+    Q18 -->|Yes| Q18b{Want AI recommendations or just a status summary?}
+    Q18b -->|AI analysis| RETRO[/factory-retrospective]
+    Q18b -->|Quick summary| DASH[/dashboard]
 
     Q18 -->|No| Q19{Have an approved blueprint to implement?}
     Q19 -->|Yes| IMPLEMENT[/implement]
@@ -97,6 +99,7 @@ flowchart TD
 | `/migration-plan` | Database schema changes — migration strategy, rollback, safe sequencing | No schema changes | `/squad` |
 | `/pre-commit-lint` | Set up auto-fix lint before commits — ruff, black, eslint, prettier, sonar | Lint already configured | n/a |
 | `/factory-retrospective` | Review past squad executions — retry patterns, fallback gaps, quality trends | No prior executions in logs | n/a |
+| `/dashboard` | Instant pipeline health summary — success rates, blocked gates, pending post-mortems. No agents spawned. | Want AI analysis and recommendations — use `/factory-retrospective` | `/factory-retrospective` |
 
 ---
 
@@ -117,3 +120,4 @@ flowchart TD
 | "Code is messy" | `/refactor` |
 | "Deps might have CVEs" | `/dependency-check` |
 | "Want to improve the squad process" | `/factory-retrospective` |
+| "Quick health check on recent runs" | `/dashboard` |

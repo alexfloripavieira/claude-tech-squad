@@ -543,3 +543,36 @@
 
 - [x] 11.4.1 — Rodar `bash scripts/validate.sh` e confirmar que passa
 - [x] 11.4.2 — Commitar com `feat: improve marketplace discoverability and skill selector`
+
+---
+
+### Sprint 12 — Skill /dashboard: status instantâneo da esteira ✓
+
+**Objetivo:** Criar a skill `/dashboard` — um status check de zero latência que lê os SEP logs e produz um health summary da esteira. Diferencia-se do `/factory-retrospective` por ser um comando de observação instantânea (sem spawn de agentes, sem análise de IA) em vez de uma análise de padrões com recomendações.
+
+---
+
+#### 12.1 — Criar skill /dashboard ✓
+
+**Escopo:** A skill deve: ler os últimos 30 SEP logs de `ai-docs/.squad-log/`, agregar por skill (contagem, taxa de sucesso, gates bloqueados), identificar hotfixes sem postmortem, e exibir um dashboard markdown. Não spawna agentes — é puramente leitura de arquivos pelo orquestrador.
+
+- [x] 12.1.1 — Criar diretório `plugins/claude-tech-squad/skills/dashboard/`
+- [x] 12.1.2 — Criar `SKILL.md` com: Global Safety Contract, When to Use, e pipeline sem spawn de agentes
+- [x] 12.1.3 — Step 1: Discover and read SEP logs (últimos 30, newest first)
+- [x] 12.1.4 — Step 2: Aggregate por skill — runs totais, % success, % aborted, retry count total, gates bloqueados
+- [x] 12.1.5 — Step 3: Detect hotfixes sem postmortem subsequente (SEP log com `skill: hotfix` e `postmortem_recommended: true` sem SEP log de `incident-postmortem` com `parent_run_id` correspondente)
+- [x] 12.1.6 — Step 4: Exibir dashboard em markdown com: tabela de health por skill, lista de hotfixes pendentes, last run por skill
+- [x] 12.1.7 — Step 5: Salvar snapshot em `ai-docs/dashboard-snapshot.md` com timestamp
+- [x] 12.1.8 — Step 6: Escrever SEP log da própria execução do dashboard
+
+#### 12.2 — Registrar a skill na infraestrutura ✓
+
+- [x] 12.2.1 — Adicionar `dashboard` à lista `REQUIRED_SKILLS` em `scripts/validate.sh`
+- [x] 12.2.2 — Adicionar asserção no `scripts/smoke-test.sh` verificando Global Safety Contract na nova skill
+- [x] 12.2.3 — Adicionar `/claude-tech-squad:dashboard` à seção Commands do README.md
+- [x] 12.2.4 — Adicionar `/dashboard` à tabela de referência do `docs/SKILL-SELECTOR.md`
+- [x] 12.2.5 — Rodar escada completa: `bash scripts/validate.sh` e `bash scripts/smoke-test.sh`
+
+#### 12.3 — Commit e push ✓
+
+- [x] 12.3.1 — Commitar com `feat: add /dashboard skill for instant pipeline health status`

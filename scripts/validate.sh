@@ -76,6 +76,7 @@ REQUIRED_SKILLS=(
   dependency-check
   factory-retrospective
   pre-commit-lint
+  dashboard
 )
 
 for skill in "${REQUIRED_SKILLS[@]}"; do
