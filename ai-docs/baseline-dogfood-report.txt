@@ -1,0 +1,2 @@
+claude-tech-squad golden run schema passed
+dogfood-report exit: 0

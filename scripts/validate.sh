@@ -264,6 +264,31 @@ for path in 'ai-docs/.squad-log/*' 'ai-docs/dogfood-runs/*'; do
   fi
 done
 
+# ── Absolute Prohibitions in execution agents ────────────────────────────────
+EXECUTION_AGENTS=(
+  release
+  sre
+  backend-dev
+  devops
+  ci-cd
+  dba
+  cloud-architect
+  platform-dev
+  incident-manager
+)
+
+for agent in "${EXECUTION_AGENTS[@]}"; do
+  agent_file="$AGENTS_DIR/$agent.md"
+  if [ ! -f "$agent_file" ]; then
+    echo "Execution agent file not found: $agent.md"
+    exit 1
+  fi
+  if ! grep -q "^## Absolute Prohibitions$" "$agent_file"; then
+    echo "Execution agent missing Absolute Prohibitions block: $agent"
+    exit 1
+  fi
+done
+
 # ── No agent self-chaining (except incident-manager) ────────────────────────
 # incident-manager is the only agent authorized to use Agent tool for
 # orchestration — it coordinates real-time incident response (fan-out pattern).

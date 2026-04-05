@@ -1,0 +1,3 @@
+scripts/dogfood.sh: linha 40: rg: comando não encontrado
+Dogfood check failed: layered fixture missing test script
+dogfood exit: 1

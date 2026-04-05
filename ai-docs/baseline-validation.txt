@@ -1,0 +1,3 @@
+Agents found: 61
+scripts/validate.sh: linha 340: rg: comando não encontrado
+claude-tech-squad validation passed (v5.29.0, 61 agents)
