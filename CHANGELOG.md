@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.35.1] - 2026-04-05 — Automated maintenance release
+
+### Changed
+
+- Fix skill count (20→21) and add /bug-fix to selector table
 ## [5.35.0] - 2026-04-05 — Automated feature release
 
 ### Added
