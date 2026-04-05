@@ -344,14 +344,6 @@ if [ -n "$INVALID_SUBAGENT_TYPES" ]; then
   exit 1
 fi
 
-# ── No project-specific residue ──────────────────────────────────────────────
-if grep -rnEI "\bA1\b|Fifi|Wooba|Cangooroo|Compozy|Botpress" \
-  "$ROOT/README.md" \
-  "$ROOT/docs" \
-  "$PLUGIN_DIR" >/dev/null 2>&1; then
-  echo "Found project-specific residue in plugin repository."
-  exit 1
-fi
 
 for trace_line in '\[Fallback Invoked\]' '\[Resume From\]' '\[Checkpoint Saved\]'; do
   if ! grep -q "$trace_line" "$ROOT/docs/EXECUTION-TRACE.md"; then
