@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.34.0] - 2026-04-05 — Automated feature release
+
+### Added
+
+- Improve marketplace discoverability and skill selector
 ## [5.33.0] - 2026-04-05 — Automated feature release
 
 ### Added
