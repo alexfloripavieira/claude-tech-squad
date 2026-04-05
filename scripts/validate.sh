@@ -121,6 +121,7 @@ REQUIRED_AGENTS=(
   integration-qa
   jira-confluence-specialist
   llm-eval-specialist
+  llm-cost-analyst
   ml-engineer
   mobile-dev
   monitoring-specialist

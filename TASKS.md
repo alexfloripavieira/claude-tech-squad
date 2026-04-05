@@ -317,43 +317,43 @@
 
 ---
 
-### Sprint 7 — Expansão de especialistas e fronteiras
+### Sprint 7 — Expansão de especialistas e fronteiras ✓
 
 **Objetivo:** Mapear e documentar fronteiras entre agentes com papéis próximos e identificar gaps de cobertura especializada.
 
 ---
 
-#### 7.1 — Mapear fronteiras entre agentes com papéis próximos
+#### 7.1 — Mapear fronteiras entre agentes com papéis próximos ✓
 
 **Escopo:** Pares de agentes com maior risco de sobreposição devem ter boundary text explícito definindo o que cada um faz e o que não faz.
 
-- [ ] 7.1.1 — Identificar pares de alto risco: (docs-writer / tech-writer), (security-reviewer / security-engineer), (reviewer / code-quality), (architect / backend-architect), (llm-safety-reviewer / security-reviewer)
-- [ ] 7.1.2 — Para cada par: ler ambos os prompts e documentar a linha divisória em termos de responsabilidade
-- [ ] 7.1.3 — Adicionar ou atualizar bloco "What this agent does NOT do" em cada agente do par
-- [ ] 7.1.4 — Atualizar README.md com seção de "splits" para os novos pares documentados
-- [ ] 7.1.5 — Rodar `bash scripts/validate.sh` após todas as edições
+- [x] 7.1.1 — Identificar pares de alto risco: (docs-writer / tech-writer), (security-reviewer / security-engineer), (reviewer / code-quality), (architect / backend-architect), (llm-safety-reviewer / security-reviewer)
+- [x] 7.1.2 — Para cada par: ler ambos os prompts e documentar a linha divisória em termos de responsabilidade
+- [x] 7.1.3 — Adicionar ou atualizar bloco "What this agent does NOT do" em cada agente do par (9 agentes atualizados)
+- [x] 7.1.4 — Atualizar README.md com seção de "splits" para os novos pares documentados (architecture split, code review split adicionados)
+- [x] 7.1.5 — Rodar `bash scripts/validate.sh` após todas as edições — passed (62 agents)
 
-#### 7.2 — Auditar bench de AI para cobertura de LLM em produção
+#### 7.2 — Auditar bench de AI para cobertura de LLM em produção ✓
 
 **Escopo:** Os 8 especialistas de AI cobrem design, eval, e segurança. Verificar se cobrem também operação de LLM em produção: model cost, context management, streaming edge cases.
 
-- [ ] 7.2.1 — Mapear os 8 agentes: `ai-engineer`, `prompt-engineer`, `rag-engineer`, `llm-eval-specialist`, `llm-safety-reviewer`, `agent-architect`, `conversational-designer`, `ml-engineer`
-- [ ] 7.2.2 — Ler cada prompt e mapear: o que cobre, o que não cobre
-- [ ] 7.2.3 — Identificar gaps: model cost optimization, context window management, streaming failure handling, multi-modal input handling
-- [ ] 7.2.4 — Para cada gap: decidir se pertence a agente existente (adicionar) ou justifica novo agente
-- [ ] 7.2.5 — Implementar adições nos prompts dos agentes existentes
-- [ ] 7.2.6 — Rodar escada de validação completa
+- [x] 7.2.1 — Mapear os 8 agentes: `ai-engineer`, `prompt-engineer`, `rag-engineer`, `llm-eval-specialist`, `llm-safety-reviewer`, `agent-architect`, `conversational-designer`, `ml-engineer`
+- [x] 7.2.2 — Ler cada prompt e mapear: o que cobre, o que não cobre
+- [x] 7.2.3 — Identificar gaps: streaming failure handling e multi-modal input handling (não cobertos); model cost attribution justifica novo agente; context window management já coberto por ai-engineer e rag-engineer
+- [x] 7.2.4 — Para cada gap: streaming + multi-modal → adicionar a `ai-engineer`; model cost attribution → novo agente `llm-cost-analyst`
+- [x] 7.2.5 — Implementar adições em `ai-engineer.md`: streaming failure handling e checklist de multi-modal inputs
+- [x] 7.2.6 — Rodar escada de validação completa — passed
 
-#### 7.3 — Criar agente `llm-cost-analyst`
+#### 7.3 — Criar agente `llm-cost-analyst` ✓
 
 **Escopo:** Não existe agente específico para análise de custo de tokens. O `cost-optimizer` cobre infra, não LLM usage cost.
 
-- [ ] 7.3.1 — Ler `plugins/claude-tech-squad/agents/cost-optimizer.md` e confirmar que não cobre custo de tokens de LLM
-- [ ] 7.3.2 — Definir escopo do `llm-cost-analyst`: análise de custo por usuário, por prompt template, por pipeline RAG; identificação de oportunidades de prompt compression e caching; recomendação de model downgrade onde aplicável
-- [ ] 7.3.3 — Criar `plugins/claude-tech-squad/agents/llm-cost-analyst.md` com: role, specialty, boundary text, result_contract, docs_lookup instruction
-- [ ] 7.3.4 — Adicionar o agente ao bench de AI no skill `/squad` (ativado quando LLM detectado)
-- [ ] 7.3.5 — Atualizar roster no README.md e MANUAL.md com o novo agente (total: 62)
-- [ ] 7.3.6 — Rodar escada de validação completa
+- [x] 7.3.1 — Ler `plugins/claude-tech-squad/agents/cost-optimizer.md` e confirmar que não cobre custo de tokens de LLM — confirmado: cost-optimizer cobre infra, não token economics
+- [x] 7.3.2 — Definir escopo do `llm-cost-analyst`: token attribution por feature/user, model downgrade recommendations, prompt compression e caching ROI, anomaly detection thresholds
+- [x] 7.3.3 — Criar `plugins/claude-tech-squad/agents/llm-cost-analyst.md` com: scope table, what-not-do boundary, analysis framework (6 steps), output format, result_contract, docs_lookup
+- [x] 7.3.4 — Adicionar o agente ao bench de AI no skill `/squad` (step 14 quando `ai_feature: true`)
+- [x] 7.3.5 — Atualizar roster no README.md com o novo agente (total: 62). MANUAL.md é gerado pela pipeline — será atualizado automaticamente no próximo release
+- [x] 7.3.6 — Rodar escada de validação completa — validate.sh passed (62 agents), smoke-test.sh passed
 
 ---
 

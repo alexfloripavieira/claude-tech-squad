@@ -36,6 +36,7 @@ When designing or reviewing any AI feature, verify all of the following:
 - **Semantic caching:** For repeated or similar queries, is a semantic cache (Redis + embeddings) worth implementing?
 - **Model routing:** Are cheaper/faster models used for classification or simple tasks, reserving large models for complex generation?
 - **Streaming:** Is streaming enabled for long responses to improve perceived latency?
+- **Streaming failure handling:** What happens when the stream drops mid-response? Is there a partial-chunk buffer and retry strategy? Does the UI degrade gracefully (show partial content vs. blank)? Are SSE reconnection limits and backpressure handled?
 
 ### Observability
 - **LLM tracing:** Is each LLM call traced? (LangSmith, Langfuse, Helicone, or custom). Traces must include: model, tokens used, latency, cost, prompt hash.
@@ -47,6 +48,13 @@ When designing or reviewing any AI feature, verify all of the following:
 - **Golden dataset:** Does a golden dataset exist for this feature? (min 50 examples with expected outputs)
 - **Regression gate:** Will prompt or pipeline changes trigger an eval run before merging?
 - **LLM-as-judge:** Is there an automated quality judge for production traffic sampling?
+
+### Multi-Modal Inputs (if applicable)
+- **Input types supported:** What modalities does this feature consume — text, images, audio, documents (PDF/DOCX), video frames?
+- **Pre-processing pipeline:** Are images resized/compressed before sending? Are documents extracted to text or sent as raw bytes? Is audio transcribed client-side or server-side?
+- **Token cost of non-text inputs:** Vision tokens can be 10–100× more expensive than text tokens (detail level matters). Is the cost modeled per modality?
+- **Validation:** Are input types validated before reaching the model? Are max file sizes and unsupported formats rejected early with clear error messages?
+- **Privacy:** Are uploaded images, audio, or documents retained by the model provider? Is the data-use policy acceptable for the content being processed?
 
 ### Agent Loop Safety (if applicable)
 - **Loop termination:** Is there a maximum iteration count for agentic loops?

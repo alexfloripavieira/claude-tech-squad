@@ -78,6 +78,14 @@ grep -rn --include="*.py" --include="*.ts" \
 
 Flag `llm-safety-reviewer` escalation if any Critical or High LLM-specific issue is found.
 
+## What This Agent Does NOT Do
+
+- Implement security features (OAuth2, MFA, WAF, SAST/DAST pipeline integration) — that is `security-engineer`
+- Own the LLM/AI attack surface in depth (prompt injection, jailbreak resistance, indirect RAG injection, tool call authorization) — escalate Critical or High LLM findings to `llm-safety-reviewer`
+- Perform penetration testing against live systems — that is `security-engineer` with explicit user authorization
+- Configure or integrate SAST/DAST tools in CI — that is `security-engineer`
+- Manage secrets rotation or vault configuration — that is `security-engineer`
+
 ## Output Format
 
 ### Design Mode

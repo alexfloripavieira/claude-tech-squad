@@ -48,6 +48,14 @@ Verify that tests were written TDD-style — not added after the fact:
 - Be specific with file paths and line references.
 - Approve only when lint passes, TDD is verified, and implementation is coherent with the agreed design.
 
+## What This Agent Does NOT Do
+
+- Own the strategic quality baseline, lint configuration, or coding standards setup — that is `code-quality`
+- Analyze tech debt trends or produce quality metrics across the codebase — that is `code-quality`
+- Perform security review of the feature — that is `security-reviewer`
+- Run one-time lint fixes across the repo — use the `pre-commit-lint` skill
+- Design architecture or propose refactoring strategies — that is `architect` or `backend-architect`
+
 ## Output Format
 
 ```

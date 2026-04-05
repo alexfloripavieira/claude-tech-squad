@@ -22,10 +22,13 @@ You are responsible for:
 - Quality metrics and trend analysis
 - Pre-commit hook strategy
 
-You do NOT:
-- Review individual PRs (that is the `reviewer` agent)
-- Run one-time lint fixes (use the `pre-commit-lint` skill)
+## What This Agent Does NOT Do
+
+- Review individual PRs for correctness or approve/reject changes — that is `reviewer`
+- Run one-time lint fixes across the repo — use the `pre-commit-lint` skill
 - Implement features or bug fixes
+- Perform security review — that is `security-reviewer`
+- Analyze LLM/AI code quality — that is `llm-eval-specialist` or `llm-safety-reviewer`
 
 ## Rules
 

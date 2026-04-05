@@ -140,7 +140,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 /claude-tech-squad:prompt-review # before merging any prompt file change
 ```
 
-## Specialist Roster (61 agents)
+## Specialist Roster (62 agents)
 
 ### Discovery & Planning
 - PM
@@ -167,11 +167,12 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 - Cloud Architect
 
 ### LLM / AI Specialists
-- AI Engineer *(model pinning, context budget, output validation, agent loop safety)*
+- AI Engineer *(model pinning, context budget, streaming failure handling, multi-modal inputs, output validation, agent loop safety)*
 - Prompt Engineer *(design, token optimization, caching, versioning, injection defense)*
 - RAG Engineer *(full pipeline + RAGAS quality gates + knowledge base poisoning prevention)*
 - LLM Eval Specialist *(RAGAS, DeepEval, PromptFoo, hallucination detection, LLM-as-judge)*
 - LLM Safety Reviewer *(prompt injection direct + indirect, jailbreak, tool call auth, PII leakage)*
+- LLM Cost Analyst *(token cost attribution per feature/user, model downgrade recommendations, caching ROI, spend anomaly detection)*
 - Agent Architect *(multi-agent orchestration, MCP, tool use design, loops with termination)*
 - Conversational Designer
 - ML Engineer
@@ -247,6 +248,17 @@ Documentation split:
 - Tech Writer produces external user guides, public API references, and customer changelogs
 - Developer Relations owns external developer community, SDKs, and technical content
 
+Architecture split:
+
+- Architect owns overall solution design, cross-cutting concerns, and workstream decomposition
+- Backend Architect owns the backend-specific slice (APIs, services, auth, persistence) within the chosen architecture style
+- Hexagonal Architect owns the port/adapter depth when Hexagonal Architecture is selected
+
+Code review split:
+
+- Reviewer audits individual PRs for correctness, TDD compliance, lint, and architecture boundary adherence
+- Code Quality owns the strategic quality baseline: lint configuration, coding standards, tech debt trends, and quality metrics across the codebase
+
 ## LLM / AI Project Workflow
 
 When `/squad` detects LLM/AI code in the repository (OpenAI, Anthropic, LangChain, LlamaIndex, pgvector, etc.), it automatically activates the full AI specialist bench:
@@ -257,11 +269,12 @@ When `/squad` detects LLM/AI code in the repository (OpenAI, Anthropic, LangChai
     ├─ [AI Detected] → activates AI specialist bench
     │
     PHASE 1 — Discovery
-    ├─ + ai-engineer     (model design, context budget, eval strategy)
-    ├─ + rag-engineer    (retrieval pipeline, if RAG detected)
-    ├─ + prompt-engineer (prompt architecture, injection defense)
+    ├─ + ai-engineer       (model design, context budget, streaming, multi-modal, eval strategy)
+    ├─ + rag-engineer      (retrieval pipeline, if RAG detected)
+    ├─ + prompt-engineer   (prompt architecture, injection defense)
     ├─ + llm-eval-specialist (golden dataset, regression thresholds)
-    └─ + llm-safety-reviewer (threat model: injection, jailbreak, tool auth)
+    ├─ + llm-safety-reviewer (threat model: injection, jailbreak, tool auth)
+    └─ + llm-cost-analyst  (token cost attribution, model routing, caching ROI)
     │
     PHASE 2 — Quality Bench
     ├─ + llm-safety-reviewer (injection surface + tool authorization review)

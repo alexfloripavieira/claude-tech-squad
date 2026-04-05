@@ -253,6 +253,7 @@ Follow the same teammate sequence as `/discovery` Steps 3–13:
 11. Spawn `tdd-specialist` → **Gate 5: Blueprint Confirmation**
 12. If `ai_feature: true`: Spawn `llm-eval-specialist` for eval plan (after blueprint) — no gate, automatic
 13. If `ai_feature: true`: Spawn `llm-safety-reviewer` for threat model (after blueprint) — no gate, automatic
+14. If `ai_feature: true`: Spawn `llm-cost-analyst` for token cost attribution and model routing analysis (after blueprint) — no gate, automatic
 
 Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-tech-squad:<subagent>", prompt=...)`
 
@@ -270,6 +271,7 @@ Core discovery chain:
 - `tdd-specialist` → `tdd-specialist`
 - `llm-eval-specialist` → `llm-eval-specialist`
 - `llm-safety-reviewer` → `llm-safety-reviewer`
+- `llm-cost-analyst` → `llm-cost-analyst`
 
 Specialist batch (spawned based on TechLead requirements, any subset):
 - `backend-arch` → `backend-architect`
