@@ -298,6 +298,11 @@ run_id: {{run_id}}
 skill: bug-fix
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [fix-implemented, reviewer-approved, tests-passed]
+fallbacks_invoked: []
 bug_description: {{one_line_summary}}
 root_cause: {{root_cause}}
 files_changed: [list]

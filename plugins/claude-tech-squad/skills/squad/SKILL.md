@@ -449,6 +449,11 @@ parent_run_id: null
 skill: squad
 timestamp: {{ISO8601}}
 status: completed | failed | partial
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, discovery-confirmed, implementation-complete, release-signed-off]
+fallbacks_invoked: []
 runtime_policy_version: {{runtime_policy_version}}
 feature_slug: {{feature_slug}}
 checkpoint_cursor: release-signed-off

@@ -276,6 +276,11 @@ run_id: {{run_id}}
 skill: migration-plan
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, plan-drafted, risks-reviewed]
+fallbacks_invoked: []
 migrations_planned: N
 risk_level: Low | Medium | High
 reviewer_result: APPROVED

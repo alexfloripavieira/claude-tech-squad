@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://claude-tech-squad/sep-log.schema.json",
+  "title": "Squad Execution Protocol (SEP) Log",
+  "description": "Formal schema for SEP C1 Execution Log entries written by all claude-tech-squad skills to ai-docs/.squad-log/. Files are Markdown with YAML frontmatter; this schema describes the required frontmatter fields.",
+  "type": "object",
+
+  "required": [
+    "run_id",
+    "skill",
+    "timestamp",
+    "final_status",
+    "execution_mode",
+    "architecture_style",
+    "checkpoints",
+    "fallbacks_invoked"
+  ],
+
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Unique identifier for this execution run (short alphanumeric slug).",
+      "examples": ["abc123", "xf8q2"]
+    },
+    "skill": {
+      "type": "string",
+      "description": "Name of the skill that produced this log.",
+      "enum": [
+        "discovery",
+        "implement",
+        "squad",
+        "hotfix",
+        "bug-fix",
+        "cloud-debug",
+        "dependency-check",
+        "factory-retrospective",
+        "iac-review",
+        "incident-postmortem",
+        "llm-eval",
+        "migration-plan",
+        "multi-service",
+        "onboarding",
+        "pre-commit-lint",
+        "pr-review",
+        "prompt-review",
+        "refactor",
+        "release",
+        "security-audit"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the skill completed.",
+      "examples": ["2026-04-05T14:43:15Z"]
+    },
+    "final_status": {
+      "type": "string",
+      "description": "Terminal state of the skill execution.",
+      "enum": ["completed", "failed", "partial", "aborted"]
+    },
+    "execution_mode": {
+      "type": "string",
+      "description": "How the skill was executed. 'inline' = Claude Code subagent; 'tmux' = separate tmux pane teammate.",
+      "enum": ["inline", "tmux", "n/a"]
+    },
+    "architecture_style": {
+      "type": "string",
+      "description": "Architecture style detected by preflight. 'n/a' for skills that do not run architecture detection.",
+      "examples": ["layered", "hexagonal", "ai-native", "existing-repo-pattern", "n/a"]
+    },
+    "checkpoints": {
+      "type": "array",
+      "description": "Ordered list of checkpoints completed during this execution.",
+      "items": { "type": "string" },
+      "examples": [["preflight-passed", "blueprint-confirmed"]]
+    },
+    "fallbacks_invoked": {
+      "type": "array",
+      "description": "List of fallback invocations that occurred. Empty array if none.",
+      "items": {
+        "type": "object",
+        "required": ["primary_agent", "fallback_agent", "reason"],
+        "properties": {
+          "primary_agent": { "type": "string" },
+          "fallback_agent": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+
+    "parent_run_id": {
+      "type": ["string", "null"],
+      "description": "run_id of the parent skill execution that triggered this one (e.g. discovery → implement)."
+    },
+    "runtime_policy_version": {
+      "type": "string",
+      "description": "Version of runtime-policy.yaml active during this execution.",
+      "examples": ["5.29.0"]
+    },
+    "lint_profile": {
+      "type": "string",
+      "description": "Lint toolchain detected at preflight.",
+      "examples": ["ruff", "eslint", "golangci-lint", "n/a"]
+    },
+    "docs_lookup_mode": {
+      "type": "string",
+      "description": "Documentation lookup mode used during this run.",
+      "enum": ["context7", "web-search", "repository-fallback", "n/a"]
+    },
+    "agent_results": {
+      "type": "array",
+      "description": "Per-agent result summaries (optional, populated by orchestrator skills).",
+      "items": {
+        "type": "object",
+        "required": ["agent", "status"],
+        "properties": {
+          "agent": { "type": "string" },
+          "status": { "type": "string", "enum": ["primary", "fallback-used", "skipped-with-risk", "unresolved"] },
+          "output_summary": { "type": "string" }
+        }
+      }
+    },
+    "retry_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of retry cycles consumed during this execution."
+    },
+    "checkpoint_cursor": {
+      "type": "string",
+      "description": "Last checkpoint reached — used as resume cursor."
+    },
+    "resume_from": {
+      "type": ["string", "null"],
+      "description": "Checkpoint to resume from on restart. null or 'none' if full run."
+    },
+    "gates_blocked": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Gates that blocked (required user confirmation) during this run."
+    },
+    "teammate_reliability": {
+      "type": "object",
+      "description": "Per-teammate reliability classification for this run.",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["primary", "fallback-used", "skipped-with-risk", "unresolved"]
+      }
+    },
+    "implement_triggered": {
+      "type": "boolean",
+      "description": "Whether /implement was triggered from this /discovery run. (discovery only)"
+    },
+    "uat_result": {
+      "type": "string",
+      "enum": ["PASS", "REJECTED"],
+      "description": "UAT gate result. (implement only)"
+    },
+    "release_result": {
+      "type": "string",
+      "enum": ["GO", "NO-GO"],
+      "description": "Release gate result. (squad or release only)"
+    },
+    "postmortem_recommended": {
+      "type": "boolean",
+      "description": "Whether a postmortem was recommended after this hotfix."
+    },
+    "findings_critical": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Count of CRITICAL severity findings. (security-audit only)"
+    },
+    "findings_high": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Count of HIGH severity findings. (security-audit only)"
+    },
+    "vulnerabilities_critical": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Count of critical CVEs found. (dependency-check only)"
+    },
+    "major_updates": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Count of major version updates available. (dependency-check only)"
+    },
+    "remediation_artifact": {
+      "type": "string",
+      "description": "Path to remediation file produced by this run. (security-audit, dependency-check)"
+    }
+  },
+
+  "additionalProperties": true,
+
+  "examples": [
+    {
+      "run_id": "xf8q2",
+      "skill": "discovery",
+      "timestamp": "2026-04-05T14:43:15Z",
+      "final_status": "completed",
+      "execution_mode": "inline",
+      "architecture_style": "ai-native",
+      "checkpoints": ["preflight-passed", "gate-1-approved", "blueprint-confirmed"],
+      "fallbacks_invoked": [],
+      "parent_run_id": null,
+      "runtime_policy_version": "5.29.0",
+      "lint_profile": "ruff",
+      "docs_lookup_mode": "context7",
+      "implement_triggered": false,
+      "retry_count": 0
+    }
+  ]
+}

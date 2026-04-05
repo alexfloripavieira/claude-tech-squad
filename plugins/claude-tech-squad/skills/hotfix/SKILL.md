@@ -339,6 +339,11 @@ parent_run_id: null
 skill: hotfix
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [diagnosis-gate-passed, fix-implemented, deploy-gate-passed]
+fallbacks_invoked: []
 branch: hotfix/{{slug}}
 pr_url: {{pr_url}}
 base_branch: {{base_branch}}

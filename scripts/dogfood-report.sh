@@ -92,4 +92,52 @@ while IFS= read -r scenario_id; do
   done <<< "$FORBIDDEN_STRINGS"
 done <<< "$SCENARIOS"
 
+# SEP log schema validation — validate any .md SEP logs found in .squad-log/
+SEP_LOG_DIR="$ROOT/ai-docs/.squad-log"
+SEP_SCHEMA="$SEP_LOG_DIR/sep-log.schema.json"
+
+if [ -f "$SEP_SCHEMA" ] && compgen -G "$SEP_LOG_DIR/*.md" >/dev/null 2>&1; then
+  python3 - <<'PY' "$SEP_SCHEMA" "$SEP_LOG_DIR" || exit 1
+import sys
+import json
+import re
+import os
+
+schema_path = sys.argv[1]
+log_dir = sys.argv[2]
+
+schema = json.load(open(schema_path))
+required_fields = schema.get("required", [])
+
+errors = []
+validated = 0
+
+for fname in sorted(os.listdir(log_dir)):
+    if not fname.endswith(".md"):
+        continue
+    fpath = os.path.join(log_dir, fname)
+    content = open(fpath).read()
+    # Extract YAML frontmatter between --- delimiters
+    match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+    if not match:
+        errors.append(f"{fname}: missing YAML frontmatter")
+        continue
+    frontmatter_text = match.group(1)
+    # Parse simple key: value pairs (not full YAML — avoids dependency on PyYAML)
+    keys = set(re.findall(r"^(\w[\w_-]*):", frontmatter_text, re.MULTILINE))
+    missing = [f for f in required_fields if f not in keys]
+    if missing:
+        errors.append(f"{fname}: missing required fields: {', '.join(missing)}")
+    validated += 1
+
+if errors:
+    for e in errors:
+        print(f"SEP log schema error: {e}", file=sys.stderr)
+    raise SystemExit(f"{len(errors)} SEP log(s) failed schema validation")
+
+if validated > 0:
+    print(f"SEP log schema: {validated} log(s) validated OK")
+PY
+fi
+
 echo "claude-tech-squad golden runs passed"

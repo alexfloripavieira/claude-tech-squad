@@ -861,6 +861,11 @@ parent_run_id: {{discovery_run_id_if_known | null}}
 skill: implement
 timestamp: {{ISO8601}}
 status: completed | failed
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, commands-confirmed, blueprint-validated, tdd-ready, implementation-batch-complete, reviewer-approved, qa-pass, conformance-pass, quality-bench-cleared, docs-complete, uat-approved]
+fallbacks_invoked: []
 runtime_policy_version: {{runtime_policy_version}}
 feature_slug: {{feature_slug}}
 blueprint_source: {{blueprint_path}}

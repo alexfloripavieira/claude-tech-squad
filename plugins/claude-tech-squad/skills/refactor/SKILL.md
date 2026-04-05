@@ -319,6 +319,11 @@ run_id: {{run_id}}
 skill: refactor
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, refactor-complete, tests-passed]
+fallbacks_invoked: []
 target: {{target}}
 steps_planned: N
 steps_completed: N

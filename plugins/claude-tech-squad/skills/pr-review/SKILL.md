@@ -229,6 +229,11 @@ run_id: {{run_id}}
 skill: pr-review
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, review-complete, verdict-issued]
+fallbacks_invoked: []
 pr_number: {{pr_number}}
 findings_critical: N
 findings_high: N

@@ -266,6 +266,11 @@ run_id: {{run_id}}
 skill: onboarding
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, claude-md-generated, onboarding-complete]
+fallbacks_invoked: []
 stack: {{primary_stack}}
 claude_md_created: true | false
 security_findings_critical: N

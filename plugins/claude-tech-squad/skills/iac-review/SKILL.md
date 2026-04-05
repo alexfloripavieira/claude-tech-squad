@@ -405,6 +405,11 @@ run_id: {{run_id}}
 skill: iac-review
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, scan-complete, findings-reviewed]
+fallbacks_invoked: []
 iac_stack: terraform | helm | cloudformation | cdk | ansible | k8s
 environment: staging | production
 resources_changed: N

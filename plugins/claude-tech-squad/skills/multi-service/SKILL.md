@@ -476,6 +476,11 @@ run_id: {{run_id}}
 skill: multi-service
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, implementation-complete, release-signed-off]
+fallbacks_invoked: []
 services_count: N
 breaking_changes: N
 deployment_steps: N

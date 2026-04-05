@@ -693,6 +693,11 @@ parent_run_id: null
 skill: discovery
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, gate-1-approved, gate-2-approved, gate-3-approved, gate-4-approved, specialist-bench-complete, quality-baseline-complete, blueprint-confirmed]
+fallbacks_invoked: []
 runtime_policy_version: {{runtime_policy_version}}
 feature_slug: {{feature_slug}}
 checkpoint_cursor: blueprint-confirmed

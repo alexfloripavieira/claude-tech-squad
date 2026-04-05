@@ -1177,36 +1177,73 @@ Cada skill escreve um log estruturado em `ai-docs/.squad-log/` ao finalizar:
 ai-docs/.squad-log/YYYY-MM-DDTHH-MM-SS-{skill}-{run_id}.md
 ```
 
-**Formato (YAML frontmatter):**
+O schema formal está em `ai-docs/.squad-log/sep-log.schema.json` (JSON Schema 2020-12). O `scripts/dogfood-report.sh` valida qualquer log `.md` presente em `.squad-log/` contra esse schema.
+
+#### Campos obrigatórios (formal schema v5.29+)
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `run_id` | string | Identificador único do run (slug alfanumérico curto) |
+| `skill` | string (enum) | Nome da skill que produziu o log |
+| `timestamp` | string (ISO 8601) | Momento de conclusão da skill |
+| `final_status` | string | Estado terminal: `completed`, `failed`, `partial`, `aborted` |
+| `execution_mode` | string | `inline` (subagent) \| `tmux` (teammate) \| `n/a` |
+| `architecture_style` | string | Estilo detectado no preflight; `n/a` se a skill não faz detecção |
+| `checkpoints` | array | Lista ordenada de checkpoints completados |
+| `fallbacks_invoked` | array | Lista de invocações de fallback (vazio se nenhum) |
+
+#### Campos opcionais comuns
+
+| Campo | Tipo | Quando presente |
+|---|---|---|
+| `lint_profile` | string | Skills com preflight de detecção de lint |
+| `docs_lookup_mode` | string | `context7`, `web-search`, `repository-fallback`, `n/a` |
+| `runtime_policy_version` | string | Versão de `runtime-policy.yaml` ativa |
+| `agent_results` | array | Resultado por agente (skills orquestradoras) |
+| `retry_count` | integer | Ciclos de retry consumidos |
+| `gates_blocked` | array | Gates que bloquearam (exigiram confirmação do usuário) |
+| `teammate_reliability` | object | Classificação de confiabilidade por teammate |
+| `implement_triggered` | boolean | Se `/implement` foi ativado (apenas `/discovery`) |
+| `uat_result` | string | `PASS` ou `REJECTED` (apenas `/implement`) |
+| `release_result` | string | `GO` ou `NO-GO` (apenas `/squad` e `/release`) |
+| `postmortem_recommended` | boolean | Se postmortem foi recomendado (apenas `/hotfix`) |
+| `findings_critical` | integer | Achados CRITICAL (apenas `/security-audit`) |
+| `findings_high` | integer | Achados HIGH (apenas `/security-audit`) |
+| `vulnerabilities_critical` | integer | CVEs críticos (apenas `/dependency-check`) |
+| `remediation_artifact` | string | Caminho do arquivo de remediação (C2) |
+
+**Exemplo canônico:**
 
 ```yaml
 ---
-run_id: abc123
-skill: discovery | implement | squad | security-audit | dependency-check
-timestamp: 2026-03-24T14:30:00Z
-status: completed | failed | partial
-runtime_policy_version: 5.22.0
+run_id: xf8q2
+skill: discovery
+timestamp: 2026-04-05T14:43:15Z
+final_status: completed
+execution_mode: inline
+architecture_style: ai-native
+checkpoints: [preflight-passed, gate-1-approved, gate-2-approved, blueprint-confirmed]
+fallbacks_invoked: []
+parent_run_id: null
+runtime_policy_version: 5.29.0
+lint_profile: ruff
+docs_lookup_mode: context7
+implement_triggered: false
 retry_count: 0
-checkpoint_cursor: qa-pass
-completed_checkpoints: [preflight-passed, commands-confirmed, blueprint-validated, tdd-ready, implementation-batch-complete, reviewer-approved, qa-pass]
-resume_from: preflight-passed | none
+checkpoint_cursor: blueprint-confirmed
+resume_from: none
 gates_blocked: []
-fallback_invocations: []
 teammate_reliability:
-  reviewer: primary
-  qa: fallback-used
-implement_triggered: false          # apenas /discovery
-findings_critical: 0                # apenas /security-audit
-findings_high: 0                    # apenas /security-audit
-vulnerabilities_critical: 0        # apenas /dependency-check
-major_updates: 0                    # apenas /dependency-check
-remediation_artifact: ai-docs/...  # C2, quando aplicável
-uat_result: PASS | REJECTED         # apenas /implement
-release_result: GO | NO-GO          # /squad ou /release
+  pm: primary
+  ai-engineer: primary
+  llm-eval-specialist: primary
 ---
+
+## Discovery Summary
+Context-aware document retrieval feature — HyDE retrieval design approved.
 ```
 
-Os logs são a fonte primária do `/factory-retrospective` para calcular métricas: taxa de rejeição UAT, gates bloqueados com mais frequência, tempo médio de retry por skill, descobertas sem implementação, uso de fallback e pontos mais frequentes de retomada.
+Os logs são a fonte primária do `/factory-retrospective` para calcular métricas: taxa de rejeição UAT, gates bloqueados com mais frequência, taxa de retry por skill, uso de fallback por agente, descobertas sem implementação, e pontos mais frequentes de retomada.
 
 ---
 

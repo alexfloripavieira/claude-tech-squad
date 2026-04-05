@@ -154,6 +154,11 @@ run_id: {{run_id}}
 skill: pre-commit-lint
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [lint-run, findings-reported]
+fallbacks_invoked: []
 tools_configured: [list of detected tools]
 hook_written: true
 settings_path: .claude/settings.json

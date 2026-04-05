@@ -239,6 +239,11 @@ run_id: {{run_id}}
 skill: cloud-debug
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [diagnosis-complete, fix-applied, monitoring-confirmed]
+fallbacks_invoked: []
 symptom: {{one_line_summary}}
 severity: SEV-N
 root_cause_hypothesis: {{most_likely_cause}}

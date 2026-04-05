@@ -213,6 +213,11 @@ run_id: {{run_id}}
 skill: security-audit
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, scan-complete, findings-reviewed]
+fallbacks_invoked: []
 findings_critical: N
 findings_high: N
 findings_medium: N

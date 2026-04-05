@@ -68,18 +68,36 @@ Use Glob: `ai-docs/*.md`, `tasks/*.md`
 ### Step 2 — Analyze execution patterns
 
 **If SEP logs exist**, compute these metrics directly from frontmatter:
-- Average `retry_count` per skill
-- Skills with `gates_blocked` most often
-- `uat_result: REJECTED` rate
-- Orphaned discoveries: SEP logs with `implement_triggered: false`
-- Resume frequency: runs where `resume_from` is not `none`
-- Most common checkpoint where runs stop: `checkpoint_cursor`
-- Fallback usage rate: count and frequency of `fallback_invocations`
-- Low reliability teammates: entries in `teammate_reliability` marked `fallback-used`, `skipped-with-risk`, or `unresolved`
-- Hotfixes without post-mortem: `skill: hotfix` logs with `postmortem_recommended: true` that have no matching `skill: incident-postmortem` log with `parent_run_id` pointing to that hotfix `run_id`
-- Open remediation items: `- [ ]` count across all remediation files
-- Finding resolution rate: `- [x]` / (`- [x]` + `- [ ]`) per audit
-- Run chains: group logs by `parent_run_id` to reconstruct discovery → implement → hotfix → postmortem chains
+
+**Retry and failure rates:**
+- Retry rate per skill: average `retry_count` grouped by `skill` field — identify which skills exhaust retry budgets most
+- Skills with `gates_blocked` most often: count `gates_blocked` entries per skill and sort descending
+- `uat_result: REJECTED` rate: `REJECTED` count / total `/implement` runs
+- `final_status: aborted` without reason: logs where `final_status` is `aborted` but the log body has no explanation of why — flag these for follow-up
+- `final_status: failed` rate per skill: group failed runs by `skill` to find reliability hotspots
+
+**Fallback and reliability analysis:**
+- Fallback rate per agent: parse all `fallbacks_invoked` arrays across logs, count per `primary_agent` and per `fallback_agent` — output top 5 agents that trigger fallback most
+- Low reliability teammates: entries in `teammate_reliability` marked `fallback-used`, `skipped-with-risk`, or `unresolved` — sorted by frequency across all runs
+- Runs using fallback agents: `length(fallbacks_invoked) > 0` as fraction of total runs, broken down by skill
+
+**Checkpoint and resume patterns:**
+- Most frequent checkpoint where runs stop: count occurrences of each `checkpoint_cursor` value — this shows where pipelines most commonly pause or fail
+- Resume frequency: count runs where `resume_from` is not `none` — high values indicate the pipeline is frequently interrupted
+- Checkpoint progression rate: for each skill, compute the average number of completed `checkpoints` entries — short lists may indicate early termination
+
+**Run chain and continuity:**
+- Orphaned discoveries: SEP logs with `skill: discovery` and `implement_triggered: false` — discoveries that were never implemented
+- Hotfixes without post-mortem: `skill: hotfix` logs with `postmortem_recommended: true` that have no matching `skill: incident-postmortem` log with `parent_run_id` pointing to that hotfix `run_id` — flag each unresolved hotfix by `run_id`
+- Run chains: group logs by `parent_run_id` to reconstruct discovery → implement → hotfix → postmortem chains — identify broken chains
+
+**Observability gaps:**
+- Runs without SEP log: compare agent invocations in narrative logs (`ai-docs/*.md`) against `.squad-log/` entries — skills or runs that produced no SEP log indicate missing C1 contract compliance
+- Skills missing from .squad-log: if a skill directory exists in `plugins/claude-tech-squad/skills/` but has no corresponding `.squad-log/` entries (i.e., never been run), flag it as unvalidated in production
+
+**Audit and remediation:**
+- Open remediation items: `- [ ]` count across all remediation files in `ai-docs/`
+- Finding resolution rate: `- [x]` / (`- [x]` + `- [ ]`) per audit file
 - Cost risk releases: `skill: release` logs where cost-optimizer returned RISK (check log body)
 
 **If only fallback artifacts exist**, infer patterns from file content:
@@ -120,33 +138,61 @@ You are the Tech Lead agent running a factory retrospective. Synthesize the foll
 Execution logs analyzed: {{log_count}} files
 Date range: {{date_range}}
 
-Retry patterns found:
+## Retry & Failure Analysis
 {{retry_patterns}}
 
-Frequently blocked gates:
+## Blocked Gates
 {{blocked_gates}}
 
-Resume / checkpoint patterns:
-{{resume_patterns}}
-
-Fallback usage:
+## Fallback Rate per Agent (top 5)
 {{fallback_patterns}}
 
-Rejected agent outputs:
-{{rejected_outputs}}
+## Checkpoint Stopping Points (most common checkpoint_cursor values)
+{{checkpoint_patterns}}
 
-Common errors:
+## Run Chain Gaps
+- Orphaned discoveries (implement_triggered: false): {{orphaned_discovery_count}}
+- Hotfixes without postmortem: {{hotfix_no_postmortem_count}} (run_ids: {{hotfix_no_postmortem_ids}})
+- Broken chains: {{broken_chain_count}}
+
+## Observability Gaps
+- Runs without SEP log: {{missing_sep_log_count}}
+- Skills never validated in production: {{unvalidated_skills}}
+- Runs with final_status=aborted without explanation: {{aborted_without_reason_count}}
+
+## Rejected Outputs & UAT
+{{rejected_outputs}}
+UAT rejection rate: {{uat_rejection_rate}}
+
+## Common Errors
 {{common_errors}}
 
-CLAUDE.md rules that caused conflicts:
+## CLAUDE.md Rule Conflicts
 {{rule_conflicts}}
 
-Produce:
-1. Top 5 patterns identified (with evidence from logs)
-2. Recommendations for agent prompt improvements (specific changes)
-3. Recommendations for CLAUDE.md rule changes (additions, removals, clarifications)
-4. Workflow structure improvements (phase order, parallel vs sequential, new gates)
-5. Priority ranking by estimated impact (high / medium / low)
+Produce actionable recommendations organized by category:
+
+1. **Reliability improvements** (based on retry rates, fallback rates, and failure hotspots):
+   - For each skill with retry_count > 1 average: specific prompt or gate change to reduce retries
+   - For each agent with high fallback rate: root cause and fix recommendation
+
+2. **Pipeline continuity improvements** (based on checkpoint stops, orphaned runs, missing chains):
+   - For each frequently stopped checkpoint: why runs stop there and how to reduce stops
+   - For each orphaned discovery: whether it needs a follow-up /implement or should be closed
+
+3. **Observability improvements** (based on missing SEP logs, aborted runs without reason):
+   - For each skill missing from .squad-log: confirm SEP log instruction is present
+   - For aborted runs without logged reason: what context should be captured on abort
+
+4. **Agent quality improvements** (based on rejected outputs and low reliability teammates):
+   - For each rejected agent: specific prompt change to reduce rejection rate
+   - For each low reliability teammate: whether to adjust prompts or update fallback_matrix
+
+5. **Rule and process improvements** (based on CLAUDE.md conflicts and workflow structure):
+   - Rule additions, removals, or clarifications
+   - Gate reordering or new gate proposals
+
+Priority ranking: high (fix within next sprint) / medium (fix within 2 sprints) / low (nice to have)
 ```
 
 ### Step 5 — Present findings and recommendations
@@ -157,33 +203,57 @@ Present to the user:
 # Factory Retrospective — YYYY-MM-DD
 
 ## Execution Summary
-- Logs analyzed: N files
-- Period: [date range]
-- Total retry cycles detected: N
-- Most problematic phase: [phase name]
+- Logs analyzed: N SEP log files
+- Period: [earliest timestamp] → [latest timestamp]
+- Skills executed: [comma-separated skill names]
+- Total retry cycles: N (avg N per run)
+- Final status breakdown: completed=N, failed=N, partial=N, aborted=N
+
+## Pipeline Health Metrics
+
+| Metric | Value | Threshold | Status |
+|--------|-------|-----------|--------|
+| Retry rate (avg/run) | N | < 1.0 | 🟢 / 🔴 |
+| Fallback rate | N% | < 15% | 🟢 / 🔴 |
+| UAT rejection rate | N% | < 20% | 🟢 / 🔴 |
+| Orphaned discoveries | N | 0 | 🟢 / 🔴 |
+| Hotfixes without postmortem | N | 0 | 🟢 / 🔴 |
+| Runs without SEP log | N | 0 | 🟢 / 🔴 |
+| Aborted without reason | N | 0 | 🟢 / 🔴 |
 
 ## Patterns Identified
 
 ### Pattern 1: [title]
-- **Evidence:** [log excerpts]
-- **Impact:** [high/medium/low]
-- **Root cause:** ...
+- **Evidence:** [log excerpts, run_ids]
+- **Impact:** high / medium / low
+- **Root cause:** [specific cause]
 
 ### Pattern 2: ...
 
-## Recommendations
+## Actionable Recommendations
 
-### Agent Prompt Improvements
-| Agent | Change | Expected Impact |
-|-------|--------|----------------|
+### Category 1 — Reliability (retry & fallback hotspots)
+| # | Skill / Agent | Finding | Recommended Change | Priority |
+|---|---|---|---|---|
+| 1 | skill-name | avg retry_count=N | [specific prompt or gate change] | high |
 
-### CLAUDE.md Rule Changes
-| Rule | Action (add/remove/clarify) | Rationale |
-|------|----------------------------|-----------|
+### Category 2 — Pipeline Continuity (orphaned runs, broken chains)
+| # | Finding | Action | Owner |
+|---|---|---|---|
+| 1 | N orphaned discoveries | [list run_ids, decide: implement or close] | operator |
 
-### Workflow Improvements
-| Change | Impact | Effort |
-|--------|--------|--------|
+### Category 3 — Observability (missing SEP logs, aborted runs)
+| # | Skill | Gap | Fix |
+|---|---|---|---|
+| 1 | skill-name | no SEP log entry found | verify SEP log instruction in SKILL.md |
+
+### Category 4 — Agent Quality (rejected outputs, low reliability teammates)
+| # | Agent | Issue | Prompt Change |
+|---|---|---|---|
+
+### Category 5 — Rules & Process (CLAUDE.md conflicts, gate improvements)
+| # | Change | Action | Rationale |
+|---|---|---|---|
 ```
 
 ### Step 6 — Interactive approval gate (mandatory)
@@ -246,6 +316,30 @@ Create the timestamp marker:
 ```bash
 touch ai-docs/.last-retro
 ```
+
+### Step 8b — Write SEP log
+
+Write to `ai-docs/.squad-log/factory-retrospective-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+skill: factory-retrospective
+timestamp: {{ISO8601}}
+status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [logs-analyzed, patterns-identified, recommendations-approved]
+fallbacks_invoked: []
+logs_analyzed: N
+patterns_identified: N
+changes_applied: N
+report_artifact: ai-docs/factory-retrospective-YYYY-MM-DD.md
+---
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
 ### Step 9 — Report to user
 

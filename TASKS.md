@@ -136,44 +136,50 @@
 
 ---
 
-### Sprint 3 — SEP log e rastreabilidade formal
+### Sprint 3 — SEP log e rastreabilidade formal ✓
 
 **Objetivo:** Formalizar o schema do SEP log, garantir que todas as skills o produzem, e habilitar o `/factory-retrospective` para análise de padrões.
 
 ---
 
-#### 3.1 — Definir schema JSON formal do SEP log
+#### 3.1 — Definir schema JSON formal do SEP log ✓
 
 **Escopo:** Sem schema formal, o SEP log não é validável e o `/factory-retrospective` não tem contrato para parsear.
 
-- [ ] 3.1.1 — Ler seção 13 do `docs/MANUAL.md` e extrair campos atuais do SEP log
-- [ ] 3.1.2 — Criar `ai-docs/.squad-log/sep-log.schema.json` com JSON Schema (draft-07 ou 2020-12)
-- [ ] 3.1.3 — Incluir campos obrigatórios: `skill`, `execution_mode`, `architecture_style`, `checkpoints` (array), `fallbacks_invoked` (array), `final_status`, `timestamp`
-- [ ] 3.1.4 — Incluir campos opcionais: `lint_profile`, `docs_lookup_mode`, `runtime_policy_version`, `agent_results`
-- [ ] 3.1.5 — Adicionar validação do schema ao `scripts/dogfood-report.sh`
-- [ ] 3.1.6 — Atualizar `docs/MANUAL.md` seção 13 com o schema formalizado e exemplos
+- [x] 3.1.1 — Ler seção 13 do `docs/MANUAL.md` e extrair campos atuais do SEP log
+- [x] 3.1.2 — Criar `ai-docs/.squad-log/sep-log.schema.json` com JSON Schema (draft-07 ou 2020-12)
+- [x] 3.1.3 — Incluir campos obrigatórios: `skill`, `execution_mode`, `architecture_style`, `checkpoints` (array), `fallbacks_invoked` (array), `final_status`, `timestamp`
+- [x] 3.1.4 — Incluir campos opcionais: `lint_profile`, `docs_lookup_mode`, `runtime_policy_version`, `agent_results`
+- [x] 3.1.5 — Adicionar validação do schema ao `scripts/dogfood-report.sh`
+- [x] 3.1.6 — Atualizar `docs/MANUAL.md` seção 13 com o schema formalizado e exemplos
 
-#### 3.2 — Auditar skills que produzem SEP log
+> Resultado: Schema JSON 2020-12 criado em `ai-docs/.squad-log/sep-log.schema.json` com 8 campos obrigatórios e 16 opcionais. Validação adicionada ao `dogfood-report.sh` (valida arquivos `.md` em `.squad-log/` se presentes). `MANUAL.md` seção 13 atualizada com tabela de campos, exemplo canônico e link ao schema.
+
+#### 3.2 — Auditar skills que produzem SEP log ✓
 
 **Escopo:** Verificar quais das 20 skills incluem instrução de gravar SEP log e adicionar nas que faltam.
 
-- [ ] 3.2.1 — Ler cada skill em `plugins/claude-tech-squad/skills/` e verificar presença de instrução de SEP log
-- [ ] 3.2.2 — Listar skills sem instrução
-- [ ] 3.2.3 — Para cada skill faltante: identificar os campos disponíveis ao final da execução (skill name, agents invocados, gates passados)
-- [ ] 3.2.4 — Adicionar instrução de gravação de SEP log em cada skill faltante seguindo o schema da tarefa 3.1
-- [ ] 3.2.5 — Verificar que a instrução especifica o caminho `ai-docs/.squad-log/<skill>-<timestamp>.json`
-- [ ] 3.2.6 — Rodar `bash scripts/validate.sh` após todas as adições
+- [x] 3.2.1 — Ler cada skill em `plugins/claude-tech-squad/skills/` e verificar presença de instrução de SEP log
+- [x] 3.2.2 — Listar skills sem instrução
+- [x] 3.2.3 — Para cada skill faltante: identificar os campos disponíveis ao final da execução (skill name, agents invocados, gates passados)
+- [x] 3.2.4 — Adicionar instrução de gravação de SEP log em cada skill faltante seguindo o schema da tarefa 3.1
+- [x] 3.2.5 — Verificar que a instrução especifica o caminho `ai-docs/.squad-log/<skill>-<timestamp>.json`
+- [x] 3.2.6 — Rodar `bash scripts/validate.sh` após todas as adições
 
-#### 3.3 — Melhorar `/factory-retrospective` com análise de padrões de pipeline
+> Resultado: Todas 20/20 skills já tinham instrução de SEP log. Nenhuma instruction estava faltando — gap era nos campos do template YAML. Adicionados `final_status`, `execution_mode`, `architecture_style`, `checkpoints`, `fallbacks_invoked` em todos os 20 templates de SEP log. Skills com preflight de detecção usam `{{architecture_style}}`; as demais usam `n/a`. `validate.sh` passa.
+
+#### 3.3 — Melhorar `/factory-retrospective` com análise de padrões de pipeline ✓
 
 **Escopo:** O retrospective deve ser capaz de ler SEP logs e produzir insights acionáveis sobre a saúde da esteira.
 
-- [ ] 3.3.1 — Ler skill `plugins/claude-tech-squad/skills/factory-retrospective` atual e identificar o que já analisa
-- [ ] 3.3.2 — Adicionar análise de: retry rate por skill (quantas vezes cada skill triggou retry), fallback rate por agente (quais agentes mais acionam fallback)
-- [ ] 3.3.3 — Adicionar análise de: checkpoint mais frequente de parada (onde os runs mais param/falham), hotfixes sem postmortem subsequente
-- [ ] 3.3.4 — Adicionar detecção de: runs sem SEP log (skill sem instrução), runs com `final_status=aborted` sem motivo logado
-- [ ] 3.3.5 — Garantir que o output do retrospective inclui recomendações acionáveis por categoria (não só métricas)
-- [ ] 3.3.6 — Testar com os SEP logs dos golden runs capturados na Sprint 2
+- [x] 3.3.1 — Ler skill `plugins/claude-tech-squad/skills/factory-retrospective` atual e identificar o que já analisa
+- [x] 3.3.2 — Adicionar análise de: retry rate por skill (quantas vezes cada skill triggou retry), fallback rate por agente (quais agentes mais acionam fallback)
+- [x] 3.3.3 — Adicionar análise de: checkpoint mais frequente de parada (onde os runs mais param/falham), hotfixes sem postmortem subsequente
+- [x] 3.3.4 — Adicionar detecção de: runs sem SEP log (skill sem instrução), runs com `final_status=aborted` sem motivo logado
+- [x] 3.3.5 — Garantir que o output do retrospective inclui recomendações acionáveis por categoria (não só métricas)
+- [x] 3.3.6 — Testar com os SEP logs dos golden runs capturados na Sprint 2
+
+> Resultado: Step 2 expandido com 5 categorias de análise (retry/failure, fallback por agente, checkpoint stops, run chain gaps, observability gaps). Prompt do TechLead atualizado com variáveis para todas as novas métricas e instruções de recomendação por categoria. Step 5 expandido com tabela Pipeline Health Metrics (7 métricas com thresholds) e 5 categorias de recomendações acionáveis. `validate.sh` passa.
 
 ---
 
