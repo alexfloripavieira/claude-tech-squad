@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.35.0] - 2026-04-05 — Automated feature release
+
+### Added
+
+- Add /dashboard skill for instant pipeline health status
 ## [5.34.0] - 2026-04-05 — Automated feature release
 
 ### Added
