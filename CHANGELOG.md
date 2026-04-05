@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.30.1] - 2026-04-05 — Automated maintenance release
+
+### Changed
+
+- Add agent and skill contracts, runtime policy, and safety docs; ignore PRD.md
+- Sync after manual release v5.30.0 [skip-release]
 ## [5.30.0] - 2026-04-05 — Stack Specialists integration: 12 new agents for Django, React, Vue, Python, TypeScript, JavaScript, and Shell stacks
 
 ### Added

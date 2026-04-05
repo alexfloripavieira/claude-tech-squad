@@ -8,7 +8,7 @@
     {
       "name": "claude-tech-squad",
       "description": "Generic full technology squad plugin for discovery, design principles, TDD-first implementation, QA, security, documentation, Jira and Confluence, SRE, and release.",
-      "version": "5.30.0",
+      "version": "5.30.1",
       "source": "./plugins/claude-tech-squad"
     }
   ]
