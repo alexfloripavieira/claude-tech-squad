@@ -79,6 +79,20 @@ for skill in bug-fix cloud-debug dependency-check factory-retrospective hotfix i
   grep -q 'ai-docs/.squad-log' "$skill_file" || { echo "Smoke test failed: missing SEP log instruction in $skill"; exit 1; }
 done
 
+# ── LLM detection block in security-audit ───────────────────────────────────
+grep -q 'llm_detected' "$SKILLS_DIR/security-audit/SKILL.md" || {
+  echo "Smoke test failed: security-audit SKILL.md missing LLM detection block"
+  exit 1
+}
+grep -q 'llm-safety-reviewer' "$SKILLS_DIR/security-audit/SKILL.md" || {
+  echo "Smoke test failed: security-audit SKILL.md missing llm-safety-reviewer invocation"
+  exit 1
+}
+grep -q 'BLOCKING' "$SKILLS_DIR/security-audit/SKILL.md" || {
+  echo "Smoke test failed: security-audit SKILL.md missing BLOCKING severity for LLM findings"
+  exit 1
+}
+
 for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:' '^checkpoint_resume:' '^reliability_metrics:'; do
   grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml" || {
     echo "Smoke test failed: runtime-policy.yaml missing $key"

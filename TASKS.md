@@ -227,42 +227,48 @@
 
 ---
 
-### Sprint 5 — Segurança da esteira e guardrails
+### Sprint 5 — Segurança da esteira e guardrails ✓
 
 **Objetivo:** Fortalecer a detecção automatizada de violações de segurança antes do publish e fortalecer o bench de AI.
 
 ---
 
-#### 5.1 — Adicionar detecção automatizada de Absolute Prohibitions ao validate.sh
+#### 5.1 — Adicionar detecção automatizada de Absolute Prohibitions ao validate.sh ✓
 
 **Escopo:** Atualmente o validate.sh não verifica se agentes de execução têm o bloco de proibições. Qualquer agente novo pode ser publicado sem ele.
 
-- [ ] 5.1.1 — Consolidar lista definitiva de agentes com autoridade de execução (definida na tarefa 1.2.1)
-- [ ] 5.1.2 — Adicionar no `scripts/validate.sh`: para cada agente da lista, fazer grep de string identificadora do bloco de proibições
-- [ ] 5.1.3 — Fazer o script emitir mensagem clara por agente faltante e retornar exit code 1
-- [ ] 5.1.4 — Testar: remover bloco de um agente e verificar que `validate.sh` falha indicando o agente
-- [ ] 5.1.5 — Restaurar e verificar que `validate.sh` passa
+- [x] 5.1.1 — Consolidar lista definitiva de agentes com autoridade de execução (definida na tarefa 1.2.1)
+- [x] 5.1.2 — Adicionar no `scripts/validate.sh`: para cada agente da lista, fazer grep de string identificadora do bloco de proibições
+- [x] 5.1.3 — Fazer o script emitir mensagem clara por agente faltante e retornar exit code 1
+- [x] 5.1.4 — Testar: remover bloco de um agente e verificar que `validate.sh` falha indicando o agente
+- [x] 5.1.5 — Restaurar e verificar que `validate.sh` passa
 
-#### 5.2 — Fortalecer skill `/security-audit` para cobertura de ameaças LLM
+> Resultado: EXECUTION_AGENTS expandido de 9 → 18 agentes (adicionados: frontend-dev, mobile-dev, data-engineer, security-engineer, ml-engineer, llm-safety-reviewer, chaos-engineer, cost-optimizer, techlead). validate.sh falha com exit 1 e mensagem clara quando bloco está ausente.
+
+#### 5.2 — Fortalecer skill `/security-audit` para cobertura de ameaças LLM ✓
 
 **Escopo:** A skill de security-audit deve incluir o bench de segurança de AI quando detectar código LLM no repositório.
 
-- [ ] 5.2.1 — Ler skill `plugins/claude-tech-squad/skills/security-audit` atual
-- [ ] 5.2.2 — Verificar se inclui: scan de prompt injection, verificação de model pinning, verificação de PII em prompts, tool call authorization review
-- [ ] 5.2.3 — Adicionar: se código LLM detectado, ativar `llm-safety-reviewer` como parte obrigatória do audit
-- [ ] 5.2.4 — Garantir que findings de injection, PII leak, e model sem pin são emitidos como BLOCKING
-- [ ] 5.2.5 — Adicionar entrada no `scripts/smoke-test.sh` verificando a presença do bloco de detecção de LLM na skill
-- [ ] 5.2.6 — Rodar `bash scripts/validate.sh` e `bash scripts/smoke-test.sh`
+- [x] 5.2.1 — Ler skill `plugins/claude-tech-squad/skills/security-audit` atual
+- [x] 5.2.2 — Verificar se inclui: scan de prompt injection, verificação de model pinning, verificação de PII em prompts, tool call authorization review
+- [x] 5.2.3 — Adicionar: se código LLM detectado, ativar `llm-safety-reviewer` como parte obrigatória do audit
+- [x] 5.2.4 — Garantir que findings de injection, PII leak, e model sem pin são emitidos como BLOCKING
+- [x] 5.2.5 — Adicionar entrada no `scripts/smoke-test.sh` verificando a presença do bloco de detecção de LLM na skill
+- [x] 5.2.6 — Rodar `bash scripts/validate.sh` e `bash scripts/smoke-test.sh`
 
-#### 5.3 — Revisar e documentar justificativa de cada Absolute Prohibition
+> Resultado: Adicionado Step 1b (LLM detection) e Step 3b (llm-safety-reviewer obrigatório quando `llm_detected=true`) na skill. Report inclui seção BLOCKING para findings LLM. smoke-test.sh verifica llm_detected, llm-safety-reviewer e BLOCKING. Ambos os scripts passam.
+
+#### 5.3 — Revisar e documentar justificativa de cada Absolute Prohibition ✓
 
 **Escopo:** Cada proibição deve ter justificativa de incidente ou risco real documentado no MANUAL.md para que o time entenda por que existe e não tente contorná-la.
 
-- [ ] 5.3.1 — Extrair lista atual de Absolute Prohibitions do README.md
-- [ ] 5.3.2 — Para cada item: documentar justificativa (ex: "DROP TABLE sem confirmação — risco de perda irreversível de dados de produção")
-- [ ] 5.3.3 — Adicionar seção "Justificativa das proibições absolutas" no `docs/MANUAL.md` seção 12
-- [ ] 5.3.4 — Verificar consistência da lista entre README.md, MANUAL.md, e bloco nos agentes
-- [ ] 5.3.5 — Corrigir divergências encontradas nos 3 pontos
+- [x] 5.3.1 — Extrair lista atual de Absolute Prohibitions do README.md
+- [x] 5.3.2 — Para cada item: documentar justificativa (ex: "DROP TABLE sem confirmação — risco de perda irreversível de dados de produção")
+- [x] 5.3.3 — Adicionar seção "Justificativa das proibições absolutas" no `docs/MANUAL.md` seção 12
+- [x] 5.3.4 — Verificar consistência da lista entre README.md, MANUAL.md, e bloco nos agentes
+- [x] 5.3.5 — Corrigir divergências encontradas nos 3 pontos
+
+> Resultado: Adicionada seção "Justificativa das proibições absolutas" no MANUAL.md seção 12 com 5 categorias (dados, código/deploy, segurança, LLM/AI, execução). Corrigidas 2 divergências: MANUAL agora inclui "monitoring ou alertas de SLO" na proibição de desabilitar auth, e seção "Proibições adicionais para features LLM/AI" adicionada ao MANUAL alinhando com README.
 
 ---
 

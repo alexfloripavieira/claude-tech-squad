@@ -269,12 +269,21 @@ EXECUTION_AGENTS=(
   release
   sre
   backend-dev
+  frontend-dev
+  mobile-dev
+  data-engineer
   devops
   ci-cd
   dba
   cloud-architect
   platform-dev
   incident-manager
+  security-engineer
+  ml-engineer
+  llm-safety-reviewer
+  chaos-engineer
+  cost-optimizer
+  techlead
 )
 
 for agent in "${EXECUTION_AGENTS[@]}"; do

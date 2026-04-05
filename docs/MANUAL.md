@@ -1096,7 +1096,7 @@ Exigem **confirmação escrita explícita do usuário** antes de qualquer execu�
 | `git push --force` em branch protegido | sempre |
 | Remover secrets ou env vars de produção | produção |
 | Deploy sem plano de rollback documentado e testado | produção |
-| Desabilitar autenticação/autorização como workaround | sempre |
+| Desabilitar autenticação, autorização, monitoring ou alertas de SLO | sempre |
 | Destruir infraestrutura (`terraform destroy`) | sempre |
 
 ### Restrições por agente
@@ -1121,6 +1121,69 @@ Exigem **confirmação escrita explícita do usuário** antes de qualquer execu�
 | Deploy para produção sem staging verificado | Uma falha em staging é infinitamente mais barata que uma em produção |
 | Criar tag/release com CI falhando | Código não testado não é deploy — é aposta |
 | Migrar banco de dados sem backup confirmado | Operação irreversível sem rede de segurança |
+
+### Justificativa das proibições absolutas
+
+Esta seção documenta o **motivo** de cada proibição. Sem justificativa, contribuidores futuros podem enfraquecer guardrails pensando que são excessivamente conservadores. O motivo também ajuda operadores a comunicar as restrições para seus times.
+
+#### Operações destrutivas de dados
+
+| Proibição | Justificativa |
+|---|---|
+| `DROP TABLE`, `DROP DATABASE`, `TRUNCATE` | Perda de dados de produção é irreversível — nenhum rollback existe se o backup não foi verificado antes. Um erro numa migration script pode destruir anos de dados em segundos. |
+| Deletar recursos cloud com dados (buckets S3/GCS, RDS, clusters) | Deleção de recurso cloud frequentemente não tem undo. Custo de recuperação (se possível) é ordens de magnitude maior que o custo de confirmar com o usuário. |
+| Migrar banco de dados sem backup confirmado | A migration pode falhar no meio — dado pode ficar em estado inconsistente. Backup + restore-test é a única rede de segurança real. |
+
+#### Operações de controle de código e deploy
+
+| Proibição | Justificativa |
+|---|---|
+| Merge para `main`/`master`/`develop` sem PR aprovado | Code review detecta bugs que testes não cobrem. PR aprovado é o contrato mínimo de qualidade — bypassa-lo remove a única barreira entre código de agente e produção. |
+| `git push --force` em branch protegido | Reescreve histórico público — outros colaboradores perdem commits silenciosamente. Irreversível se o ref foi deletado no remoto. |
+| `git commit --no-verify` | Bypassa hooks de lint/segurança. Hooks existem para prevenir exatamente o tipo de erro que agentes cometem com mais frequência: secrets em código, lint quebrado, testes falhando. |
+| Criar tag/release com CI falhando | Uma tag com CI vermelho é uma promessa falsa — "este código funciona" quando os testes dizem o contrário. Downstream (usuários, automações) confia na tag. |
+| Deploy para produção sem staging verificado | Staging existe para absorver falhas sem impacto em usuários. Pular staging aumenta a probabilidade de incidente em produção por pelo menos uma ordem de magnitude. |
+| Deploy sem plano de rollback documentado e testado | Se o deploy falhar, cada minuto sem rollback claro é um minuto de impacto. Um rollback não testado pode ser tão perigoso quanto o problema original. |
+
+#### Segurança e acesso
+
+| Proibição | Justificativa |
+|---|---|
+| Remover secrets ou env vars de produção | Aplicação pode entrar em estado quebrado (crash loop, falha silenciosa) se a variável era necessária. Mudanças de secrets em produção exigem deploy coordenado. |
+| Desabilitar autenticação/autorização, monitoring ou alertas de SLO | Desabilitar autenticação abre o sistema a acesso não autorizado. Desabilitar monitoring cega a equipe — falhas subsequentes passam sem detecção. |
+| Destruir infraestrutura (`terraform destroy`, equivalentes) | Infraestrutura destruída pode derrubar serviços dependentes. Dependências de infra raramente estão documentadas completamente — o risco é sistêmico. |
+| Experimentos de chaos em produção sem janela de manutenção + on-call + abort procedure | Chaos engineering sem preparação é simplesmente sabotagem. O valor do chaos vem do aprendizado controlado — sem abort procedure, o experimento pode virar incidente real. |
+| Publicar direto para App Store/Play Store produção sem staged rollout | Apps móveis não podem ser desinstalados forçadamente. Um bug crítico em produção mobile afeta todos os usuários até que a correção seja aprovada pela store (horas a dias). |
+
+#### Segurança de features LLM/AI
+
+| Proibição | Justificativa |
+|---|---|
+| Vulnerabilidades de prompt injection sem correção | Prompt injection permite que atores maliciosos controlem o comportamento do LLM — extraindo dados, executando ações não autorizadas, contornando guardrails. É o XSS/SQLi dos sistemas de IA. |
+| Tool calls destrutivas sem human-in-the-loop gate | Agentes com ferramentas destrutivas (delete, send email, execute query) podem causar dano irreversível se o loop de raciocínio falhar ou for manipulado. Human-in-the-loop é a única salvaguarda confiável. |
+| PII passando para LLMs ou serviços de eval sem mascaramento | LLMs podem vazar PII em outputs, logs, ou caches. Serviços de eval terceiros (PromptFoo, DeepEval hospedados) podem armazenar os dados. Exposição de PII viola GDPR/LGPD e destrói confiança do usuário. |
+| Model version sem pin (alias flutuante em produção) | Aliases flutuantes (`gpt-4`, `claude-latest`) apontam para modelos diferentes ao longo do tempo. Uma mudança de modelo sem deploy muda o comportamento da aplicação silenciosamente — sem release, sem rollback, sem aviso. |
+| Auto-atualização de prompts sem eval regression gate | Prompts são código de negócio. Atualizar sem testar contra casos golden é o equivalente de fazer deploy sem rodar testes — regressões de qualidade chegam a produção sem detecção. |
+
+#### Execução e injeção de código
+
+| Proibição | Justificativa |
+|---|---|
+| Dynamic code execution, shell injection, external input in commands | Permite execução arbitrária de código por qualquer entrada do usuário ou documento externo. É a classe de vulnerabilidade mais explorada em automações. Agentes processam input não confiável por natureza — dynamic execution transforma isso em RCE. |
+
+### Proibições adicionais para features LLM/AI (v5.8.0+)
+
+Quando o projeto usa LLM/AI, estas restrições são ativas — além das globais acima:
+
+| Operação | Severidade |
+|---|---|
+| Vulnerabilidade de prompt injection sem correção | BLOCKING — nenhum merge ou release até corrigir |
+| Tool calls destrutivas sem human-in-the-loop gate | BLOCKING |
+| PII passando para LLMs ou serviços de eval sem mascaramento | BLOCKING |
+| Model version sem pin (alias flutuante em produção) | BLOCKING |
+| Auto-atualização de prompts sem eval regression gate | BLOCKING |
+
+Estas restrições são verificadas pelo `llm-safety-reviewer` durante `/security-audit` e `/squad` quando código LLM/AI é detectado.
 
 ### Documentation Standard — Context7 First, Repository Fallback (v5.21.0+)
 
