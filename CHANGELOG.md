@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.31.0] - 2026-04-05 — Automated feature release
+
+### Added
+
+- Stack-aware orchestration — auto-route to specialist agents based on detected project stack
 ## [5.30.1] - 2026-04-05 — Automated maintenance release
 
 ### Changed
