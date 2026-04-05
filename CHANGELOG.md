@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.32.1] - 2026-04-05 — Automated maintenance release
+
+### Changed
+
+- Document stack-aware routing and stack-agnostic skills
 ## [5.32.0] - 2026-04-05 — Automated feature release
 
 ### Added
