@@ -272,42 +272,48 @@
 
 ---
 
-### Sprint 6 — Pipeline de release e automação
+### Sprint 6 — Pipeline de release e automação ✓
 
 **Objetivo:** Garantir que a pipeline automatizada de release é robusta e que nenhum metadado desalinhado chega ao marketplace.
 
 ---
 
-#### 6.1 — Auditar `.github/workflows/release.yml` contra `docs/RELEASING.md`
+#### 6.1 — Auditar `.github/workflows/release.yml` contra `docs/RELEASING.md` ✓
 
 **Escopo:** Verificar que todo passo documentado em RELEASING.md tem um step correspondente no workflow.
 
-- [ ] 6.1.1 — Ler `docs/RELEASING.md` e listar todos os passos que devem ser automatizados
-- [ ] 6.1.2 — Ler `.github/workflows/release.yml` e mapear cada step do workflow para os passos documentados
-- [ ] 6.1.3 — Identificar passos documentados sem step no workflow
-- [ ] 6.1.4 — Adicionar steps faltantes ou documentar explicitamente por que são opcionais ou manuais
-- [ ] 6.1.5 — Verificar que o workflow falha se `scripts/smoke-test.sh` retornar exit code diferente de 0
+- [x] 6.1.1 — Ler `docs/RELEASING.md` e listar todos os passos que devem ser automatizados
+- [x] 6.1.2 — Ler `.github/workflows/release.yml` e mapear cada step do workflow para os passos documentados
+- [x] 6.1.3 — Identificar passos documentados sem step no workflow
+- [x] 6.1.4 — Adicionar steps faltantes ou documentar explicitamente por que são opcionais ou manuais
+- [x] 6.1.5 — Verificar que o workflow falha se `scripts/smoke-test.sh` retornar exit code diferente de 0
 
-#### 6.2 — Adicionar verificação de alinhamento de versão ao validate.sh
+> **Resultado:** Todos os passos documentados em RELEASING.md têm steps correspondentes no workflow. O único item intencional fora do workflow é `dogfood-report.sh` (sem `--schema-only`), que exige golden runs reais e é explicitamente marcado como passo manual pré-merge no RELEASING.md. O step "Run full repository checks" não tem `continue-on-error`, então exit code != 0 falha o workflow.
+
+#### 6.2 — Adicionar verificação de alinhamento de versão ao validate.sh ✓
 
 **Escopo:** `marketplace.json`, `plugin.json`, e `docs/MANUAL.md` devem ter a mesma versão. Atualmente essa verificação não é automatizada.
 
-- [ ] 6.2.1 — Identificar o campo de versão em cada um dos 3 arquivos
-- [ ] 6.2.2 — Adicionar no `scripts/validate.sh`: extração da versão dos 3 arquivos e comparação
-- [ ] 6.2.3 — Fazer o script falhar com mensagem mostrando as versões encontradas quando divergentes
-- [ ] 6.2.4 — Adicionar a mesma verificação como step no `.github/workflows/release.yml`
-- [ ] 6.2.5 — Testar: alterar versão em um arquivo e verificar que `validate.sh` falha com mensagem clara
-- [ ] 6.2.6 — Restaurar e verificar que `validate.sh` passa
+- [x] 6.2.1 — Identificar o campo de versão em cada um dos 3 arquivos
+- [x] 6.2.2 — Adicionar no `scripts/validate.sh`: extração da versão dos 3 arquivos e comparação
+- [x] 6.2.3 — Fazer o script falhar com mensagem mostrando as versões encontradas quando divergentes
+- [x] 6.2.4 — Adicionar a mesma verificação como step no `.github/workflows/release.yml`
+- [x] 6.2.5 — Testar: alterar versão em um arquivo e verificar que `validate.sh` falha com mensagem clara
+- [x] 6.2.6 — Restaurar e verificar que `validate.sh` passa
 
-#### 6.3 — Documentar processo de release de emergência
+> **Resultado:** Verificação já existia em `validate.sh` linhas 14–27 (implementada em sprint anterior). Confirmado por teste: `marketplace.json` alterado para `9.99.0` → `validate.sh` saiu com exit 1 e mensagem `Version mismatch: marketplace.json (9.99.0) != plugin.json (5.29.0)`. Após restore: `validate.sh` passa normalmente.
+
+#### 6.3 — Documentar processo de release de emergência ✓
 
 **Escopo:** Se o GitHub Actions workflow falhar, o operador precisa de um caminho seguro para publicar manualmente.
 
-- [ ] 6.3.1 — Adicionar seção "Release de emergência (workflow failure)" em `docs/HOW-TO-CHANGE-AND-PUBLISH.md`
-- [ ] 6.3.2 — Documentar passo a passo: atualizar versão nos 3 arquivos com o número correto, rodar validate, rodar smoke test, criar tag git manualmente, criar GitHub Release manualmente via `gh release create`
-- [ ] 6.3.3 — Adicionar aviso: release manual deve ser seguido de commit de sincronização para que o histórico não fique desalinhado
-- [ ] 6.3.4 — Verificar que `scripts/verify-release.sh` cobre os mesmos checks do workflow automatizado
-- [ ] 6.3.5 — Documentar o output esperado de `bash scripts/verify-release.sh` após release bem-sucedido
+- [x] 6.3.1 — Adicionar seção "Release de emergência (workflow failure)" em `docs/HOW-TO-CHANGE-AND-PUBLISH.md`
+- [x] 6.3.2 — Documentar passo a passo: atualizar versão nos 3 arquivos com o número correto, rodar validate, rodar smoke test, criar tag git manualmente, criar GitHub Release manualmente via `gh release create`
+- [x] 6.3.3 — Adicionar aviso: release manual deve ser seguido de commit de sincronização para que o histórico não fique desalinhado
+- [x] 6.3.4 — Verificar que `scripts/verify-release.sh` cobre os mesmos checks do workflow automatizado
+- [x] 6.3.5 — Documentar o output esperado de `bash scripts/verify-release.sh` após release bem-sucedido
+
+> **Resultado:** "Fluxo de Emergência" expandido em `docs/HOW-TO-CHANGE-AND-PUBLISH.md` com Caminho 2 (8 passos): calcular versão, editar 3 arquivos, adicionar CHANGELOG, validate+smoke-test, verify-release.sh (com output esperado documentado), commit+tag manual, `gh release create` com bundle, commit de sincronização obrigatório.
 
 ---
 
