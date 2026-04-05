@@ -504,3 +504,42 @@
 - [x] 10.3.1 — Rodar `bash scripts/validate.sh` e confirmar que passa
 - [x] 10.3.2 — Rodar `bash scripts/smoke-test.sh` e confirmar que passa
 - [x] 10.3.3 — Commitar com `feat: add boundary text and Absolute Prohibitions to stack specialists`
+
+---
+
+### Sprint 11 — Marketplace discoverability ✓
+
+**Objetivo:** Reduzir o tempo até a primeira skill executada com sucesso para um operador que encontra o plugin no marketplace. Melhorar: descrição do plugin, SKILL-SELECTOR.md, e o README para que um operador novo saiba qual skill usar em 30 segundos.
+
+---
+
+#### 11.1 — Melhorar descrição do plugin no marketplace ✓
+
+**Escopo:** As descrições atuais em `marketplace.json` e `plugin.json` dizem "Generic full technology squad plugin" — não mencionam stack-aware routing, LLM/AI bench, 74 agentes, ou 20 skills. Um operador que vê esse texto no marketplace não tem o contexto necessário para entender o valor do plugin.
+
+- [x] 11.1.1 — Ler descrição atual em `marketplace.json` e `plugin.json`
+- [x] 11.1.2 — Escrever nova descrição curta (marketplace.json — máx 200 chars) mencionando: 74 agents, 20 skills, stack routing (Django/React/Vue/TypeScript/Python), LLM/AI bench
+- [x] 11.1.3 — Escrever nova descrição longa (plugin.json) com mais detalhe: capabilities principais, quando usar, stacks suportadas
+- [x] 11.1.4 — Verificar que `bash scripts/validate.sh` passa após as edições (version consistency não muda, só description)
+
+#### 11.2 — Traduzir e melhorar SKILL-SELECTOR.md ✓
+
+**Escopo:** O flowchart do `SKILL-SELECTOR.md` está em português enquanto toda a documentação está em inglês. Além disso, o selector não menciona stack-aware routing nem o bench de AI.
+
+- [x] 11.2.1 — Traduzir o flowchart mermaid para inglês (nós e labels)
+- [x] 11.2.2 — Traduzir a tabela de referência abaixo do flowchart para inglês
+- [x] 11.2.3 — Adicionar nota sobre stack-aware routing: operador não precisa especificar o stack, o skill detecta automaticamente
+- [x] 11.2.4 — Adicionar entrada para detecção de LLM/AI: `/squad` ativa bench de AI automaticamente quando detecta código LLM
+
+#### 11.3 — Adicionar "Pick the right skill in 30 seconds" ao README.md ✓
+
+**Escopo:** O README lista 20 skills com descrição de uma linha. Um operador novo não sabe por onde começar. Uma seção de 3 perguntas rápidas resolve o primeiro caso de uso sem precisar ler o playbook completo.
+
+- [x] 11.3.1 — Adicionar seção "Pick the Right Skill" acima da seção "Commands" no README
+- [x] 11.3.2 — Seção: 4 perguntas binárias cobrindo os casos mais comuns (novo repo → onboarding; produção quebrada → hotfix; feature nova → squad/implement; PR aberto → pr-review)
+- [x] 11.3.3 — Adicionar link para SKILL-SELECTOR.md ao final da seção para casos menos comuns
+
+#### 11.4 — Escada de validação e commit ✓
+
+- [x] 11.4.1 — Rodar `bash scripts/validate.sh` e confirmar que passa
+- [x] 11.4.2 — Commitar com `feat: improve marketplace discoverability and skill selector`

@@ -37,6 +37,23 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 - one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml`
 - one local dogfooding pack plus golden-run contract
 
+## Pick the Right Skill
+
+Not sure which skill to run? Answer these four questions:
+
+| Question | Answer → Skill |
+|---|---|
+| Is this your **first time** in this repository? | → `/onboarding` |
+| Is **production broken right now**? | → `/hotfix` (known location) or `/cloud-debug` (need to investigate) |
+| Do you have an **open PR** to review? | → `/pr-review` |
+| Do you want to **build a feature** end-to-end? | → `/squad` (full pipeline) or `/discovery` (blueprint only) then `/implement` |
+
+For less common situations — refactor, security audit, migration, LLM eval, multi-service — see [SKILL-SELECTOR.md](docs/SKILL-SELECTOR.md).
+
+> **Stack is detected automatically.** You never need to specify Django, React, Vue, TypeScript, JavaScript, or Python — the skill detects it at preflight and routes to the right specialist.
+
+> **LLM/AI bench activates automatically.** `/squad`, `/implement`, and `/security-audit` detect AI code (OpenAI, Anthropic, LangChain, pgvector) and add the AI specialist bench without extra configuration.
+
 ## Commands
 
 ```bash

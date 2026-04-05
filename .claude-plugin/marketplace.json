@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "claude-tech-squad",
-      "description": "Generic full technology squad plugin for discovery, design principles, TDD-first implementation, QA, security, documentation, Jira and Confluence, SRE, and release.",
+      "description": "74-agent software delivery squad: stack-aware routing (Django/React/Vue/TypeScript/Python), LLM/AI specialist bench, TDD-first implementation, security, QA, and automated release.",
       "version": "5.33.0",
       "source": "./plugins/claude-tech-squad"
     }
