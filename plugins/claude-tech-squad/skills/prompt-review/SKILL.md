@@ -264,6 +264,11 @@ run_id: {{run_id}}
 skill: prompt-review
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, review-complete, verdict-issued]
+fallbacks_invoked: []
 verdict: APPROVED | CHANGES_REQUESTED | BLOCKED
 injection_risks_found: N
 regression_risks_found: N

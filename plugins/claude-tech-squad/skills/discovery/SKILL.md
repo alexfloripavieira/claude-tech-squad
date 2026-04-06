@@ -187,6 +187,24 @@ Extract and store for use throughout this discovery run:
 `{{feature_slug}}` is used for ADR paths (`ai-docs/{{feature_slug}}/adr/`), blueprint path, feature flag naming, and the SEP log. Derive it immediately so all downstream steps have a consistent identifier.
 `{{architecture_style}}` and `{{lint_profile}}` are used by Architect, TechLead, Reviewer, Design Principles, and Conformance Audit so the squad does not force a single style on every repository.
 
+**Stack Specialist Routing** — detect and store before Step 2:
+
+| Signal | Detected stack |
+|---|---|
+| `manage.py` + `django` in requirements | `django` |
+| `package.json` contains `"react"` | `react` |
+| `package.json` contains `"vue"` | `vue` |
+| `tsconfig.json` or `typescript` in devDependencies | `typescript` |
+| `package.json` with no react/vue/typescript | `javascript` |
+| `pyproject.toml`/`requirements.txt` without `manage.py` | `python` |
+| None of the above | `generic` |
+
+Resolve routing variables:
+- `{{pm_agent}}` — `django-pm` if `django` detected, otherwise `pm`
+- `{{techlead_agent}}` — `tech-lead` if `django` detected, otherwise `techlead`
+
+Emit: `[Stack Detected] {{detected_stack}} | pm={{pm_agent}} | techlead={{techlead_agent}}`
+
 ### Step 2 — Create Discovery Team
 
 Call `TeamCreate` (fetch schema via ToolSearch if needed):
@@ -203,7 +221,7 @@ Spawn PM as a teammate:
 Agent(
   team_name = <team from Step 2>,
   name = "pm",
-  subagent_type = "claude-tech-squad:pm",
+  subagent_type = "claude-tech-squad:{{pm_agent}}",
   prompt = """
 ## Discovery Start — Repository Context
 
@@ -401,7 +419,7 @@ Spawn TechLead as execution strategy coordinator:
 Agent(
   team_name = <team>,
   name = "techlead",
-  subagent_type = "claude-tech-squad:techlead",
+  subagent_type = "claude-tech-squad:{{techlead_agent}}",
   prompt = """
 ## Tech Lead Execution Plan
 
@@ -693,6 +711,11 @@ parent_run_id: null
 skill: discovery
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, gate-1-approved, gate-2-approved, gate-3-approved, gate-4-approved, specialist-bench-complete, quality-baseline-complete, blueprint-confirmed]
+fallbacks_invoked: []
 runtime_policy_version: {{runtime_policy_version}}
 feature_slug: {{feature_slug}}
 checkpoint_cursor: blueprint-confirmed

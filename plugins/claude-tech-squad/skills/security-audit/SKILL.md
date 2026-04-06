@@ -75,6 +75,27 @@ Read the following files to determine the project stack:
 
 Record which stacks are present. A project can be both Python and JS.
 
+### Step 1b — Detect LLM/AI code
+
+Scan for LLM libraries across all dependency files:
+
+```bash
+# Python LLM libraries
+grep -r "openai\|anthropic\|langchain\|llama.index\|llamaindex\|pgvector\|chromadb\|pinecone\|weaviate\|cohere\|tiktoken\|transformers\|sentence.transformers\|ragas\|deepeval\|promptfoo" \
+  requirements.txt pyproject.toml Pipfile 2>/dev/null | head -10
+
+# JavaScript/TypeScript LLM libraries
+grep -r "\"openai\"\|\"@anthropic-ai\"\|\"langchain\"\|\"llamaindex\"\|\"pgvector\"\|\"pinecone\"\|\"weaviate\"\|\"cohere\"\|\"tiktoken\"\|\"@ai-sdk" \
+  package.json 2>/dev/null | head -10
+
+# Prompt files
+find . -name "*.prompt" -o -name "*.jinja2" -o -name "system-prompt*" 2>/dev/null | head -10
+```
+
+If any LLM library or prompt file is found: set `llm_detected=true`. Record: which libraries, whether prompt files exist.
+
+If `llm_detected=true`, emit: `[LLM Detected] AI/LLM code found — activating LLM security checks`
+
 ### Step 2 — Run static analysis tools via Bash
 
 Execute the appropriate tools based on the detected stack. Capture all output for later analysis.
@@ -130,6 +151,38 @@ Identify false positives where obvious.
 Recommend specific remediation for each finding.
 ```
 
+### Step 3b — Invoke LLM safety reviewer (mandatory when `llm_detected=true`)
+
+If `llm_detected=true`, this step is **mandatory** — not optional.
+
+Use the Agent tool with `subagent_type: "claude-tech-squad:llm-safety-reviewer"`, `team_name: "security-audit-team"`, `name: "llm-safety-reviewer"`.
+
+Prompt:
+```
+You are the LLM Safety Reviewer agent. Perform a security audit focused on the LLM/AI attack surface.
+
+Project stack: {{detected_stack}}
+LLM libraries detected: {{detected_llm_libraries}}
+Prompt files found: {{prompt_files_list}}
+
+Review the codebase for:
+1. Prompt injection vulnerabilities (direct and indirect — including via RAG documents)
+2. PII passed to LLMs or eval services without masking
+3. Model version pinning — flag any floating model aliases in production code
+4. Tool call authorization — destructive tool calls without human-in-the-loop gate
+5. Auto-updating prompts without eval regression gate
+6. Jailbreak exposure — system prompt leakage or override vectors
+
+For each finding:
+- Classify as BLOCKING (prompt injection, unmasked PII, tool authorization) or HIGH/MEDIUM
+- Include file:line reference
+- Recommend specific remediation
+
+BLOCKING findings must be surfaced first. No merge or release is permitted until BLOCKING findings are resolved.
+```
+
+Emit: `[LLM Safety Review] llm-safety-reviewer invoked — findings will be marked BLOCKING where applicable`
+
 ### Step 4 — Produce structured report
 
 Generate a markdown report with the following structure:
@@ -138,12 +191,24 @@ Generate a markdown report with the following structure:
 # Security Audit Report — YYYY-MM-DD
 
 ## Summary
+- BLOCKING (LLM): N findings
 - Critical: N findings
 - High: N findings
 - Medium: N findings
 - Low: N findings
 - Tools executed: [list]
 - Tools not available: [list]
+- LLM detected: yes/no — {{detected_llm_libraries or "none"}}
+
+## BLOCKING Findings — LLM Threat Surface (merge prohibited until resolved)
+> Populated only when `llm_detected=true`. Empty section = no LLM code detected.
+
+### [Finding title — e.g. "Prompt injection via unsanitized user input"]
+- **File:** path/to/file:line
+- **Tool:** llm-safety-reviewer
+- **Category:** prompt-injection / pii-leak / model-pinning / tool-authorization / jailbreak
+- **Description:** ...
+- **Remediation:** ...
 
 ## Critical Findings
 ### [Finding title]
@@ -213,6 +278,11 @@ run_id: {{run_id}}
 skill: security-audit
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, scan-complete, findings-reviewed]
+fallbacks_invoked: []
 findings_critical: N
 findings_high: N
 findings_medium: N

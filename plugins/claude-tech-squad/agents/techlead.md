@@ -1,6 +1,13 @@
 ---
 name: techlead
 description: Technical lead for execution strategy. Reconciles architecture and specialist inputs, chooses the implementation path, assigns boundaries, and owns technical delivery sequencing.
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - mcp__plugin_context7_context7__resolve-library-id
+  - mcp__plugin_context7_context7__query-docs
 ---
 
 # Tech Lead Agent

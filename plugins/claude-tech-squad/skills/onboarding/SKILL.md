@@ -79,7 +79,24 @@ Also check for:
 - Existing `CLAUDE.md` — already configured?
 - Existing `ai-docs/` — already has artifacts?
 
-Record: primary languages, frameworks, databases, CI/CD platform, container setup.
+**LLM/AI detection — scan for these patterns:**
+
+```bash
+# Python LLM libraries
+grep -r "openai\|anthropic\|langchain\|llama.index\|llamaindex\|pgvector\|chromadb\|pinecone\|weaviate\|cohere\|tiktoken\|transformers\|sentence.transformers\|ragas\|deepeval\|promptfoo" \
+  requirements.txt pyproject.toml Pipfile 2>/dev/null | head -10
+
+# JavaScript/TypeScript LLM libraries
+grep -r "\"openai\"\|\"@anthropic-ai\"\|\"langchain\"\|\"llamaindex\"\|\"pgvector\"\|\"pinecone\"\|\"weaviate\"\|\"cohere\"\|\"tiktoken\"\|\"ai\"\|\"@ai-sdk" \
+  package.json 2>/dev/null | head -10
+
+# Prompt files
+find . -name "*.prompt" -o -name "*.jinja2" -o -name "system-prompt*" -o -name "prompts/*.txt" 2>/dev/null | head -10
+```
+
+If any LLM library is found: set `llm_detected=true`. Record: which libraries, whether prompt files exist.
+
+Record: primary languages, frameworks, databases, CI/CD platform, container setup, `llm_detected` flag.
 
 ### Step 2 — Assess current state
 
@@ -186,6 +203,36 @@ If `CLAUDE.md` does not already exist, create it with the detected stack:
 - Never commit or push without explicit authorization
 ```
 
+**If `llm_detected=true`, append the following section to the generated `CLAUDE.md`:**
+
+```markdown
+## AI / LLM Workflow Rules
+
+This project uses LLM/AI libraries: {{detected_llm_libraries}}.
+
+### Mandatory gates before release
+
+- **Before any release that includes AI changes:** run `/claude-tech-squad:llm-eval`
+  This runs the eval suite (RAGAS, DeepEval, PromptFoo), compares against baseline, and blocks release if quality regresses.
+
+- **Before merging any PR that changes a prompt file:** run `/claude-tech-squad:prompt-review`
+  This validates regression on golden examples, scans for prompt injection, and estimates token cost delta.
+
+### Recommended workflow for AI features
+
+1. `/claude-tech-squad:discovery` — shape the AI feature with AI-aware specialists (ai-engineer, rag-engineer, llm-eval-specialist)
+2. `/claude-tech-squad:implement` — TDD-first implementation
+3. `/claude-tech-squad:prompt-review` — before merging prompt changes
+4. `/claude-tech-squad:llm-eval` — before release
+5. `/claude-tech-squad:release` — cut the release
+
+### Detected AI dependencies
+
+{{detected_llm_libraries_baseline}}
+```
+
+Emit: `[AI Detected] LLM libraries found — AI workflow rules added to CLAUDE.md`
+
 If `CLAUDE.md` already exists, read it and emit:
 ```
 [Onboarding] CLAUDE.md already exists — skipping template generation.
@@ -212,14 +259,31 @@ Do NOT write remediation files yet. Return findings only.
 )
 ```
 
-### Step 6 — Run initial dependency check
+### Step 6 — Run initial dependency check and generate baseline
 
 ```bash
 pip-audit --format=text 2>/dev/null || echo "PYTHON_AUDIT_NOT_AVAILABLE"
 npm audit 2>/dev/null || echo "JS_AUDIT_NOT_AVAILABLE"
 ```
 
-Record: critical CVEs count, major updates count.
+**Generate a dependency baseline listing all detected packages with known outdating flags:**
+
+```bash
+# Python: list installed packages with versions
+pip list --format=columns 2>/dev/null | head -30 || echo "PIP_NOT_AVAILABLE"
+
+# Node: list top-level dependencies with versions
+npm list --depth=0 2>/dev/null | head -30 || echo "NPM_NOT_AVAILABLE"
+```
+
+**If `llm_detected=true`, additionally flag known LLM library versioning risks:**
+
+- `openai` < 1.0: breaking API changes in v1.0 — upgrade required
+- `langchain` < 0.2: frequent breaking changes — pin exact version and review changelog before upgrading
+- `anthropic` < 0.20: streaming API changes — verify SDK version matches model API version
+- `transformers` without pinned version: model loading behavior changes across minor versions — pin to tested version
+
+Record: critical CVEs count, major updates count, LLM dependency flags.
 
 ### Step 7 — Generate project health baseline
 
@@ -249,6 +313,8 @@ Produce a structured baseline report:
 ## Dependency Baseline
 - Critical CVEs: N
 - Major updates pending: N
+- LLM libraries detected: {{llm_detected}} — {{detected_llm_libraries or "none"}}
+- LLM version flags: {{llm_version_flags or "none"}}
 
 ## Recommended First Steps
 1. {{top priority — e.g. "Fix N critical CVEs before first sprint"}}
@@ -266,6 +332,11 @@ run_id: {{run_id}}
 skill: onboarding
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, claude-md-generated, onboarding-complete]
+fallbacks_invoked: []
 stack: {{primary_stack}}
 claude_md_created: true | false
 security_findings_critical: N

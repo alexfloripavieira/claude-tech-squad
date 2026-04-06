@@ -165,7 +165,7 @@ Preflight rules:
 - Inspect the latest `ai-docs/.squad-log/*-implement-*.md` for the same `resume_key` when resuming an interrupted run
 - If a prior partial implementation exists and inputs did not materially change, emit `[Resume From] implement | checkpoint=<highest_completed_checkpoint>`
 - Do not mark preflight as passed until command detection succeeds or the user resolves `[Gate] Commands Unknown`
-- Emit `[Preflight Passed] implement | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version>`
+- Emit `[Preflight Passed] implement | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version> | stack=<detected_stack>`
 
 ### Checkpoint / Resume Rules
 
@@ -227,6 +227,40 @@ Could not detect test/build commands. Please provide:
 Block all agent spawns until commands are confirmed.
 
 If a `CLAUDE.md` exists, read its commands block and use those values, which override all detected values above.
+
+### Step 0.5 — Stack Specialist Routing
+
+After command detection and before spawning any agent, detect the repository's technology stack and resolve the routing table for specialist agents.
+
+**Detection signals** (check in this order, multiple stacks may apply):
+
+| Signal | Detected stack |
+|---|---|
+| `manage.py` exists AND `django` in `requirements.txt` or `pyproject.toml` | `django` |
+| `package.json` contains `"react"` in dependencies | `react` |
+| `package.json` contains `"vue"` in dependencies | `vue` |
+| `tsconfig.json` exists OR `typescript` in `package.json` devDependencies | `typescript` |
+| `package.json` exists AND no react/vue/typescript detected | `javascript` |
+| `pyproject.toml` or `requirements.txt` exists AND no `manage.py` | `python` |
+| `*.sh` files in root OR `Makefile` with automation targets | `shell` |
+| None of the above | `generic` |
+
+**Routing table** — resolve these variables before Step 1:
+
+| Variable | `django` | `react` | `vue` | `typescript` | `javascript` | `python` | `generic` |
+|---|---|---|---|---|---|---|---|
+| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
+| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
+| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
+| `{{qa_agent}}` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa` | `qa` |
+
+If multiple stacks apply (e.g. Django + React), resolve independently per workstream:
+- Backend workstream → `django-backend`
+- Frontend workstream → `react-developer`
+- Review → `code-reviewer` (Django wins for review when Django is present)
+- QA → `qa-tester` (any web stack triggers Playwright-based QA)
+
+Emit: `[Stack Detected] {{detected_stack}} | backend={{backend_agent}} | frontend={{frontend_agent}} | reviewer={{reviewer_agent}} | qa={{qa_agent}}`
 
 ### Step 1 — Validate Blueprint
 
@@ -293,11 +327,13 @@ Spawn implementation agents in parallel based on the TechLead's workstream plan.
 Only spawn agents for workstreams that apply to this task.
 
 ```
-# Spawn all relevant implementation agents in parallel
-Agent(team_name=<team>, name="backend-dev",  subagent_type="claude-tech-squad:backend-dev",  prompt=...)
-Agent(team_name=<team>, name="frontend-dev", subagent_type="claude-tech-squad:frontend-dev", prompt=...)
-Agent(team_name=<team>, name="platform-dev", subagent_type="claude-tech-squad:platform-dev", prompt=...)
+# Spawn relevant implementation agents in parallel using routing table from Step 0.5
+Agent(team_name=<team>, name="backend-dev",  subagent_type="claude-tech-squad:{{backend_agent}}",  prompt=...)
+Agent(team_name=<team>, name="frontend-dev", subagent_type="claude-tech-squad:{{frontend_agent}}", prompt=...)
+Agent(team_name=<team>, name="platform-dev", subagent_type="claude-tech-squad:platform-dev",       prompt=...)
 ```
+
+Only spawn `backend-dev` if the workstream requires backend changes. Only spawn `frontend-dev` if the workstream requires frontend changes. Only spawn `platform-dev` if background workers, queues, or platform tooling are in scope.
 
 Emit: `[Batch Spawned] implementation | Teammates: <list>`
 
@@ -338,7 +374,7 @@ Spawn Reviewer with implementation output:
 Agent(
   team_name = <team>,
   name = "reviewer",
-  subagent_type = "claude-tech-squad:reviewer",
+  subagent_type = "claude-tech-squad:{{reviewer_agent}}",
   prompt = """
 ## Code Review
 
@@ -396,7 +432,7 @@ Spawn QA after reviewer approval:
 Agent(
   team_name = <team>,
   name = "qa",
-  subagent_type = "claude-tech-squad:qa",
+  subagent_type = "claude-tech-squad:{{qa_agent}}",
   prompt = """
 ## QA Validation
 
@@ -861,6 +897,11 @@ parent_run_id: {{discovery_run_id_if_known | null}}
 skill: implement
 timestamp: {{ISO8601}}
 status: completed | failed
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, commands-confirmed, blueprint-validated, tdd-ready, implementation-batch-complete, reviewer-approved, qa-pass, conformance-pass, quality-bench-cleared, docs-complete, uat-approved]
+fallbacks_invoked: []
 runtime_policy_version: {{runtime_policy_version}}
 feature_slug: {{feature_slug}}
 blueprint_source: {{blueprint_path}}

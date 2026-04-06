@@ -1,5 +1,70 @@
 # Changelog
 
+## [5.35.1] - 2026-04-05 — Automated maintenance release
+
+### Changed
+
+- Fix skill count (20→21) and add /bug-fix to selector table
+## [5.35.0] - 2026-04-05 — Automated feature release
+
+### Added
+
+- Add /dashboard skill for instant pipeline health status
+## [5.34.0] - 2026-04-05 — Automated feature release
+
+### Added
+
+- Improve marketplace discoverability and skill selector
+## [5.33.0] - 2026-04-05 — Automated feature release
+
+### Added
+
+- Add boundary text and Absolute Prohibitions to stack specialists
+## [5.32.1] - 2026-04-05 — Automated maintenance release
+
+### Changed
+
+- Document stack-aware routing and stack-agnostic skills
+## [5.32.0] - 2026-04-05 — Automated feature release
+
+### Added
+
+- Extend stack-aware routing to bug-fix, hotfix, refactor, and pr-review skills
+## [5.31.0] - 2026-04-05 — Automated feature release
+
+### Added
+
+- Stack-aware orchestration — auto-route to specialist agents based on detected project stack
+## [5.30.1] - 2026-04-05 — Automated maintenance release
+
+### Changed
+
+- Add agent and skill contracts, runtime policy, and safety docs; ignore PRD.md
+- Sync after manual release v5.30.0 [skip-release]
+## [5.30.0] - 2026-04-05 — Stack Specialists integration: 12 new agents for Django, React, Vue, Python, TypeScript, JavaScript, and Shell stacks
+
+### Added
+
+**Stack Specialist agents (12 new agents — 62 → 74 total):**
+Twelve specialized agents previously developed for Django-centric projects are now part of the plugin: `django-pm`, `tech-lead`, `django-backend`, `django-frontend`, `code-reviewer`, `qa-tester`, `react-developer`, `vue-developer`, `python-developer`, `typescript-developer`, `javascript-developer`, and `shell-developer`. Each carries `result_contract`, `Documentation Standard — Context7 First, Repository Fallback`, and `Absolute Prohibitions` (for execution agents). Context7 and Playwright tool declarations are explicit in frontmatter where applicable.
+
+**Context7 and Playwright tools in `frontend-dev`, `qa`, `mobile-dev` frontmatter:**
+Existing plugin agents `frontend-dev`, `qa`, and `mobile-dev` now declare explicit Playwright tool lists in their YAML frontmatter, enabling visual verification and E2E flows. `frontend-dev` and `mobile-dev` also gain Context7 for library lookups.
+
+**Context7 tools in `techlead` and `architect` frontmatter:**
+`techlead` and `architect` now declare Context7 resolve and query tools in their frontmatter, enabling technology validation before any recommendation is finalized.
+
+**`README.md` Stack Specialists section:**
+New section documents all 12 stack specialist agents by category (Django, React/Vue, Python, TypeScript/JavaScript, Shell/Automation) with MCP coverage table and recommended delivery order.
+
+**`docs/MANUAL.md` Section 6 — Stack Specialists table:**
+Section 6 updated from 61 to 74 agents. New Stack Specialists tables added with Context7 and Playwright coverage columns per agent.
+
+### Fixed
+
+**`scripts/verify-release.sh` and `scripts/prepare-release-metadata.sh` MANUAL.md version regex:**
+Both scripts contained a Portuguese regex (`\*\*Versão:\*\*`) to extract and update the version in `docs/MANUAL.md`. After the MANUAL.md translation to English in v5.29.0, this regex silently failed — `verify-release.sh` could not confirm the version and `prepare-release-metadata.sh` would not update it during automated releases. Both now use the English regex (`\*\*Version:\*\*`), matching `validate.sh` which was fixed in the same translation sprint.
+
 ## [5.29.0] - 2026-04-02 — Automated feature release
 
 ### Added
@@ -361,6 +426,13 @@ O agente não tinha nenhuma referência a TDD. Adicionado TDD Mandate com ciclo 
 
 **TDD Mandate adicionado a 9 agentes de implementação restantes:**
 Os agentes `ai-engineer`, `data-engineer`, `integration-engineer`, `security-engineer`, `search-engineer`, `growth-engineer`, `devex-engineer`, `ml-engineer` e `rag-engineer` não tinham nenhuma referência a TDD. Todos receberam seção `## TDD Mandate` com regra red-green-refactor, proibição de código de produção antes de teste falhante, e instrução de mock para dependências externas em testes unitários.
+
+## [5.12.1] - 2026-03-31 — /implement: mandatory quality bench completion checks and failure recovery
+
+### Fixed
+
+**`/implement` — mandatory quality bench completion checks:**
+Quality Bench steps lacked explicit completion checks, allowing the orchestrator to advance to the docs/UAT phase before all quality bench agents had returned. Added mandatory wait and completion verification after each parallel quality bench batch, plus failure recovery steps: if a quality bench agent returns empty output, re-spawn once; if it fails again, present `[R]etry / [S]kip / [X]Abort` gate. Prevents silent quality bench bypass.
 
 ## [5.12.0] - 2026-03-25 — /bug-fix: perfumaria guard e critérios de blocker no reviewer
 

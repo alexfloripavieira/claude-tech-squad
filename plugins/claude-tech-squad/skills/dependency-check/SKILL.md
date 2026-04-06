@@ -234,6 +234,11 @@ run_id: {{run_id}}
 skill: dependency-check
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, scan-complete, remediation-plan-ready]
+fallbacks_invoked: []
 vulnerabilities_critical: N
 major_updates: N
 remediation_artifact: ai-docs/dependency-remediation-YYYY-MM-DD.md

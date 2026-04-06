@@ -40,6 +40,15 @@ Always propose the test creation order alongside the file plan:
 - Keep the design easy to implement and test.
 - Ask at least 2 backend-specific questions when tradeoffs remain.
 
+## What This Agent Does NOT Do
+
+- Own the overall cross-cutting architecture and workstream decomposition — that is `architect`
+- Design the frontend or mobile slice — those are `frontend-architect` and `mobile-dev`
+- Design the data layer or schema migrations — that is `data-architect`
+- Produce the deep Hexagonal port/adapter specialization — that is `hexagonal-architect`
+- Implement code — implementation is owned by `backend-dev`
+- Review code for correctness — that is `reviewer`
+
 ## Output Format
 
 ```

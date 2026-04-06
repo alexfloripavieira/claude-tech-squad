@@ -85,6 +85,24 @@ gh pr view {{pr_number}} --repo {{owner/repo}} --json files --jq '.files[].path'
 
 Record: PR title, base branch, head branch, files changed, additions, deletions.
 
+### Step 2b — Stack Specialist Routing
+
+Detect repository stack from the changed files and repo root:
+
+| Signal | Detected stack |
+|---|---|
+| `manage.py` + `django` in requirements | `django` |
+| `package.json` with `"react"` | `react` |
+| `package.json` with `"vue"` | `vue` |
+| `tsconfig.json` or `typescript` in devDeps | `typescript` |
+| `package.json` (no react/vue/ts) | `javascript` |
+| `pyproject.toml`/`requirements.txt` without `manage.py` | `python` |
+| None | `generic` |
+
+Resolve: `{{reviewer_agent}}` — `code-reviewer` if `django`, otherwise `reviewer`.
+
+Emit: `[Stack Detected] {{detected_stack}} | reviewer={{reviewer_agent}}`
+
 ### Step 3 — Detect review scope
 
 From the changed files, determine which specialist reviewers are relevant:
@@ -229,6 +247,11 @@ run_id: {{run_id}}
 skill: pr-review
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, review-complete, verdict-issued]
+fallbacks_invoked: []
 pr_number: {{pr_number}}
 findings_critical: N
 findings_high: N

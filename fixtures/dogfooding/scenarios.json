@@ -91,6 +91,36 @@
         "metadata.yaml",
         "scorecard.md"
       ]
+    },
+    {
+      "id": "llm-rag",
+      "workflow": "discovery",
+      "repo_path": "fixtures/dogfooding/llm-rag",
+      "prompt": "/claude-tech-squad:discovery\nDesign a delivery slice for a new context-aware document retrieval feature in this RAG pipeline. The feature must include evaluation gates (RAGAS metrics) before shipping. Show explicit preflight and execution lines.",
+      "expected_architecture_style": [
+        "ai-native"
+      ],
+      "expected_agents": [
+        "ai-engineer",
+        "llm-eval-specialist"
+      ],
+      "forbidden_default_agents": [],
+      "required_trace_lines": [
+        "[AI Detected] llm-rag",
+        "[Preflight Start] discovery",
+        "[Preflight Passed] discovery",
+        "[Checkpoint Saved] discovery"
+      ],
+      "forbidden_strings": [
+        "code-debugger"
+      ],
+      "artifact_contract": [
+        "prompt.txt",
+        "trace.md",
+        "final.md",
+        "metadata.yaml",
+        "scorecard.md"
+      ]
     }
   ]
 }

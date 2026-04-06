@@ -319,6 +319,11 @@ parent_run_id: null
 skill: llm-eval
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, eval-run, ragas-gate-checked]
+fallbacks_invoked: []
 eval_status: PASS | FAIL | REGRESSION | WARNING | SETUP_REQUIRED
 framework: {{framework_or_none}}
 examples_evaluated: N

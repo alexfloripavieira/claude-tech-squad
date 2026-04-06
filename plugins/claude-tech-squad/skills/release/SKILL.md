@@ -372,6 +372,11 @@ run_id: {{run_id}}
 skill: release
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, release-signed-off]
+fallbacks_invoked: []
 version: {{version}}
 release_agent_result: GO | NO-GO
 sre_result: GO | NO-GO

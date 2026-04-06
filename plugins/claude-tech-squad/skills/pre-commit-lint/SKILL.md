@@ -140,7 +140,38 @@ jq -e '.hooks.PreToolUse[] | select(.matcher == "Bash") | .hooks[] | .command' .
 ```
 Exit 0 = correct. Fix any malformation before finishing.
 
-### Step 9 — Report
+### Step 9 — Write SEP log
+
+```bash
+mkdir -p ai-docs/.squad-log
+```
+
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-pre-commit-lint-{{run_id}}.md`:
+
+```markdown
+---
+run_id: {{run_id}}
+skill: pre-commit-lint
+timestamp: {{ISO8601}}
+status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [lint-run, findings-reported]
+fallbacks_invoked: []
+tools_configured: [list of detected tools]
+hook_written: true
+settings_path: .claude/settings.json
+---
+
+## Configuration Summary
+Hook installed for: {{tools_list}}
+File patterns covered: {{patterns_list}}
+```
+
+Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
+
+### Step 10 — Report
 
 Tell the user:
 - Which tools were detected and configured

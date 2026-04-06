@@ -51,8 +51,8 @@ grep -q "## \[$NEXT_VERSION\]" "$TMP_RELEASE_REPO/CHANGELOG.md" || {
 }
 
 AGENT_COUNT=$(find "$AGENTS_DIR" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')
-RESULT_CONTRACT_COUNT=$(rg -n '^## Result Contract$' "$AGENTS_DIR"/*.md | wc -l | tr -d ' ')
-CONTEXT_FALLBACK_COUNT=$(rg -n '^## Documentation Standard — Context7 First, Repository Fallback$' "$AGENTS_DIR"/*.md | wc -l | tr -d ' ')
+RESULT_CONTRACT_COUNT=$(grep -n '^## Result Contract$' "$AGENTS_DIR"/*.md | wc -l | tr -d ' ')
+CONTEXT_FALLBACK_COUNT=$(grep -n '^## Documentation Standard — Context7 First, Repository Fallback$' "$AGENTS_DIR"/*.md | wc -l | tr -d ' ')
 
 if [ "$RESULT_CONTRACT_COUNT" != "$AGENT_COUNT" ]; then
   echo "Smoke test failed: Result Contract count ($RESULT_CONTRACT_COUNT) != agent count ($AGENT_COUNT)"
@@ -72,6 +72,27 @@ for skill in discovery implement squad; do
   grep -q '^### Checkpoint / Resume Rules$' "$skill_file" || { echo "Smoke test failed: missing Checkpoint / Resume Rules in $skill"; exit 1; }
 done
 
+for skill in bug-fix cloud-debug dependency-check dashboard factory-retrospective hotfix iac-review incident-postmortem llm-eval migration-plan multi-service onboarding pre-commit-lint prompt-review pr-review refactor release security-audit; do
+  skill_file="$SKILLS_DIR/$skill/SKILL.md"
+  [ -f "$skill_file" ] || { echo "Smoke test failed: SKILL.md missing for $skill"; exit 1; }
+  grep -q '## Global Safety Contract' "$skill_file" || { echo "Smoke test failed: missing Global Safety Contract in $skill"; exit 1; }
+  grep -q 'ai-docs/.squad-log' "$skill_file" || { echo "Smoke test failed: missing SEP log instruction in $skill"; exit 1; }
+done
+
+# ── LLM detection block in security-audit ───────────────────────────────────
+grep -q 'llm_detected' "$SKILLS_DIR/security-audit/SKILL.md" || {
+  echo "Smoke test failed: security-audit SKILL.md missing LLM detection block"
+  exit 1
+}
+grep -q 'llm-safety-reviewer' "$SKILLS_DIR/security-audit/SKILL.md" || {
+  echo "Smoke test failed: security-audit SKILL.md missing llm-safety-reviewer invocation"
+  exit 1
+}
+grep -q 'BLOCKING' "$SKILLS_DIR/security-audit/SKILL.md" || {
+  echo "Smoke test failed: security-audit SKILL.md missing BLOCKING severity for LLM findings"
+  exit 1
+}
+
 for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:' '^checkpoint_resume:' '^reliability_metrics:'; do
   grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml" || {
     echo "Smoke test failed: runtime-policy.yaml missing $key"
@@ -79,7 +100,16 @@ for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:'
   }
 done
 
-AGENT_TOOL_FILES=$(rg -l '^tools:\n(  - .+\n)*  - Agent' "$AGENTS_DIR"/*.md -U | sort || true)
+AGENT_TOOL_FILES=$(python3 -c "
+from pathlib import Path
+import re, sys
+d = Path(sys.argv[1])
+for f in sorted(d.glob('*.md')):
+    c = f.read_text()
+    m = re.match(r'^---\n(.*?)\n---', c, re.DOTALL)
+    if m and '- Agent' in m.group(1):
+        print(f)
+" "$AGENTS_DIR" | sort || true)
 EXPECTED_AGENT_TOOL_FILE="$AGENTS_DIR/incident-manager.md"
 if [ "$AGENT_TOOL_FILES" != "$EXPECTED_AGENT_TOOL_FILE" ]; then
   echo "Smoke test failed: unexpected Agent tool exposure"
@@ -87,7 +117,7 @@ if [ "$AGENT_TOOL_FILES" != "$EXPECTED_AGENT_TOOL_FILE" ]; then
   exit 1
 fi
 
-if rg -n 'subagent_type = "code-debugger"|Spawn code-debugger|code-debugger \(root cause analysis' \
+if grep -rnE 'subagent_type = "code-debugger"|Spawn code-debugger|code-debugger \(root cause analysis' \
   "$ROOT/README.md" \
   "$ROOT/docs" \
   "$PLUGIN_DIR" >/dev/null 2>&1; then

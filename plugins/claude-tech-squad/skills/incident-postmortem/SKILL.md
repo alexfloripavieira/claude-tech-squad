@@ -350,6 +350,11 @@ parent_run_id: {{hotfix_run_id_if_known | null}}
 skill: incident-postmortem
 timestamp: {{ISO8601}}
 status: completed
+final_status: completed
+execution_mode: inline
+architecture_style: n/a
+checkpoints: [preflight-passed, timeline-built, postmortem-approved]
+fallbacks_invoked: []
 incident_date: {{date}}
 incident_severity: P1 | P2 | P3 | P4
 duration_minutes: N

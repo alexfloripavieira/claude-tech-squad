@@ -1,0 +1,6 @@
+Agents found: 61
+/home/alex/claude-tech-squad/scripts/validate.sh: linha 340: rg: comando não encontrado
+claude-tech-squad validation passed (v5.29.0, 61 agents)
+/home/alex/claude-tech-squad/scripts/dogfood.sh: linha 40: rg: comando não encontrado
+Dogfood check failed: layered fixture missing test script
+smoke-test exit: 1

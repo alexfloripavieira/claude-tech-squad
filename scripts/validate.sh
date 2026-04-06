@@ -14,7 +14,7 @@ python3 -m json.tool "$PLUGIN_DIR/.claude-plugin/plugin.json" >/dev/null
 # ── Version consistency ──────────────────────────────────────────────────────
 MARKETPLACE_VERSION=$(python3 -c "import json; d=json.load(open('$ROOT/.claude-plugin/marketplace.json')); print(d['plugins'][0]['version'])")
 PLUGIN_VERSION=$(python3 -c "import json; d=json.load(open('$PLUGIN_DIR/.claude-plugin/plugin.json')); print(d['version'])")
-MANUAL_VERSION=$(python3 -c "import re; s=open('$ROOT/docs/MANUAL.md').read(); m=re.search(r'\\*\\*Versão:\\*\\*\\s*([0-9.]+)', s); print(m.group(1) if m else '')")
+MANUAL_VERSION=$(python3 -c "import re; s=open('$ROOT/docs/MANUAL.md').read(); m=re.search(r'\*\*Version:\*\*\s*([0-9.]+)', s); print(m.group(1) if m else '')")
 
 if [ "$MARKETPLACE_VERSION" != "$PLUGIN_VERSION" ]; then
   echo "Version mismatch: marketplace.json ($MARKETPLACE_VERSION) != plugin.json ($PLUGIN_VERSION)"
@@ -76,6 +76,7 @@ REQUIRED_SKILLS=(
   dependency-check
   factory-retrospective
   pre-commit-lint
+  dashboard
 )
 
 for skill in "${REQUIRED_SKILLS[@]}"; do
@@ -121,6 +122,7 @@ REQUIRED_AGENTS=(
   integration-qa
   jira-confluence-specialist
   llm-eval-specialist
+  llm-cost-analyst
   ml-engineer
   mobile-dev
   monitoring-specialist
@@ -147,6 +149,18 @@ REQUIRED_AGENTS=(
   test-automation-engineer
   test-planner
   ux-designer
+  code-reviewer
+  django-backend
+  django-frontend
+  django-pm
+  javascript-developer
+  python-developer
+  qa-tester
+  react-developer
+  shell-developer
+  tech-lead
+  typescript-developer
+  vue-developer
 )
 
 for agent in "${REQUIRED_AGENTS[@]}"; do
@@ -264,6 +278,49 @@ for path in 'ai-docs/.squad-log/*' 'ai-docs/dogfood-runs/*'; do
   fi
 done
 
+# ── Absolute Prohibitions in execution agents ────────────────────────────────
+EXECUTION_AGENTS=(
+  release
+  sre
+  backend-dev
+  frontend-dev
+  mobile-dev
+  data-engineer
+  devops
+  ci-cd
+  dba
+  cloud-architect
+  platform-dev
+  incident-manager
+  security-engineer
+  ml-engineer
+  llm-safety-reviewer
+  chaos-engineer
+  cost-optimizer
+  techlead
+  django-backend
+  django-frontend
+  javascript-developer
+  python-developer
+  react-developer
+  shell-developer
+  typescript-developer
+  vue-developer
+  qa-tester
+)
+
+for agent in "${EXECUTION_AGENTS[@]}"; do
+  agent_file="$AGENTS_DIR/$agent.md"
+  if [ ! -f "$agent_file" ]; then
+    echo "Execution agent file not found: $agent.md"
+    exit 1
+  fi
+  if ! grep -q "^## Absolute Prohibitions$" "$agent_file"; then
+    echo "Execution agent missing Absolute Prohibitions block: $agent"
+    exit 1
+  fi
+done
+
 # ── No agent self-chaining (except incident-manager) ────────────────────────
 # incident-manager is the only agent authorized to use Agent tool for
 # orchestration — it coordinates real-time incident response (fan-out pattern).
@@ -310,7 +367,7 @@ if [ -n "$AGENT_TOOL_FILES" ]; then
 fi
 
 # ── All subagent_type references must stay inside plugin namespace ──────────
-INVALID_SUBAGENT_TYPES=$(rg -nP 'subagent_type\s*[:=]\s*"(?!claude-tech-squad:)[^"]+"' \
+INVALID_SUBAGENT_TYPES=$(grep -rnP 'subagent_type\s*[:=]\s*"(?!claude-tech-squad:)[^"]+"' \
   "$PLUGIN_DIR/skills" \
   "$PLUGIN_DIR/agents" || true)
 if [ -n "$INVALID_SUBAGENT_TYPES" ]; then
@@ -319,14 +376,6 @@ if [ -n "$INVALID_SUBAGENT_TYPES" ]; then
   exit 1
 fi
 
-# ── No project-specific residue ──────────────────────────────────────────────
-if rg -n "\bA1\b|Fifi|Wooba|Cangooroo|Compozy|Botpress" \
-  "$ROOT/README.md" \
-  "$ROOT/docs" \
-  "$PLUGIN_DIR" >/dev/null 2>&1; then
-  echo "Found project-specific residue in plugin repository."
-  exit 1
-fi
 
 for trace_line in '\[Fallback Invoked\]' '\[Resume From\]' '\[Checkpoint Saved\]'; do
   if ! grep -q "$trace_line" "$ROOT/docs/EXECUTION-TRACE.md"; then

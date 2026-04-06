@@ -3,8 +3,10 @@
 node_modules/
 ai-docs/.squad-log/*
 !ai-docs/.squad-log/.gitkeep
+!ai-docs/.squad-log/sep-log.schema.json
 ai-docs/dogfood-runs/*
 !ai-docs/dogfood-runs/.gitkeep
 __pycache__/
 .pytest_cache/
 dist/
+PRD.md

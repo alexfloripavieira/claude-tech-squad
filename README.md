@@ -15,6 +15,7 @@ This repository is the execution layer. It provides the specialist team and work
 - Jira and Confluence handoff support
 
 See [GETTING-STARTED.md](docs/GETTING-STARTED.md) for installation, teammate mode setup, commands, and prompt examples.
+See [SKILL-SELECTOR.md](docs/SKILL-SELECTOR.md) for the decision tree: which skill to run for each situation.
 See [EXECUTION-TRACE.md](docs/EXECUTION-TRACE.md) for how to interpret visible agent execution.
 See [OPERATIONAL-PLAYBOOK.md](docs/OPERATIONAL-PLAYBOOK.md) for common execution scenarios.
 See [DOGFOODING.md](docs/DOGFOODING.md) for layered, hexagonal, and hotfix smoke scenarios.
@@ -31,10 +32,27 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 
 - one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
-- 61 specialist agents for software delivery
-- 20 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
+- 74 specialist agents for software delivery
+- 21 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
 - one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml`
 - one local dogfooding pack plus golden-run contract
+
+## Pick the Right Skill
+
+Not sure which skill to run? Answer these four questions:
+
+| Question | Answer → Skill |
+|---|---|
+| Is this your **first time** in this repository? | → `/onboarding` |
+| Is **production broken right now**? | → `/hotfix` (known location) or `/cloud-debug` (need to investigate) |
+| Do you have an **open PR** to review? | → `/pr-review` |
+| Do you want to **build a feature** end-to-end? | → `/squad` (full pipeline) or `/discovery` (blueprint only) then `/implement` |
+
+For less common situations — refactor, security audit, migration, LLM eval, multi-service — see [SKILL-SELECTOR.md](docs/SKILL-SELECTOR.md).
+
+> **Stack is detected automatically.** You never need to specify Django, React, Vue, TypeScript, JavaScript, or Python — the skill detects it at preflight and routes to the right specialist.
+
+> **LLM/AI bench activates automatically.** `/squad`, `/implement`, and `/security-audit` detect AI code (OpenAI, Anthropic, LangChain, pgvector) and add the AI specialist bench without extra configuration.
 
 ## Commands
 
@@ -70,6 +88,7 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 # Project setup
 /claude-tech-squad:onboarding         # bootstrap any new repo for squad usage
 /claude-tech-squad:factory-retrospective # analyze executions and improve the process
+/claude-tech-squad:dashboard             # instant pipeline health: success rates, blocked gates, pending post-mortems
 ```
 
 ## Teammate Mode (tmux panes)
@@ -139,7 +158,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 /claude-tech-squad:prompt-review # before merging any prompt file change
 ```
 
-## Specialist Roster (61 agents)
+## Specialist Roster (74 agents)
 
 ### Discovery & Planning
 - PM
@@ -166,11 +185,12 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 - Cloud Architect
 
 ### LLM / AI Specialists
-- AI Engineer *(model pinning, context budget, output validation, agent loop safety)*
+- AI Engineer *(model pinning, context budget, streaming failure handling, multi-modal inputs, output validation, agent loop safety)*
 - Prompt Engineer *(design, token optimization, caching, versioning, injection defense)*
 - RAG Engineer *(full pipeline + RAGAS quality gates + knowledge base poisoning prevention)*
 - LLM Eval Specialist *(RAGAS, DeepEval, PromptFoo, hallucination detection, LLM-as-judge)*
 - LLM Safety Reviewer *(prompt injection direct + indirect, jailbreak, tool call auth, PII leakage)*
+- LLM Cost Analyst *(token cost attribution per feature/user, model downgrade recommendations, caching ROI, spend anomaly detection)*
 - Agent Architect *(multi-agent orchestration, MCP, tool use design, loops with termination)*
 - Conversational Designer
 - ML Engineer
@@ -228,6 +248,69 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 - Solutions Architect
 - Growth Engineer
 
+### Stack Specialists
+
+Django stack:
+
+- `django-pm` — Product Manager for Django web projects. Shapes the problem, writes user stories, validates delivered features with UAT (Context7 + Playwright).
+- `tech-lead` — Technical lead for Django projects. Defines the approach, decomposes work into agent slices, validates technology choices via Context7. Does not write production code.
+- `django-backend` — Implements Django models, views, forms, URLs, admin, migrations, ORM queries, and API endpoints. Context7 for all Django/DRF lookups. TDD-first.
+- `django-frontend` — Implements Django Template Language templates and TailwindCSS layouts. Context7 for DTL/Tailwind lookups. Playwright for visual verification.
+- `code-reviewer` — Reviews Django backend and frontend code for correctness, N+1 queries, auth gaps, CSRF, TDD compliance, and lint. Returns APPROVED or CHANGES REQUESTED.
+- `qa-tester` — Validates delivered features in the running application using Playwright. Functional flows, responsive design, console health. Does not modify application code.
+
+React / Vue stack:
+
+- `react-developer` — Implements React components, hooks, state management, and Django backend integration. Context7 + Playwright.
+- `vue-developer` — Implements Vue 3 SFCs using the Composition API, Pinia, Vue Router, and Django backend integration. Context7 + Playwright.
+
+Python stack:
+
+- `python-developer` — Implements Python utilities, CLI tools, Celery tasks, and service integrations outside the Django web layer. Context7 for all library lookups. TDD-first.
+
+TypeScript / JavaScript stack:
+
+- `typescript-developer` — Implements TypeScript modules, type definitions, and SDK clients. Strict type safety. Context7. Playwright for bundle verification.
+- `javascript-developer` — Implements vanilla JavaScript browser scripts and Node.js utilities in non-TypeScript projects. Context7 + Playwright.
+
+Shell / Automation stack:
+
+- `shell-developer` — Writes shell scripts for automation, CI/CD, deployment, and developer tooling. `set -euo pipefail` enforced. Context7 for CLI tool lookups.
+
+**MCP coverage for stack specialists:**
+
+| Agent | Context7 | Playwright |
+|---|---|---|
+| django-pm | ✅ | ✅ (UAT) |
+| tech-lead | ✅ | — |
+| django-backend | ✅ | — |
+| django-frontend | ✅ | ✅ (visual verification) |
+| code-reviewer | — | — |
+| qa-tester | — | ✅ (full E2E) |
+| react-developer | ✅ | ✅ (visual verification) |
+| vue-developer | ✅ | ✅ (visual verification) |
+| python-developer | ✅ | — |
+| typescript-developer | ✅ | ✅ (bundle check) |
+| javascript-developer | ✅ | ✅ (browser verification) |
+| shell-developer | ✅ (CLI tools) | — |
+
+**Stack routing — resolved automatically at skill preflight:**
+
+| Routing variable | Django | React | Vue | TypeScript | JavaScript | Python | Generic |
+|---|---|---|---|---|---|---|---|
+| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
+| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
+| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
+| `{{qa_agent}}` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa` | `qa` |
+
+Skills that use this routing: `/squad`, `/implement`, `/discovery`, `/bug-fix`, `/hotfix`, `/refactor`, `/pr-review`.
+
+**Recommended delivery order for a full Django feature:**
+
+```
+django-pm → tech-lead → django-backend → django-frontend → code-reviewer → qa-tester
+```
+
 Testing split:
 
 - Test Planner defines the coverage contract
@@ -246,6 +329,17 @@ Documentation split:
 - Tech Writer produces external user guides, public API references, and customer changelogs
 - Developer Relations owns external developer community, SDKs, and technical content
 
+Architecture split:
+
+- Architect owns overall solution design, cross-cutting concerns, and workstream decomposition
+- Backend Architect owns the backend-specific slice (APIs, services, auth, persistence) within the chosen architecture style
+- Hexagonal Architect owns the port/adapter depth when Hexagonal Architecture is selected
+
+Code review split:
+
+- Reviewer audits individual PRs for correctness, TDD compliance, lint, and architecture boundary adherence
+- Code Quality owns the strategic quality baseline: lint configuration, coding standards, tech debt trends, and quality metrics across the codebase
+
 ## LLM / AI Project Workflow
 
 When `/squad` detects LLM/AI code in the repository (OpenAI, Anthropic, LangChain, LlamaIndex, pgvector, etc.), it automatically activates the full AI specialist bench:
@@ -256,11 +350,12 @@ When `/squad` detects LLM/AI code in the repository (OpenAI, Anthropic, LangChai
     ├─ [AI Detected] → activates AI specialist bench
     │
     PHASE 1 — Discovery
-    ├─ + ai-engineer     (model design, context budget, eval strategy)
-    ├─ + rag-engineer    (retrieval pipeline, if RAG detected)
-    ├─ + prompt-engineer (prompt architecture, injection defense)
+    ├─ + ai-engineer       (model design, context budget, streaming, multi-modal, eval strategy)
+    ├─ + rag-engineer      (retrieval pipeline, if RAG detected)
+    ├─ + prompt-engineer   (prompt architecture, injection defense)
     ├─ + llm-eval-specialist (golden dataset, regression thresholds)
-    └─ + llm-safety-reviewer (threat model: injection, jailbreak, tool auth)
+    ├─ + llm-safety-reviewer (threat model: injection, jailbreak, tool auth)
+    └─ + llm-cost-analyst  (token cost attribution, model routing, caching ROI)
     │
     PHASE 2 — Quality Bench
     ├─ + llm-safety-reviewer (injection surface + tool authorization review)

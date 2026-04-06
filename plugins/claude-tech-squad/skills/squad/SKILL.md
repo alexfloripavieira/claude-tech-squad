@@ -222,6 +222,31 @@ grep -rl "tool_call\|function_call\|agent_executor\|AgentExecutor\|tool_use" \
 Default: `ai_feature: false`. If any of the above grep commands returns results, set `ai_feature: true` and activate the **LLM-enhanced bench** in Phase 1 and Phase 2. Emit: `[AI Detected] LLM/AI features found — activating AI specialist bench`
 If grep returns no results and detection is ambiguous: emit `[Gate] AI Detection Ambiguous` and ask user: 'Does this task involve LLM/AI features? [Y]es / [N]o'
 
+**Stack Specialist Detection** (run alongside LLM detection):
+
+| Signal | Detected stack |
+|---|---|
+| `manage.py` + `django` in requirements | `django` |
+| `package.json` contains `"react"` | `react` |
+| `package.json` contains `"vue"` | `vue` |
+| `tsconfig.json` or `typescript` in devDependencies | `typescript` |
+| `package.json` with no react/vue/typescript | `javascript` |
+| `pyproject.toml`/`requirements.txt` without `manage.py` | `python` |
+| None of the above | `generic` |
+
+Resolve and store routing variables before team creation:
+
+| Variable | `django` | `react` | `vue` | `typescript` | `javascript` | `python` | `generic` |
+|---|---|---|---|---|---|---|---|
+| `{{pm_agent}}` | `django-pm` | `pm` | `pm` | `pm` | `pm` | `pm` | `pm` |
+| `{{techlead_agent}}` | `tech-lead` | `techlead` | `techlead` | `techlead` | `techlead` | `techlead` | `techlead` |
+| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
+| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
+| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
+| `{{qa_agent}}` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa` | `qa` |
+
+Emit: `[Stack Detected] {{detected_stack}} | pm={{pm_agent}} | techlead={{techlead_agent}} | backend={{backend_agent}} | frontend={{frontend_agent}} | reviewer={{reviewer_agent}} | qa={{qa_agent}}`
+
 ### Step 2 — Create Squad Team
 
 Call `TeamCreate` (fetch schema via ToolSearch if needed):
@@ -239,12 +264,12 @@ Emit: `[Phase Start] discovery`
 Follow the same teammate sequence as `/discovery` Steps 3–13:
 
 **Sequential chain with gates:**
-1. Spawn `pm` → **Gate 1: Product Definition**
+1. Spawn `pm` (subagent_type: `{{pm_agent}}`) → **Gate 1: Product Definition**
 2. Spawn `business-analyst` with PM output
 3. Spawn `po` → **Gate 2: Scope Validation**
 4. Spawn `planner` → **Gate 3: Technical Tradeoffs**
 5. Spawn `architect`
-6. Spawn `techlead` → **Gate 4: Architecture Direction**
+6. Spawn `techlead` (subagent_type: `{{techlead_agent}}`) → **Gate 4: Architecture Direction**
 7. Spawn specialist batch in parallel (from TechLead list)
    - If `ai_feature: true`: add `ai-engineer`, `rag-engineer` (if RAG detected), `prompt-engineer` to this batch
 8. Spawn quality baseline batch in parallel
@@ -253,23 +278,25 @@ Follow the same teammate sequence as `/discovery` Steps 3–13:
 11. Spawn `tdd-specialist` → **Gate 5: Blueprint Confirmation**
 12. If `ai_feature: true`: Spawn `llm-eval-specialist` for eval plan (after blueprint) — no gate, automatic
 13. If `ai_feature: true`: Spawn `llm-safety-reviewer` for threat model (after blueprint) — no gate, automatic
+14. If `ai_feature: true`: Spawn `llm-cost-analyst` for token cost attribution and model routing analysis (after blueprint) — no gate, automatic
 
 Each spawn: `Agent(team_name=<squad-team>, name=<role>, subagent_type="claude-tech-squad:<subagent>", prompt=...)`
 
 **Phase 1 explicit subagent_type mappings** (name → subagent_type):
 
-Core discovery chain:
-- `pm` → `pm`
+Core discovery chain (stack-aware — use routing variables from Step 1):
+- `pm` → `{{pm_agent}}` (e.g. `django-pm` for Django, `pm` otherwise)
 - `business-analyst` → `business-analyst`
 - `po` → `po`
 - `planner` → `planner`
 - `architect` → `architect`
-- `techlead` → `techlead`
+- `techlead` → `{{techlead_agent}}` (e.g. `tech-lead` for Django, `techlead` otherwise)
 - `design-principles` → `design-principles-specialist`
 - `test-planner` → `test-planner`
 - `tdd-specialist` → `tdd-specialist`
 - `llm-eval-specialist` → `llm-eval-specialist`
 - `llm-safety-reviewer` → `llm-safety-reviewer`
+- `llm-cost-analyst` → `llm-cost-analyst`
 
 Specialist batch (spawned based on TechLead requirements, any subset):
 - `backend-arch` → `backend-architect`
@@ -313,17 +340,17 @@ Emit: `[Phase Start] implementation`
 **Sequential with parallel batches:**
 
 1. Spawn `tdd-impl` (subagent_type: `tdd-specialist`) — write first failing tests
-2. Spawn implementation batch in parallel:
-   - `backend-dev`, `frontend-dev`, `platform-dev` (only relevant ones)
-3. Spawn `reviewer` — review implementation
+2. Spawn implementation batch in parallel (only relevant workstreams):
+   - `backend-dev` (subagent_type: `{{backend_agent}}`), `frontend-dev` (subagent_type: `{{frontend_agent}}`), `platform-dev` (subagent_type: `platform-dev`)
+3. Spawn `reviewer` (subagent_type: `{{reviewer_agent}}`) — review implementation
    - If CHANGES REQUESTED: retry relevant impl agent(s) — **max 3 review cycles**
    - If the 3rd review still fails: consult `fallback_matrix.squad.reviewer` and run one fallback review pass before surfacing the gate
    - After fallback failure: emit `[Gate] Review Limit Reached` and surface to user: `[A]ccept as-is / [S]kip review / [X]Abort`
-4. Spawn `qa` — run real tests against implementation
+4. Spawn `qa` (subagent_type: `{{qa_agent}}`) — run real tests against implementation
    - If FAIL: retry relevant impl agent(s), then re-review and re-qa — **max 2 QA cycles**
    - If the 2nd QA cycle still fails: consult `fallback_matrix.squad.qa` and run one fallback verification pass before surfacing the gate
    - After fallback failure: emit `[Gate] QA Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
-5. Spawn `techlead-audit` (subagent_type: `techlead`) → **Conformance Gate**: verifica workstreams cobertos, conformidade arquitetural, TDD compliance e rastreabilidade de requisitos
+5. Spawn `techlead-audit` (subagent_type: `{{techlead_agent}}`) → **Conformance Gate**: verifica workstreams cobertos, conformidade arquitetural, TDD compliance e rastreabilidade de requisitos
    - If NON-CONFORMANT: retry impl agent(s) for each gap, then re-run reviewer → QA → techlead-audit — **max 2 conformance cycles**
    - If the 2nd conformance cycle still fails: consult `fallback_matrix.squad.techlead-audit` and run one fallback conformance pass before surfacing the gate
    - After fallback failure: emit `[Gate] Conformance Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
@@ -346,13 +373,15 @@ Emit: `[Phase Start] implementation`
    - After fallback failure: emit `[Gate] UAT Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`
 
 **Phase 2 explicit subagent_type mappings** (name → subagent_type):
+
+Stack-aware (use routing variables from Step 1):
 - `tdd-impl` → `tdd-specialist`
-- `backend-dev` → `backend-dev`
-- `frontend-dev` → `frontend-dev`
+- `backend-dev` → `{{backend_agent}}` (e.g. `django-backend`, `python-developer`, or `backend-dev`)
+- `frontend-dev` → `{{frontend_agent}}` (e.g. `django-frontend`, `react-developer`, `vue-developer`, or `frontend-dev`)
 - `platform-dev` → `platform-dev`
-- `reviewer` → `reviewer`
-- `qa` → `qa`
-- `techlead-audit` → `techlead`
+- `reviewer` → `{{reviewer_agent}}` (e.g. `code-reviewer` for Django, `reviewer` otherwise)
+- `qa` → `{{qa_agent}}` (e.g. `qa-tester` for web stacks, `qa` otherwise)
+- `techlead-audit` → `{{techlead_agent}}`
 - `security-rev` → `security-reviewer`
 - `privacy-rev` → `privacy-reviewer`
 - `perf-eng` → `performance-engineer`
@@ -361,7 +390,7 @@ Emit: `[Phase Start] implementation`
 - `code-quality` → `code-quality`
 - `docs-writer` → `docs-writer`
 - `jira-confluence` → `jira-confluence-specialist`
-- `pm-uat` → `pm`
+- `pm-uat` → `{{pm_agent}}`
 
 Each spawn: `Agent(team_name=<squad-team>, name=<name>, subagent_type="claude-tech-squad:<subagent>", prompt=...)`
 
@@ -449,6 +478,11 @@ parent_run_id: null
 skill: squad
 timestamp: {{ISO8601}}
 status: completed | failed | partial
+final_status: completed
+execution_mode: inline
+architecture_style: {{architecture_style}}
+checkpoints: [preflight-passed, discovery-confirmed, implementation-complete, release-signed-off]
+fallbacks_invoked: []
 runtime_policy_version: {{runtime_policy_version}}
 feature_slug: {{feature_slug}}
 checkpoint_cursor: release-signed-off
