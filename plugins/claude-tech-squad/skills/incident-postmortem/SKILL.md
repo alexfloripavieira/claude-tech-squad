@@ -116,15 +116,15 @@ HH:MM — [ALL-CLEAR] Monitoring confirmed stable
 
 Total duration: detection-to-resolution = X minutes
 
-### Step 4 — Spawn incident-manager for root cause analysis
+### Step 4 — Spawn techlead for root cause analysis
 
 Use TeamCreate to create a team named "incident-postmortem-team". Then spawn each agent using the Agent tool with `team_name="incident-postmortem-team"` and a descriptive `name` for each agent.
 
 ```
 Agent(
-  subagent_type = "claude-tech-squad:incident-manager",
+  subagent_type = "claude-tech-squad:techlead",
   team_name = "incident-postmortem-team",
-  name = "incident-manager",
+  name = "techlead-rca",
   prompt = """
 ## Post-Mortem Root Cause Analysis
 
@@ -141,7 +141,7 @@ Agent(
 {{impact_description}}
 
 ---
-You are the Incident Manager conducting a blameless post-mortem.
+You are the Tech Lead conducting a blameless post-mortem root cause analysis.
 
 Produce:
 1. **Root Cause** — the single technical failure that directly caused the incident (1 sentence)
