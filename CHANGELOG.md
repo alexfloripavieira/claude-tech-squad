@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.36.0] - 2026-04-07 — Automated feature release
+
+### Added
+
+- Adicionar documentação inicial para o plugin Claude Code
+
+### Changed
+
+- Merge remote-tracking branch 'refs/remotes/origin/main'
+
+### Fixed
+
+- Replace incident-manager with techlead for RCA in postmortem skill
 ## [5.35.1] - 2026-04-05 — Automated maintenance release
 
 ### Changed
