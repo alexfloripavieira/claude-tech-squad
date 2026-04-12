@@ -111,6 +111,8 @@ The preflight must detect and report:
 - `docs_lookup_mode`: `context7` if the MCP is available, `repo-fallback` otherwise
 - `runtime_policy`: version from `plugins/claude-tech-squad/runtime-policy.yaml`
 
+**Ticket Intake (optional):** If the user's input matches a ticket ID pattern (`[A-Z]+-[0-9]+` for Jira, `#[0-9]+` for GitHub Issues), the preflight should attempt to read the ticket via the appropriate MCP tool and extract title, description, acceptance criteria, priority, and subtasks. This enriches the skill input without requiring the user to retype the spec. If the MCP tool is unavailable, continue with the user's text as-is — do not block. Emit `[Ticket Read] {{source}} | {{ticket_id}}` if successful.
+
 ### 4. Teammate architecture block
 
 Defines the tool sequence for spawning agents:
