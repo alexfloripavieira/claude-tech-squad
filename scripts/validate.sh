@@ -384,12 +384,53 @@ for trace_line in '\[Fallback Invoked\]' '\[Resume From\]' '\[Checkpoint Saved\]
   fi
 done
 
-# ── Self-Verification Protocol in all agents ────────────────────────────────
+# ── Reasoning Sandwich: Self-Verification Protocol in all agents ──────────
 SELF_VERIFY_COUNT=$(grep -c '^## Self-Verification Protocol$' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
 if [ "$SELF_VERIFY_COUNT" != "$AGENT_COUNT" ]; then
   echo "Self-Verification Protocol count ($SELF_VERIFY_COUNT) != agent count ($AGENT_COUNT)"
   exit 1
 fi
+
+# ── Reasoning Sandwich: verification_checklist in all agents ─────────────
+VERIFY_CHECKLIST_COUNT=$(grep -c 'verification_checklist:' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+if [ "$VERIFY_CHECKLIST_COUNT" != "$AGENT_COUNT" ]; then
+  echo "verification_checklist count ($VERIFY_CHECKLIST_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+# ── Reasoning Sandwich: Role-specific checks in all agents ───────────────
+ROLE_CHECKS_COUNT=$(grep -c 'Role-specific checks' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+if [ "$ROLE_CHECKS_COUNT" != "$AGENT_COUNT" ]; then
+  echo "Role-specific checks count ($ROLE_CHECKS_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+# ── Reasoning Sandwich: Pre-Execution Plan in execution agents ───────────
+for agent in "${EXECUTION_AGENTS[@]}"; do
+  agent_file="$AGENTS_DIR/$agent.md"
+  if ! grep -q "^## Pre-Execution Plan$" "$agent_file"; then
+    echo "Execution agent missing Pre-Execution Plan: $agent"
+    exit 1
+  fi
+done
+
+# ── Reasoning Sandwich: Analysis Plan in non-execution agents ────────────
+for agent_file in "$AGENTS_DIR"/*.md; do
+  agent_name=$(basename "$agent_file" .md)
+  is_execution=false
+  for ex_agent in "${EXECUTION_AGENTS[@]}"; do
+    if [ "$agent_name" = "$ex_agent" ]; then
+      is_execution=true
+      break
+    fi
+  done
+  if [ "$is_execution" = "false" ]; then
+    if ! grep -q "^## Analysis Plan$" "$agent_file"; then
+      echo "Analysis agent missing Analysis Plan: $agent_name"
+      exit 1
+    fi
+  fi
+done
 
 # ── Runtime policy: new Harness Engineering keys ────────────────────────────
 for key in '^cost_guardrails:' '^doom_loop_detection:' '^auto_advance:' '^entropy_management:' '^tool_allowlists:' '^observability:'; do

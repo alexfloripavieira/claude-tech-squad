@@ -147,10 +147,31 @@ grep -q 'skill: squad' "$SKILLS_DIR/squad/SKILL.md" || {
   exit 1
 }
 
-# ── Harness Engineering: Self-Verification Protocol ─────────────────────────
+# ── Reasoning Sandwich: Full enforcement ──────────────────────────────────
 SELF_VERIFY_COUNT=$(grep -c '^## Self-Verification Protocol$' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
 if [ "$SELF_VERIFY_COUNT" != "$AGENT_COUNT" ]; then
   echo "Smoke test failed: Self-Verification Protocol count ($SELF_VERIFY_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+VERIFY_CHECKLIST_COUNT=$(grep -c 'verification_checklist:' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+if [ "$VERIFY_CHECKLIST_COUNT" != "$AGENT_COUNT" ]; then
+  echo "Smoke test failed: verification_checklist count ($VERIFY_CHECKLIST_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+ROLE_CHECKS_COUNT=$(grep -c 'Role-specific checks' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+if [ "$ROLE_CHECKS_COUNT" != "$AGENT_COUNT" ]; then
+  echo "Smoke test failed: Role-specific checks count ($ROLE_CHECKS_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+# Verify Pre-Execution Plan in execution agents and Analysis Plan in others
+PRE_EXEC_COUNT=$(grep -c '^## Pre-Execution Plan$' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+ANALYSIS_PLAN_COUNT=$(grep -c '^## Analysis Plan$' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+TOTAL_PLAN=$((PRE_EXEC_COUNT + ANALYSIS_PLAN_COUNT))
+if [ "$TOTAL_PLAN" != "$AGENT_COUNT" ]; then
+  echo "Smoke test failed: Plan section count ($TOTAL_PLAN) != agent count ($AGENT_COUNT). Pre-Exec=$PRE_EXEC_COUNT, Analysis=$ANALYSIS_PLAN_COUNT"
   exit 1
 fi
 

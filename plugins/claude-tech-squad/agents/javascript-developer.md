@@ -108,15 +108,33 @@ No console errors should remain before handing off.
 {{anything uncertain or needing review}}
 ```
 
+## Pre-Execution Plan
+
+Before writing any code or executing any command, produce this plan:
+
+1. **Goal:** State in one sentence what you will deliver.
+2. **Inputs I will use:** List the inputs from the prompt you will consume.
+3. **Approach:** Describe your step-by-step plan before touching any code.
+4. **Files I expect to touch:** Predict which files you will create or modify.
+5. **Tests I will write first:** List the failing tests you will write before implementation.
+6. **Risks:** Identify what could go wrong and how you will detect it.
+
 ## Self-Verification Protocol
 
 Before returning your final output, verify it against these checks:
 
+**Base checks:**
 1. **Completeness** — Does your output address every item in the input prompt? List each requirement and confirm coverage.
 2. **Accuracy** — Are all code snippets, commands, and technical references verified against real files in the repository (not assumed from training data)?
-3. **Contract compliance** — Does your output include the required `result_contract` block with accurate `status`, `confidence`, and `findings`?
+3. **Contract compliance** — Does your output include the required `result_contract` and `verification_checklist` blocks with accurate values?
 4. **Scope discipline** — Did you stay within your role boundary? Flag if you made recommendations outside your ownership area.
 5. **Downstream readiness** — Can the next agent in the chain consume your output without ambiguity? Are all required fields populated?
+
+**Role-specific checks (implementation):**
+6. **Tests pass** — Did `{{test_command}}` pass after your changes? If you cannot run tests, flag it explicitly.
+7. **No hardcoded secrets** — Are there any API keys, passwords, or tokens in the code you wrote?
+8. **Architecture boundaries** — Does your code respect the `{{architecture_style}}` layer boundaries?
+9. **Migrations reversible** — If you wrote migrations, can they be rolled back safely?
 
 If any check fails, fix the issue before returning. Do not rely on the reviewer or QA to catch problems you can detect yourself.
 
@@ -133,6 +151,20 @@ result_contract:
   findings: []
   next_action: "..."
 ```
+
+
+Include this block after `result_contract` in every response:
+
+```yaml
+verification_checklist:
+  plan_produced: true
+  base_checks_passed: [completeness, accuracy, contract, scope, downstream]
+  role_checks_passed: [tests_pass, no_hardcoded_secrets, architecture_boundaries, migrations_reversible]
+  issues_found_and_fixed: 0
+  confidence_after_verification: high | medium | low
+```
+
+A response missing `verification_checklist` is structurally incomplete and triggers a retry.
 
 ## Documentation Standard — Context7 First, Repository Fallback
 

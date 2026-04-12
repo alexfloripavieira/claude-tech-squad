@@ -206,6 +206,19 @@ Minimum fields required in the SEP log:
 
 ---
 
+## Teammate output validation (Reasoning Sandwich enforcement)
+
+A teammate response is structurally valid only when it contains ALL of:
+1. The role-specific body requested by that agent
+2. A `result_contract` block with valid `status`, `confidence`, `blockers`, `artifacts`, `findings`, `next_action`
+3. A `verification_checklist` block with `plan_produced: true`, non-empty `base_checks_passed`, non-empty `role_checks_passed`, and `confidence_after_verification` matching the `result_contract.confidence`
+
+Missing `result_contract` OR missing `verification_checklist` = structurally invalid = trigger the Teammate Failure Protocol.
+
+For execution agents, the output must also contain a `## Pre-Execution Plan` section. For analysis agents, it must contain a `## Analysis Plan` section. Absence of the plan section means the agent skipped Phase 1 of the Reasoning Sandwich and must be retried.
+
+---
+
 ## Failure handling
 
 Skills rely on `runtime-policy.yaml` for retry and fallback behavior. A skill does not define its own retry limits — it inherits them from the central policy:
@@ -213,6 +226,8 @@ Skills rely on `runtime-policy.yaml` for retry and fallback behavior. A skill do
 | Situation | Policy |
 |---|---|
 | Agent produces invalid output | Retry same agent, max 2 times |
+| Agent missing `verification_checklist` | Retry same agent (Phase 3 not completed) |
+| Agent missing plan section | Retry same agent (Phase 1 not completed) |
 | Agent fails after 2 retries | Invoke fallback from `fallback_matrix` |
 | Fallback also fails | Present gate to user: R (retry) / S (skip with risk log) / X (abort) |
 | Finding is BLOCKING | Pause pipeline, require resolution before continuing |
