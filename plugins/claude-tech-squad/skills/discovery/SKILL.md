@@ -89,9 +89,11 @@ A teammate has **failed silently** if it returns an empty response, an error, or
 
 1. Wait for the teammate to return a structured output.
 2. If the return is empty, an error, or structurally invalid:
-   - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
-   - Re-spawn the teammate once with the identical prompt.
-3. If the second attempt also fails:
+   - **Doom loop check** — before re-spawning, consult `doom_loop_detection` in `runtime-policy.yaml`. Compare the failed output against the prior attempt (if any). If a doom loop pattern is detected (growing_diff, oscillating_fix, or same_error):
+     - Emit: `[Doom Loop Detected] <name> | pattern=<rule_name> | retries=<count>`
+     - Skip the retry and go directly to step 3 (fallback) — retrying the same agent will waste tokens
+   - If no doom loop detected: Emit `[Teammate Retry] <name> | Reason: silent failure — re-spawning` and re-spawn the teammate once with the identical prompt.
+3. If the second attempt also fails (or doom loop was detected in step 2):
    - Read `plugins/claude-tech-squad/runtime-policy.yaml` and consult `fallback_matrix.discovery.<name>`
    - If a fallback subagent is listed:
      - Emit: `[Fallback Invoked] <name> -> <fallback-subagent> | Reason: primary failed twice`
