@@ -32,9 +32,11 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 
 - one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
-- 74 specialist agents for software delivery
+- 74 specialist agents for software delivery (each with Reasoning Sandwich: plan → execute → verify)
 - 21 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
-- one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml`
+- one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml` (retry, fallback, cost, doom loop, auto-advance, entropy, tool allowlists, observability)
+- one live pipeline dashboard: `plugins/claude-tech-squad/dashboard/live.html`
+- runtime PreToolUse hooks: `plugins/claude-tech-squad/hooks/pre-tool-guard.sh`
 - one local dogfooding pack plus golden-run contract
 
 ## Pick the Right Skill
@@ -138,6 +140,31 @@ You should see:
 - a final `Agent Execution Log` in the result
 
 See [EXECUTION-TRACE.md](docs/EXECUTION-TRACE.md) for interpretation guidance.
+
+## Runtime Hooks (Mechanical Enforcers)
+
+The plugin ships a `pre-tool-guard.sh` hook that mechanically blocks destructive operations — no prompt compliance needed. To activate it, copy the settings template:
+
+```bash
+cp plugins/claude-tech-squad/hooks/settings-template.json .claude/settings.json
+```
+
+Or merge into your existing `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "bash plugins/claude-tech-squad/hooks/pre-tool-guard.sh" }]
+      }
+    ]
+  }
+}
+```
+
+Blocked patterns: destructive SQL, force-push, --no-verify, terraform destroy, app deletion, rm -rf /, eval with variable expansion, production DB access.
 
 ## Install
 
@@ -375,6 +402,78 @@ For LLM-specific workflows outside of full squad runs:
 /claude-tech-squad:security-audit  # includes llm-safety-reviewer
 ```
 
+## Live Pipeline Dashboard
+
+Monitor your squad execution in real time. The dashboard auto-updates every 2 seconds while teammates are running.
+
+```bash
+# Open the dashboard in your browser (once)
+bash scripts/open-dashboard.sh
+
+# Then run skills normally in Claude Code — the dashboard updates live
+/claude-tech-squad:squad
+```
+
+The dashboard shows:
+- Teammate cards with live status (running/completed/failed) and duration timers
+- Token budget consumption bar (green/yellow/red)
+- Checkpoint progress visualization
+- Gate alerts when the pipeline is waiting for user input
+- Scrolling event timeline with all trace lines
+
+No server, no dependencies — it's a self-contained HTML file that reads a local JSON status file.
+
+## Observability
+
+Every skill writes a **Squad Execution Protocol (SEP) log** to `ai-docs/.squad-log/` with full metrics:
+
+- `tokens_input`, `tokens_output`, `estimated_cost_usd` — cost per run
+- `total_duration_ms` — wall clock time
+- `teammate_token_breakdown` — cost per individual teammate (orchestrator skills)
+- `retry_count`, `fallback_invocations`, `doom_loops_detected` — reliability metrics
+- `auto_advanced_gates` — which gates were skipped on high confidence
+
+Use `/dashboard` for instant health check or `/factory-retrospective` for deep analysis with improvement recommendations.
+
+### Trace lines
+
+All skills emit standardized trace lines during execution:
+
+```
+[Preflight Passed]   — run contract validated
+[Teammate Spawned]   — specialist started
+[Teammate Done]      — specialist completed with output
+[Checkpoint Saved]   — progress persisted for resume
+[Gate]               — waiting for user decision
+[Fallback Invoked]   — primary failed, fallback activated
+[Doom Loop Detected] — retry diverging, short-circuiting to fallback
+[Cost Warning]       — 75%+ of token budget consumed
+[Auto-Advanced]      — gate passed automatically on high confidence
+[SEP Log Written]    — execution log persisted
+```
+
+See [EXECUTION-TRACE.md](docs/EXECUTION-TRACE.md) for full interpretation guide.
+
+## Harness Engineering
+
+This plugin is built on the **Harness Engineering** framework — the discipline of designing infrastructure, constraints, and feedback loops that make AI agents reliable in production.
+
+| Pillar | Implementation |
+|---|---|
+| **Tool Orchestration** | `tool_allowlist` per agent, namespace enforcement, complete fallback matrix |
+| **Guardrails** | PreToolUse hooks (`pre-tool-guard.sh`), token budget circuit breaker, Global Safety Contract |
+| **Error Recovery** | Doom loop detection (3 patterns), gate consolidation, Reasoning Sandwich (self-verification) |
+| **Observability** | Token tracking in all 21 skills, 16 trace line types, live dashboard, SEP logs |
+| **Human-in-the-Loop** | Auto-advance for high-confidence gates, mandatory gates for UAT/release/deploy |
+
+| Concept | Implementation |
+|---|---|
+| **Rule Files** | CLAUDE.md, AGENT-CONTRACT.md, SKILL-CONTRACT.md, runtime-policy.yaml |
+| **Progressive Disclosure** | Context digests (500 tokens) between phases, full output only to agents that need it |
+| **Mechanical Enforcers** | 39 validate.sh checks, PreToolUse hooks, smoke-test.sh |
+| **Reasoning Sandwich** | Pre-Execution/Analysis Plan → Execute → Self-Verify with role-specific checks → verification_checklist |
+| **Entropy Management** | Auto-trigger retrospective, orphan detection, stale artifact cleanup, token cost trends |
+
 ## Safety Guardrails
 
 Every skill carries a **Global Safety Contract** (v5.8.0+). Every agent with execution authority carries an **Absolute Prohibitions** block. These are hard-coded constraints that cannot be overridden by incident urgency, deadlines, or business pressure.
@@ -417,6 +516,14 @@ mcp__plugin_context7_context7__query-docs(libraryId, topic="specific feature")
 Applies to: npm, PyPI, Go modules, Maven, cloud SDKs (AWS, GCP, Azure), frameworks (Django, React, Spring, Rails), database drivers, and any third-party integration. If Context7 is unavailable or does not have documentation for the library, the agent must declare it explicitly and flag assumptions.
 
 ## Validation and Release
+
+```bash
+bash scripts/validate.sh                     # 39 structural checks (contracts, Harness Engineering)
+bash scripts/smoke-test.sh                   # full ladder: validate + dogfood + release bundle
+bash scripts/dogfood.sh                      # fixture integrity check (4 scenarios)
+bash scripts/dogfood-report.sh --schema-only # golden run schema validation
+bash scripts/open-dashboard.sh               # open live pipeline dashboard in browser
+```
 
 - Validation workflow: [validate.yml](.github/workflows/validate.yml)
 - Validation script: [validate.sh](scripts/validate.sh)
