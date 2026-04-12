@@ -87,11 +87,21 @@ For less common situations — refactor, security audit, migration, LLM eval, mu
 /claude-tech-squad:multi-service # coordinate changes across multiple services with contract testing
 /claude-tech-squad:iac-review    # review IaC changes before apply: blast radius, security, cost
 
+# From ticket — read from Jira/GitHub Issues and route
+/claude-tech-squad:from-ticket PROJ-123          # read Jira ticket → recommend and launch the right skill
+/claude-tech-squad:from-ticket #42               # read GitHub Issue → same flow
+/claude-tech-squad:from-ticket "sprint = current" # read all tickets in current sprint
+
+# Cost analysis
+/claude-tech-squad:cost-estimate   # analyze task complexity → recommend cheapest skill
+
 # Project setup
 /claude-tech-squad:onboarding         # bootstrap any new repo for squad usage
 /claude-tech-squad:factory-retrospective # analyze executions and improve the process
 /claude-tech-squad:dashboard             # instant pipeline health: success rates, blocked gates, pending post-mortems
 ```
+
+> **Work directly from tickets.** Instead of retyping specs, point any skill at a Jira ticket: `/from-ticket PROJ-123`. The plugin reads the ticket, extracts ACs and subtasks, recommends the right skill, and launches it. After completion, it can update the ticket status and add a summary comment.
 
 ## Teammate Mode (tmux panes)
 
