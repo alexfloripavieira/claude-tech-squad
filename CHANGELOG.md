@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.38.0] - 2026-04-12 — Automated feature release
+
+### Added
+
+- Live pipeline dashboard with real-time teammate monitoring
 ## [5.37.0] - 2026-04-12 — Automated feature release
 
 ### Added
