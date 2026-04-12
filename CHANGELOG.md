@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.37.0] - 2026-04-12 — Automated feature release
+
+### Added
+
+- Harness Engineering — 10/10 across all 5 pillars and 5 concepts
 ## [5.36.0] - 2026-04-07 — Automated feature release
 
 ### Added
