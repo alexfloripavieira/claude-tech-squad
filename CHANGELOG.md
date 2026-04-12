@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.42.0] - 2026-04-12 — Automated feature release
+
+### Added
+
+- /from-ticket — execute directly from Jira, GitHub Issues, or Linear
 ## [5.41.0] - 2026-04-12 — Automated feature release
 
 ### Added
