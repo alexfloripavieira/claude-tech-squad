@@ -204,6 +204,70 @@ Minimum fields required in the SEP log:
 - `final_status`
 - `timestamp`
 
+### 10. Live Status Protocol (for orchestrator skills)
+
+Orchestrator skills (those that spawn teammates) must write a live status file to `ai-docs/.live-status.json` after every trace event. This enables the live dashboard (`plugins/claude-tech-squad/dashboard/live.html`) to show real-time teammate status, token budget, and event timeline.
+
+**Update trigger:** Every time the orchestrator emits a trace line (`[Teammate Spawned]`, `[Teammate Done]`, `[Gate]`, etc.), it must also write the current state to `.live-status.json`.
+
+**Required JSON schema:**
+
+```json
+{
+  "skill": "implement",
+  "run_id": "abc123",
+  "phase": "quality-bench",
+  "started_at": "2026-04-12T10:30:00Z",
+  "checkpoint_cursor": "qa-pass",
+  "checkpoints": ["preflight-passed", "commands-confirmed", "..."],
+  "completed_checkpoints": ["preflight-passed", "commands-confirmed"],
+  "tokens_used": 1250000,
+  "tokens_max": 4000000,
+  "current_gate": null,
+  "teammates": [
+    {
+      "name": "tdd-specialist",
+      "subagent_type": "claude-tech-squad:tdd-specialist",
+      "status": "completed",
+      "started_at": "2026-04-12T10:30:05Z",
+      "duration_ms": 45000,
+      "tokens_input": 12000,
+      "tokens_output": 8000,
+      "output_summary": "failing tests written for user-auth",
+      "retry_count": 0,
+      "fallback_from": null,
+      "doom_loop": null
+    },
+    {
+      "name": "backend-dev",
+      "subagent_type": "claude-tech-squad:backend-dev",
+      "status": "running",
+      "started_at": "2026-04-12T10:31:00Z",
+      "duration_ms": null,
+      "tokens_input": null,
+      "tokens_output": null,
+      "output_summary": null,
+      "retry_count": 0,
+      "fallback_from": null,
+      "doom_loop": null
+    }
+  ],
+  "events": [
+    {"time": "10:30:00", "line": "[Preflight Passed] implement | execution_mode=inline | ..."},
+    {"time": "10:30:05", "line": "[Teammate Spawned] tdd-specialist | pane: tdd-specialist"},
+    {"time": "10:30:50", "line": "[Teammate Done] tdd-specialist | Output: failing tests written"},
+    {"time": "10:31:00", "line": "[Teammate Spawned] backend-dev | pane: backend-dev"}
+  ]
+}
+```
+
+**Rules:**
+- Write the file atomically (write to a temp file, then rename) to prevent the dashboard from reading a partial JSON
+- On `[Gate]` events, set `current_gate` to the gate description; clear it when the gate resolves
+- On `[Teammate Done]`, update the teammate's `status`, `duration_ms`, `tokens_input`, `tokens_output`, and `output_summary`
+- On `[SEP Log Written]`, set phase to "completed" — the dashboard shows the final state
+- The dev opens the dashboard with: `bash scripts/open-dashboard.sh`
+
 ---
 
 ## Teammate output validation (Reasoning Sandwich enforcement)

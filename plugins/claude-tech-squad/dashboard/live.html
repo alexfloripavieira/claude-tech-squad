@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>claude-tech-squad — Live Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --text-dim: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --red: #f85149; --yellow: #d29922; --purple: #bc8cff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; background: var(--bg); color: var(--text); padding: 20px; }
+  h1 { font-size: 1.4em; margin-bottom: 4px; }
+  .subtitle { color: var(--text-dim); font-size: 0.85em; margin-bottom: 20px; }
+  .meta-bar { display: flex; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+  .meta-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; min-width: 140px; }
+  .meta-label { font-size: 0.7em; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .meta-value { font-size: 1.6em; font-weight: bold; margin-top: 2px; }
+  .meta-value.green { color: var(--green); }
+  .meta-value.red { color: var(--red); }
+  .meta-value.yellow { color: var(--yellow); }
+  .meta-value.accent { color: var(--accent); }
+
+  .section { margin-bottom: 24px; }
+  .section-title { font-size: 0.85em; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+
+  .teammate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .teammate-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; position: relative; overflow: hidden; }
+  .teammate-card.running { border-color: var(--accent); }
+  .teammate-card.running::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); animation: pulse 1.5s ease-in-out infinite; }
+  .teammate-card.completed { border-color: var(--green); }
+  .teammate-card.failed { border-color: var(--red); }
+  .teammate-card.pending { border-color: var(--border); opacity: 0.6; }
+  .teammate-card.retrying { border-color: var(--yellow); }
+  .teammate-card.fallback { border-color: var(--purple); }
+
+  .tm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .tm-name { font-weight: bold; font-size: 0.95em; }
+  .tm-badge { font-size: 0.7em; padding: 2px 8px; border-radius: 12px; font-weight: bold; }
+  .tm-badge.running { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .tm-badge.completed { background: rgba(63,185,80,0.15); color: var(--green); }
+  .tm-badge.failed { background: rgba(248,81,73,0.15); color: var(--red); }
+  .tm-badge.pending { background: rgba(139,148,158,0.15); color: var(--text-dim); }
+  .tm-badge.retrying { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .tm-badge.fallback { background: rgba(188,140,255,0.15); color: var(--purple); }
+
+  .tm-detail { font-size: 0.8em; color: var(--text-dim); margin-top: 4px; }
+  .tm-duration { font-size: 0.85em; font-family: monospace; margin-top: 6px; }
+  .tm-duration.live { color: var(--accent); }
+  .tm-output { font-size: 0.75em; color: var(--text-dim); margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .timeline { margin-top: 12px; }
+  .timeline-entry { display: flex; gap: 10px; padding: 4px 0; font-size: 0.8em; border-bottom: 1px solid var(--border); }
+  .timeline-time { color: var(--text-dim); font-family: monospace; min-width: 80px; }
+  .timeline-event { flex: 1; }
+
+  .cost-bar { margin-top: 8px; }
+  .cost-bar-track { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; height: 20px; overflow: hidden; position: relative; }
+  .cost-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .cost-bar-fill.safe { background: var(--green); }
+  .cost-bar-fill.warn { background: var(--yellow); }
+  .cost-bar-fill.danger { background: var(--red); }
+  .cost-bar-label { position: absolute; right: 8px; top: 1px; font-size: 0.75em; color: var(--text); font-weight: bold; }
+
+  .no-data { text-align: center; padding: 60px; color: var(--text-dim); }
+  .no-data code { background: var(--surface); padding: 2px 8px; border-radius: 4px; }
+
+  .refresh-indicator { position: fixed; top: 10px; right: 16px; font-size: 0.7em; color: var(--text-dim); }
+  .refresh-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-right: 4px; animation: blink 2s infinite; }
+  .refresh-dot.disconnected { background: var(--red); animation: none; }
+
+  @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+</style>
+</head>
+<body>
+
+<h1>claude-tech-squad</h1>
+<p class="subtitle">Live Pipeline Dashboard</p>
+
+<div class="refresh-indicator">
+  <span class="refresh-dot" id="refreshDot"></span>
+  <span id="refreshLabel">polling...</span>
+</div>
+
+<div id="content">
+  <div class="no-data">
+    <p>Waiting for live status data...</p>
+    <p style="margin-top:12px">Run a skill in Claude Code to start streaming:</p>
+    <p style="margin-top:8px"><code>/discovery</code> &nbsp; <code>/implement</code> &nbsp; <code>/squad</code></p>
+    <p style="margin-top:16px; font-size:0.8em">Polling <code>ai-docs/.live-status.json</code> every 2 seconds</p>
+  </div>
+</div>
+
+<script>
+const POLL_INTERVAL = 2000;
+const STATUS_PATH = '../../../ai-docs/.live-status.json';
+let lastData = null;
+
+function formatDuration(ms) {
+  if (!ms || ms < 0) return '—';
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return s + 's';
+  const m = Math.floor(s / 60);
+  const rs = s % 60;
+  return m + 'm ' + rs + 's';
+}
+
+function liveDuration(startIso) {
+  if (!startIso) return '—';
+  const elapsed = Date.now() - new Date(startIso).getTime();
+  return formatDuration(elapsed);
+}
+
+function costPercent(used, max) {
+  if (!max || max === 0) return 0;
+  return Math.min(100, Math.round((used / max) * 100));
+}
+
+function render(data) {
+  if (!data || !data.skill) {
+    return;
+  }
+
+  const now = new Date().toLocaleTimeString();
+  const running = (data.teammates || []).filter(t => t.status === 'running').length;
+  const completed = (data.teammates || []).filter(t => t.status === 'completed').length;
+  const failed = (data.teammates || []).filter(t => t.status === 'failed' || t.status === 'retrying' || t.status === 'fallback').length;
+  const total = (data.teammates || []).length;
+  const tokenPct = costPercent(data.tokens_used || 0, data.tokens_max || 1);
+
+  let html = '';
+
+  // Meta bar
+  html += '<div class="meta-bar">';
+  html += '<div class="meta-item"><div class="meta-label">Skill</div><div class="meta-value accent">/' + data.skill + '</div></div>';
+  html += '<div class="meta-item"><div class="meta-label">Phase</div><div class="meta-value">' + (data.phase || '—') + '</div></div>';
+  html += '<div class="meta-item"><div class="meta-label">Running</div><div class="meta-value' + (running > 0 ? ' accent' : '') + '">' + running + '</div></div>';
+  html += '<div class="meta-item"><div class="meta-label">Completed</div><div class="meta-value green">' + completed + '</div></div>';
+  html += '<div class="meta-item"><div class="meta-label">Failed</div><div class="meta-value' + (failed > 0 ? ' red' : '') + '">' + failed + '</div></div>';
+  html += '<div class="meta-item"><div class="meta-label">Elapsed</div><div class="meta-value">' + liveDuration(data.started_at) + '</div></div>';
+  html += '</div>';
+
+  // Token budget bar
+  if (data.tokens_max) {
+    const barClass = tokenPct >= 100 ? 'danger' : tokenPct >= 75 ? 'warn' : 'safe';
+    html += '<div class="section"><div class="section-title">Token Budget</div>';
+    html += '<div class="cost-bar"><div class="cost-bar-track">';
+    html += '<div class="cost-bar-fill ' + barClass + '" style="width:' + tokenPct + '%"></div>';
+    html += '<div class="cost-bar-label">' + (data.tokens_used || 0).toLocaleString() + ' / ' + (data.tokens_max || 0).toLocaleString() + ' (' + tokenPct + '%)</div>';
+    html += '</div></div></div>';
+  }
+
+  // Checkpoint progress
+  if (data.checkpoints && data.checkpoints.length > 0) {
+    html += '<div class="section"><div class="section-title">Checkpoints</div>';
+    html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    (data.checkpoints || []).forEach(cp => {
+      const done = (data.completed_checkpoints || []).includes(cp);
+      const current = data.checkpoint_cursor === cp;
+      const color = done ? 'var(--green)' : current ? 'var(--accent)' : 'var(--border)';
+      const bg = done ? 'rgba(63,185,80,0.12)' : current ? 'rgba(88,166,255,0.12)' : 'transparent';
+      html += '<span style="font-size:0.75em;padding:3px 10px;border:1px solid ' + color + ';border-radius:12px;background:' + bg + ';color:' + (done || current ? color : 'var(--text-dim)') + '">' + cp + '</span>';
+    });
+    html += '</div></div>';
+  }
+
+  // Teammates grid
+  if (data.teammates && data.teammates.length > 0) {
+    html += '<div class="section"><div class="section-title">Teammates</div>';
+    html += '<div class="teammate-grid">';
+    data.teammates.forEach(tm => {
+      const st = tm.status || 'pending';
+      html += '<div class="teammate-card ' + st + '">';
+      html += '<div class="tm-header">';
+      html += '<span class="tm-name">' + (tm.name || '?') + '</span>';
+      html += '<span class="tm-badge ' + st + '">' + st.toUpperCase() + '</span>';
+      html += '</div>';
+      if (tm.subagent_type) html += '<div class="tm-detail">' + tm.subagent_type + '</div>';
+      // Duration
+      if (st === 'running' && tm.started_at) {
+        html += '<div class="tm-duration live">' + liveDuration(tm.started_at) + '</div>';
+      } else if (tm.duration_ms) {
+        html += '<div class="tm-duration">' + formatDuration(tm.duration_ms) + '</div>';
+      }
+      // Tokens
+      if (tm.tokens_input || tm.tokens_output) {
+        html += '<div class="tm-detail">tokens: ' + (tm.tokens_input || 0).toLocaleString() + ' in / ' + (tm.tokens_output || 0).toLocaleString() + ' out</div>';
+      }
+      // Output summary
+      if (tm.output_summary) html += '<div class="tm-output">' + tm.output_summary + '</div>';
+      // Retry / fallback info
+      if (tm.retry_count && tm.retry_count > 0) html += '<div class="tm-detail" style="color:var(--yellow)">retries: ' + tm.retry_count + '</div>';
+      if (tm.fallback_from) html += '<div class="tm-detail" style="color:var(--purple)">fallback for: ' + tm.fallback_from + '</div>';
+      if (tm.doom_loop) html += '<div class="tm-detail" style="color:var(--red)">doom loop: ' + tm.doom_loop + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // Event timeline
+  if (data.events && data.events.length > 0) {
+    html += '<div class="section"><div class="section-title">Event Timeline (last 20)</div>';
+    html += '<div class="timeline">';
+    const recent = data.events.slice(-20).reverse();
+    recent.forEach(ev => {
+      html += '<div class="timeline-entry">';
+      html += '<span class="timeline-time">' + (ev.time || '') + '</span>';
+      html += '<span class="timeline-event">' + (ev.line || '') + '</span>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // Gate info
+  if (data.current_gate) {
+    html += '<div class="section" style="background:rgba(210,153,34,0.08);border:1px solid var(--yellow);border-radius:8px;padding:14px">';
+    html += '<div class="section-title" style="color:var(--yellow);border-color:var(--yellow)">Gate — Waiting for User Input</div>';
+    html += '<p style="font-size:0.9em">' + data.current_gate + '</p>';
+    html += '</div>';
+  }
+
+  document.getElementById('content').innerHTML = html;
+}
+
+async function poll() {
+  const dot = document.getElementById('refreshDot');
+  const label = document.getElementById('refreshLabel');
+  try {
+    const resp = await fetch(STATUS_PATH + '?t=' + Date.now());
+    if (!resp.ok) throw new Error(resp.status);
+    const data = await resp.json();
+    lastData = data;
+    render(data);
+    dot.className = 'refresh-dot';
+    label.textContent = 'live • ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    dot.className = 'refresh-dot disconnected';
+    label.textContent = 'no data • ' + new Date().toLocaleTimeString();
+    if (lastData) render(lastData);
+  }
+}
+
+poll();
+setInterval(poll, POLL_INTERVAL);
+
+// Also update live durations every second
+setInterval(() => { if (lastData) render(lastData); }, 1000);
+</script>
+</body>
+</html>
