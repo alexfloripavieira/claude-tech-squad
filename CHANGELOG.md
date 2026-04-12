@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.38.1] - 2026-04-12 — Automated maintenance release
+
+### Changed
+
+- Update README and CLAUDE.md for Harness Engineering v5.37-5.38
 ## [5.38.0] - 2026-04-12 — Automated feature release
 
 ### Added
