@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.39.0] - 2026-04-12 — Automated feature release
+
+### Added
+
+- Inline health check — real-time self-regulation between teammates
 ## [5.38.1] - 2026-04-12 — Automated maintenance release
 
 ### Changed
