@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.43.0] - 2026-04-12 — Automated feature release
+
+### Added
+
+- Ticket intake directly in /discovery, /squad, /bug-fix, /hotfix, /refactor
 ## [5.42.0] - 2026-04-12 — Automated feature release
 
 ### Added
