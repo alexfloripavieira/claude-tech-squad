@@ -95,6 +95,15 @@ Use Glob: `ai-docs/*.md`, `tasks/*.md`
 - Runs without SEP log: compare agent invocations in narrative logs (`ai-docs/*.md`) against `.squad-log/` entries — skills or runs that produced no SEP log indicate missing C1 contract compliance
 - Skills missing from .squad-log: if a skill directory exists in `plugins/claude-tech-squad/skills/` but has no corresponding `.squad-log/` entries (i.e., never been run), flag it as unvalidated in production
 
+**Developer satisfaction analysis:**
+- Parse `developer_feedback.score` from each SEP log
+- Compute average satisfaction per skill: group by `skill`, average `score` (exclude `skipped`)
+- Correlate satisfaction with retries: do runs with `retry_count > 1` have lower scores?
+- Correlate satisfaction with fallbacks: do runs with `fallback_invocations > 0` have lower scores?
+- Correlate satisfaction with duration: do longer runs have lower scores?
+- Flag skills with average score < 2.5 as `LOW SATISFACTION`
+- Collect all `developer_feedback.comment` entries and group by theme
+
 **Audit and remediation:**
 - Open remediation items: `- [ ]` count across all remediation files in `ai-docs/`
 - Finding resolution rate: `- [x]` / (`- [x]` + `- [ ]`) per audit file

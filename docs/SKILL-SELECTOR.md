@@ -121,3 +121,34 @@ flowchart TD
 | "Deps might have CVEs" | `/dependency-check` |
 | "Want to improve the squad process" | `/factory-retrospective` |
 | "Quick health check on recent runs" | `/dashboard` |
+
+---
+
+## Cost vs Scope Guide
+
+**Choose the smallest skill that covers your task.** Bigger skills produce better results for complex work but waste tokens on simple tasks.
+
+| Task complexity | Recommended skill | Estimated agents | Estimated tokens | Estimated cost (Opus) |
+|---|---|---|---|---|
+| **Fix a typo / 1-file change** | Don't use the plugin — just ask Claude directly | 0 | ~5K | ~$0.01 |
+| **Bug fix (1-3 files)** | `/bug-fix` | 3-5 | 200K-400K | ~$1-3 |
+| **Hotfix (production down)** | `/hotfix` | 4-6 | 300K-500K | ~$2-4 |
+| **PR review** | `/pr-review` | 6-8 | 300K-600K | ~$2-5 |
+| **Security audit** | `/security-audit` | 2-4 | 200K-400K | ~$1-3 |
+| **Refactor (scoped)** | `/refactor` | 4-6 | 400K-800K | ~$3-6 |
+| **Feature (blueprint only)** | `/discovery` | 10-14 | 800K-1.5M | ~$6-12 |
+| **Feature (build from blueprint)** | `/implement` | 10-15 | 1.5M-3M | ~$10-20 |
+| **Feature (end-to-end)** | `/squad` | 20-30 | 3M-5M | ~$15-30 |
+
+**Rules of thumb:**
+- If the fix is under 5 lines, **don't use a skill** — just ask Claude
+- If you already know the root cause, use `/bug-fix` not `/squad`
+- If you have a blueprint, use `/implement` not `/squad` (saves entire discovery phase)
+- `/pr-review` is cheaper than manual review by 6 specialists — use it on every PR
+- `/dashboard` and `/factory-retrospective` cost almost nothing (read-only, no agents or 1 agent)
+
+**Anti-patterns:**
+- Using `/squad` for a typo fix → wastes ~$20 on discovery + architecture for nothing
+- Using `/discovery` when you already know what to build → skip to `/implement`
+- Running `/security-audit` after every commit → run it weekly or before releases
+- Skipping `/pr-review` to save tokens → the cheapest skill that catches real bugs
