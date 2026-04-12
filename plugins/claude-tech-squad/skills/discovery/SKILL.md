@@ -215,6 +215,12 @@ Check and store:
 Preflight rules:
 - Emit `[Preflight Start] discovery`
 - Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- **Ticket Intake** — If the user's input matches a ticket ID pattern (`[A-Z]+-[0-9]+` for Jira, `#[0-9]+` for GitHub Issues, `LIN-[0-9]+` for Linear):
+  1. Read the ticket via the appropriate MCP tool (`mcp__plugin_atlassian_atlassian__getJiraIssue`, `mcp__github__issue_read`, etc.)
+  2. Extract: title, description, acceptance criteria, priority, subtasks, labels, comments
+  3. Use the extracted content as the `{{user_request}}` for all downstream agents
+  4. Emit: `[Ticket Read] {{source}} | {{ticket_id}} | type={{issue_type}} | priority={{priority}}`
+  5. If MCP is unavailable, ask the user to paste the ticket content — do not block
 - If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
 - If `{{architecture_style}}` had to be defaulted, emit `[Preflight Warning] architecture_style ambiguous — defaulting to existing-repo-pattern`
 - If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`

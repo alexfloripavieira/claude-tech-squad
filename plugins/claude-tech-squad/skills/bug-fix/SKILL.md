@@ -68,7 +68,14 @@ Options:
 
 ### Step 1 — Bug Intake Gate
 
-Ask the user for:
+**Ticket Intake:** If the user provides a ticket ID (e.g., `/bug-fix PROJ-456`), read the ticket first:
+1. Call the appropriate MCP tool (`mcp__plugin_atlassian_atlassian__getJiraIssue` for Jira, `mcp__github__issue_read` for GitHub Issues)
+2. Extract: title (symptom), description (expected + reproduction), priority, labels, comments
+3. Emit: `[Ticket Read] {{source}} | {{ticket_id}} | type={{issue_type}} | priority={{priority}}`
+4. Use extracted fields to pre-fill the intake below — skip asking the user for info already in the ticket
+5. If MCP unavailable, continue with manual intake
+
+Ask the user for (skip fields already extracted from ticket):
 1. **Symptom**: What is the observed behavior? (error message, stack trace, screenshot)
 2. **Expected**: What should happen instead?
 3. **Reproduction**: Steps or code to reproduce

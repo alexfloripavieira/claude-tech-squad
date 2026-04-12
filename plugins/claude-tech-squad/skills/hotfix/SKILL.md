@@ -64,7 +64,14 @@ Options:
 
 ### Step 1 — Hotfix Intake Gate
 
-Ask the user for (if not already provided):
+**Ticket Intake:** If the user provides a ticket ID (e.g., `/hotfix PROJ-789`), read the ticket first:
+1. Call the appropriate MCP tool (`mcp__plugin_atlassian_atlassian__getJiraIssue` for Jira, `mcp__github__issue_read` for GitHub Issues)
+2. Extract: title (symptom), description (scope + impact), priority, labels, comments
+3. Emit: `[Ticket Read] {{source}} | {{ticket_id}} | type={{issue_type}} | priority={{priority}}`
+4. Use extracted fields to pre-fill the intake below — skip asking for info already in the ticket
+5. If MCP unavailable, continue with manual intake
+
+Ask the user for (skip fields already extracted from ticket):
 1. **Symptom**: What is broken? (error, stack trace, user impact)
 2. **Scope**: Which service, endpoint, or component?
 3. **Deploy target**: Which environment needs the fix? (staging / production)

@@ -227,6 +227,13 @@ Check and store:
 Preflight rules:
 - Emit `[Preflight Start] squad`
 - Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- **Ticket Intake** — If the user's input matches a ticket ID pattern (`[A-Z]+-[0-9]+` for Jira, `#[0-9]+` for GitHub Issues, `LIN-[0-9]+` for Linear):
+  1. Read the ticket via the appropriate MCP tool
+  2. Extract: title, description, acceptance criteria, priority, subtasks, labels, comments
+  3. For Epics: also read child stories via JQL `parent = {{ticket_id}}`
+  4. Use the extracted content as the `{{user_request}}` for the entire pipeline
+  5. Emit: `[Ticket Read] {{source}} | {{ticket_id}} | type={{issue_type}} | priority={{priority}}`
+  6. If MCP is unavailable, ask the user to paste the ticket content — do not block
 - **Cost budget initialization** — Read `cost_guardrails.token_budget.squad_max_tokens` from the runtime policy and initialize the token counter for this run
 - **Orphan detection** — If `entropy_management.orphan_detection.check_at_preflight` is true, scan for orphaned discoveries older than the configured threshold and emit `[Preflight Warning] {{count}} orphaned discovery(ies) found`
 - **Retro counter check** — Read `entropy_management.factory_retrospective_auto_trigger.counter_file` and check if the counter has reached the threshold. If so, suggest running `/factory-retrospective` before proceeding
