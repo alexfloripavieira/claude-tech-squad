@@ -1,0 +1,1 @@
+Add a /cost-estimate skill to the claude-tech-squad plugin that analyzes the user's task description, detects task complexity, and recommends the most cost-effective skill to use — preventing devs from running /squad for a 5-line fix.
