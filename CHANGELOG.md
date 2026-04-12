@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.43.2] - 2026-04-12 — Automated maintenance release
+
+### Changed
+
+- Three Disciplines — Prompt vs Context vs Harness Engineering
 ## [5.43.1] - 2026-04-12 — Automated maintenance release
 
 ### Changed
