@@ -195,9 +195,29 @@ function render(data) {
       if (tm.retry_count && tm.retry_count > 0) html += '<div class="tm-detail" style="color:var(--yellow)">retries: ' + tm.retry_count + '</div>';
       if (tm.fallback_from) html += '<div class="tm-detail" style="color:var(--purple)">fallback for: ' + tm.fallback_from + '</div>';
       if (tm.doom_loop) html += '<div class="tm-detail" style="color:var(--red)">doom loop: ' + tm.doom_loop + '</div>';
+      // Health check signals
+      if (tm.health_signals && tm.health_signals !== 'ok') {
+        const signals = Array.isArray(tm.health_signals) ? tm.health_signals : [tm.health_signals];
+        signals.forEach(sig => {
+          const color = (sig === 'doom_loop_short_circuit' || sig === 'low_confidence_chain' || sig === 'blocking_findings_accumulating') ? 'var(--red)' : 'var(--yellow)';
+          html += '<div class="tm-detail" style="color:' + color + '">health: ' + sig + '</div>';
+        });
+      } else if (tm.health_signals === 'ok') {
+        html += '<div class="tm-detail" style="color:var(--green)">health: ok</div>';
+      }
       html += '</div>';
     });
     html += '</div></div>';
+  }
+
+  // Health warnings
+  if (data.health_warnings && data.health_warnings.length > 0) {
+    html += '<div class="section" style="background:rgba(248,81,73,0.08);border:1px solid var(--red);border-radius:8px;padding:14px">';
+    html += '<div class="section-title" style="color:var(--red);border-color:var(--red)">Health Warnings</div>';
+    data.health_warnings.forEach(w => {
+      html += '<p style="font-size:0.85em;margin:4px 0;color:var(--red)">' + w + '</p>';
+    });
+    html += '</div>';
   }
 
   // Event timeline

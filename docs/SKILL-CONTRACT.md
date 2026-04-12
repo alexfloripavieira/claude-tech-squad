@@ -72,8 +72,33 @@ Required trace lines:
 [Checkpoint Saved] <workflow-name> | cursor=<checkpoint>
 [Gate] <gate-name> | Waiting for user input
 [Batch Spawned] <phase> | Teammates: <comma-separated names>
+[Health Check] <role> | signals: ok     ← after every teammate, 0-token health check
+[Health Check] <role> | signals: retry_detected, token_budget_pressure
+[Health Warning] <description>          ← only when critical health signal triggers
 [AI Detected] <summary>                ← only when LLM/AI code is found in the repo
 ```
+
+### 2b. Inline Health Check Protocol (for orchestrator skills)
+
+After every `[Teammate Done]`, `[Teammate Retry]`, or `[Fallback Invoked]`, the orchestrator runs a lightweight health check. This is NOT an agent call — it is orchestrator logic that costs zero extra tokens.
+
+**Signals checked (from `inline_health_check` in `runtime-policy.yaml`):**
+
+| Signal | Condition | Action |
+|---|---|---|
+| `retry_detected` | Teammate required 1+ retries | Append retry context to next teammate prompt |
+| `fallback_used` | Primary replaced by fallback | Append fallback context to next teammate |
+| `doom_loop_short_circuit` | Doom loop triggered | Append divergence evidence to fallback + next |
+| `token_budget_pressure` | tokens_used > 75% of max | Instruct remaining teammates to minimize output |
+| `low_confidence_chain` | 2+ consecutive low confidence | Surface warning to user |
+| `blocking_findings_accumulating` | 3+ BLOCKING findings total | Recommend pausing to resolve |
+
+**Rules:**
+- Emit `[Health Check] <role> | signals: <list_or_ok>` after every teammate
+- If any critical signal triggers: emit `[Health Warning] <description>` and update the live dashboard
+- Health check context is prepended to the next teammate's prompt (not replacing, enriching)
+- The health check itself costs zero tokens — it reads the `result_contract` and execution metadata only
+- Write health signals to `.live-status.json` so the live dashboard shows them in real time
 
 ### 3. Preflight block
 

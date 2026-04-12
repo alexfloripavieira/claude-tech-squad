@@ -127,6 +127,30 @@ Options:
 5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
 6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
 
+## Inline Health Check
+
+After every `[Teammate Done]`, run the health check defined in `inline_health_check` from `runtime-policy.yaml`. This costs zero extra tokens — it is orchestrator logic, not an agent call.
+
+**After each teammate completes:**
+
+1. Read the teammate's `result_contract` (status, confidence, findings) and execution metadata (retry_count, fallback_used, doom_loop, tokens consumed).
+2. Evaluate all 6 signals from `inline_health_check.signals`.
+3. Emit: `[Health Check] <name> | signals: <triggered_signals_or_ok>`
+4. If any signal triggered:
+   - **warning signals** (retry_detected, fallback_used, token_budget_pressure): prepend context to the next teammate's prompt so it can avoid the same problem.
+   - **critical signals** (doom_loop_short_circuit, low_confidence_chain, blocking_findings_accumulating): emit `[Health Warning] <description>` and surface to user if action is needed.
+5. Update `.live-status.json` with the health check result.
+
+**Context enrichment example** (prepended to next teammate's prompt):
+
+```
+## Health Context from Prior Teammates
+- reviewer required 2 retries (reason: incomplete coverage of edge cases)
+- token budget at 78% — produce concise output, skip optional analysis
+```
+
+This enables the pipeline to self-correct during execution rather than discovering problems only at the end.
+
 ## Agent Result Contract (ARC)
 
 A teammate response is only considered structurally valid when it contains ALL of:

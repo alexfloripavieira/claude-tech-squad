@@ -156,6 +156,21 @@ A healthy run shows:
 - Example: `[Entropy Check] 5 runs since last retrospective — recommend running /factory-retrospective`
 - This is a recommendation, not a block — the user can accept or dismiss
 
+`[Health Check]`
+- Emitted after every teammate completes — the orchestrator's "immune system" check
+- Shows which health signals were triggered, or `ok` if all signals are clean
+- Example (healthy): `[Health Check] backend-dev | signals: ok`
+- Example (warning): `[Health Check] reviewer | signals: retry_detected, token_budget_pressure`
+- This check costs zero extra tokens — it reads the teammate's result_contract and metadata only
+- The health context is prepended to the next teammate's prompt to prevent cascading problems
+
+`[Health Warning]`
+- Emitted only when a **critical** health signal triggers (not for warnings)
+- Critical signals: `low_confidence_chain` (2+ consecutive low confidence), `blocking_findings_accumulating` (3+ BLOCKING findings total), `doom_loop_short_circuit`
+- Example: `[Health Warning] low confidence chain — 3 consecutive teammates returned confidence=low`
+- When this appears, the orchestrator may surface it to the user before continuing
+- Frequent health warnings indicate a systemic issue — run `/factory-retrospective`
+
 `[SEP Log Written]`
 - The structured execution log was written to `ai-docs/.squad-log/`
 - Example: `[SEP Log Written] ai-docs/.squad-log/2026-04-12T14-30-00-implement-abc123.md`

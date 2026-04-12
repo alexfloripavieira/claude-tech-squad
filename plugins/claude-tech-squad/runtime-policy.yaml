@@ -87,6 +87,43 @@ auto_advance:
   on_auto_advance: "emit [Auto-Advanced] {{gate_name}} | all agents returned confidence=high, zero BLOCKING findings — advancing without user gate"
   on_skip: "emit [Gate] {{gate_name}} | auto-advance conditions not met — waiting for user input"
 
+inline_health_check:
+  enabled: true
+  description: >
+    Lightweight self-regulation that runs after every teammate completes.
+    Zero extra tokens — the orchestrator evaluates health signals from the
+    teammate's result_contract and execution metadata, then adjusts the
+    context for the next teammate if needed. Like an immune system: reacts
+    in real-time during the run, not after.
+  trigger: after every [Teammate Done] or [Teammate Retry] or [Fallback Invoked]
+  signals:
+    - name: retry_detected
+      condition: "teammate required at least 1 retry"
+      action: "append retry context to next teammate prompt: 'Previous teammate <name> required <N> retries for: <reason>. Avoid the same pattern.'"
+      severity: warning
+    - name: fallback_used
+      condition: "teammate was replaced by a fallback agent"
+      action: "append fallback context to next teammate prompt: 'Agent <primary> failed and was replaced by <fallback>. The fallback output may differ in style — validate consistency.'"
+      severity: warning
+    - name: doom_loop_short_circuit
+      condition: "doom loop was detected during retry"
+      action: "append divergence evidence to fallback and next teammate: 'Doom loop detected on <agent>: <pattern>. Root cause: <evidence>. Do not repeat the same approach.'"
+      severity: critical
+    - name: token_budget_pressure
+      condition: "tokens_used > 75% of tokens_max"
+      action: "instruct remaining teammates to minimize token usage: 'Token budget at <percent>%. Produce concise output. Skip optional analysis. Focus on required deliverables only.'"
+      severity: warning
+    - name: low_confidence_chain
+      condition: "2+ consecutive teammates returned confidence=low"
+      action: "emit [Health Warning] low confidence chain — <N> consecutive teammates returned confidence=low. Surface to user: 'Multiple teammates are uncertain about their output. Consider reviewing intermediate results before continuing.'"
+      severity: critical
+    - name: blocking_findings_accumulating
+      condition: "total BLOCKING findings across completed teammates > 3"
+      action: "emit [Health Warning] accumulating blockers — <N> BLOCKING findings across <M> teammates. Recommend pausing to resolve before spawning more teammates."
+      severity: critical
+  trace_line: "[Health Check] <teammate> | signals: <list_of_triggered_signals_or_ok>"
+  live_dashboard_update: true
+
 entropy_management:
   factory_retrospective_auto_trigger:
     enabled: true
@@ -477,6 +514,8 @@ observability:
       - "[Cost Warning]"
       - "[Doom Loop Detected]"
       - "[Auto-Advanced]"
+      - "[Health Check]"
+      - "[Health Warning]"
       - "[SEP Log Written]"
   live_dashboard:
     enabled: true
@@ -500,6 +539,8 @@ observability:
       - "[Cost Warning]"
       - "[Doom Loop Detected]"
       - "[Auto-Advanced]"
+      - "[Health Check]"
+      - "[Health Warning]"
       - "[SEP Log Written]"
     schema:
       skill: string
