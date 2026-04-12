@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.43.1] - 2026-04-12 — Automated maintenance release
+
+### Changed
+
+- Golden Run Guide + Harness Engineering theory
 ## [5.43.0] - 2026-04-12 — Automated feature release
 
 ### Added
