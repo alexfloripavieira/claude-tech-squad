@@ -321,7 +321,14 @@ Emit: `[Teammate Spawned] ba | pane: ba`
 
 ### Step 5 — PO Teammate (Gate 2)
 
-Spawn PO with PM + BA output:
+**Progressive Disclosure:** PO receives full BA output (immediately preceding) + digest of PM.
+
+Before spawning, produce the PM digest:
+```
+pm_digest = summarize(pm_output, max_tokens=500, format=context_digest)
+```
+
+Spawn PO:
 
 ```
 Agent(
@@ -331,10 +338,10 @@ Agent(
   prompt = """
 ## Prioritization
 
-### PM Output
-{{pm_output}}
+### PM Summary (digest — full output available on request)
+{{pm_digest}}
 
-### BA Output
+### BA Output (full)
 {{ba_output}}
 
 ---
@@ -359,7 +366,15 @@ If user is unsatisfied: ask specifically what scope decision is wrong, re-spawn 
 
 ### Step 6 — Planner Teammate (Gate 3)
 
-Spawn Planner with full context so far:
+**Progressive Disclosure:** Planner receives full PO output (immediately preceding) + digests of PM and BA.
+
+Before spawning, produce digests:
+```
+pm_digest = summarize(pm_output, max_tokens=500, format=context_digest)
+ba_digest = summarize(ba_output, max_tokens=500, format=context_digest)
+```
+
+Spawn Planner:
 
 ```
 Agent(
@@ -369,13 +384,13 @@ Agent(
   prompt = """
 ## Technical Planning
 
-### PM Output
-{{pm_output}}
+### PM Summary (digest)
+{{pm_digest}}
 
-### BA Output
-{{ba_output}}
+### BA Summary (digest)
+{{ba_digest}}
 
-### PO Output (approved scope)
+### PO Output (full — approved scope)
 {{po_output}}
 
 ### Repository Context
@@ -403,7 +418,16 @@ If user is unsatisfied: ask which tradeoff decision needs revisiting, re-spawn P
 
 ### Step 7 — Architect Teammate
 
-Spawn Architect with accumulated context:
+**Progressive Disclosure:** Architect receives full Planner output (immediately preceding) + digests of PM, BA, PO.
+
+Before spawning, produce digests:
+```
+pm_digest  = summarize(pm_output, max_tokens=500, format=context_digest)
+ba_digest  = summarize(ba_output, max_tokens=500, format=context_digest)
+po_digest  = summarize(po_output, max_tokens=500, format=context_digest)
+```
+
+Spawn Architect:
 
 ```
 Agent(
@@ -413,13 +437,16 @@ Agent(
   prompt = """
 ## Architecture Design
 
-### PM Output (product requirements)
-{{pm_output}}
+### Product Requirements (PM digest)
+{{pm_digest}}
 
-### BA Output (domain rules and workflows)
-{{ba_output}}
+### Domain Rules (BA digest)
+{{ba_digest}}
 
-### Planner Output (selected path)
+### Approved Scope (PO digest)
+{{po_digest}}
+
+### Planner Output (full — selected path)
 {{planner_output}}
 
 ### Repository Context
@@ -427,9 +454,6 @@ Agent(
 
 ### Architecture Style
 {{architecture_style}}
-
-### Product Scope
-{{po_output}}
 
 ---
 You are the Architect. Design the overall solution: options, system decomposition,
@@ -446,7 +470,17 @@ Emit: `[Teammate Spawned] architect | pane: architect`
 
 ### Step 8 — TechLead Teammate (Gate 4)
 
-Spawn TechLead as execution strategy coordinator:
+**Progressive Disclosure:** TechLead receives full Architect output (immediately preceding) + digests of PM, BA, PO, Planner.
+
+Before spawning, produce digests:
+```
+pm_digest      = summarize(pm_output, max_tokens=500, format=context_digest)
+ba_digest      = summarize(ba_output, max_tokens=500, format=context_digest)
+po_digest      = summarize(po_output, max_tokens=500, format=context_digest)
+planner_digest = summarize(planner_output, max_tokens=500, format=context_digest)
+```
+
+Spawn TechLead:
 
 ```
 Agent(
@@ -456,20 +490,20 @@ Agent(
   prompt = """
 ## Tech Lead Execution Plan
 
-### Architecture
+### Architecture (full)
 {{architect_output}}
 
-### Planner Output
-{{planner_output}}
+### Technical Requirements (Planner digest)
+{{planner_digest}}
 
-### PM Output (product requirements)
-{{pm_output}}
+### Product Requirements (PM digest)
+{{pm_digest}}
 
-### BA Output (domain rules and workflows)
-{{ba_output}}
+### Domain Rules (BA digest)
+{{ba_digest}}
 
-### Scope
-{{po_output}}
+### Approved Scope (PO digest)
+{{po_digest}}
 
 ### Architecture Style
 {{architecture_style}}
@@ -518,12 +552,15 @@ Wait for ALL spawned specialist agents to return. Do NOT advance until every age
 - For each agent that fails silently: apply the Teammate Failure Protocol defined above.
 - Emit: `[Batch Completed] specialist-bench | N/N agents returned`
 
+**Progressive Disclosure:** Specialist batch agents receive full TechLead plan + full Architect output (both directly relevant) + digests of PM, BA, PO, Planner.
+
 Each specialist prompt must include:
-- TechLead execution plan
-- Architecture decisions
+- TechLead execution plan (full — their specific workstream assignment)
+- Architecture decisions (full — they need structural context)
 - Chosen architecture style: `{{architecture_style}}`
-- Product scope
+- Product scope (PO digest — only the boundaries relevant to their specialty)
 - Repository context
+- Earlier phases (PM, BA, Planner digests — not full outputs)
 - Instruction: "Return your specialist design notes. Do NOT chain to other agents."
 
 Wait for all specialist teammates to complete.
@@ -546,10 +583,18 @@ Wait for ALL quality-baseline agents to return before proceeding.
 - For each agent that fails silently: apply the Teammate Failure Protocol.
 - Emit: `[Batch Completed] quality-baseline | N/N agents returned`
 
-Each reviewer receives: architecture decisions + specialist notes + repository context.
-Instruction: "Produce a quality baseline checklist for this feature. Do NOT chain."
+**Progressive Disclosure:** Quality baseline agents receive architecture decisions + specialist notes (both directly relevant) + digest of product scope. They do NOT need full PM, BA, Planner, or TechLead outputs.
+
+Each reviewer receives:
+- Architecture decisions (full)
+- Specialist notes relevant to their domain (full)
+- Product scope (PO digest)
+- Repository context
+- Instruction: "Produce a quality baseline checklist for this feature. Do NOT chain."
 
 ### Step 11 — Design Principles Teammate
+
+**Progressive Disclosure:** Design Principles receives full Architect output + full specialist notes (both directly relevant). Earlier phases are NOT forwarded.
 
 Spawn design principles guardrails review:
 
@@ -561,10 +606,10 @@ Agent(
   prompt = """
 ## Design Principles Review
 
-### Architecture
+### Architecture (full)
 {{architect_output}}
 
-### Specialist Notes
+### Specialist Notes (full)
 {{specialist_batch_output}}
 
 ### Repository Context
@@ -586,6 +631,14 @@ Emit: `[Teammate Spawned] design-principles | pane: design-principles`
 
 ### Step 12 — Test Planner Teammate
 
+**Progressive Disclosure:** Test Planner receives full Design Principles output (immediately preceding) + full TechLead plan + digests of architecture and product scope.
+
+Before spawning:
+```
+architect_digest = summarize(architect_output, max_tokens=500, format=context_digest)
+po_digest        = summarize(po_output, max_tokens=500, format=context_digest)
+```
+
 Spawn Test Planner:
 
 ```
@@ -596,16 +649,16 @@ Agent(
   prompt = """
 ## Test Planning
 
-### Architecture
-{{architect_output}}
+### Architecture (digest)
+{{architect_digest}}
 
-### TechLead Plan
+### TechLead Plan (full)
 {{techlead_output}}
 
-### Product Scope and Acceptance Criteria
-{{po_output}}
+### Product Scope and Acceptance Criteria (PO digest)
+{{po_digest}}
 
-### Design Principles
+### Design Principles (full)
 {{design_principles_output}}
 
 ---
@@ -648,6 +701,13 @@ Emit: `[Feature Flag] Required — strategy defined` or `[Feature Flag] Not requ
 
 ### Step 13 — TDD Specialist Teammate (Final Gate)
 
+**Progressive Disclosure:** TDD Specialist receives full Test Planner output (immediately preceding) + full TechLead plan + digests of architecture.
+
+Before spawning:
+```
+architect_digest = summarize(architect_output, max_tokens=500, format=context_digest)
+```
+
 Spawn TDD Specialist with the feature flag strategy so it can write flag-aware tests:
 
 ```
@@ -658,14 +718,14 @@ Agent(
   prompt = """
 ## TDD Delivery Plan
 
-### Test Plan
+### Test Plan (full)
 {{test_planner_output}}
 
-### TechLead Execution Plan
+### TechLead Execution Plan (full)
 {{techlead_output}}
 
-### Architecture
-{{architect_output}}
+### Architecture (digest)
+{{architect_digest}}
 
 ### Feature Flag Strategy
 {{feature_flag_strategy}}

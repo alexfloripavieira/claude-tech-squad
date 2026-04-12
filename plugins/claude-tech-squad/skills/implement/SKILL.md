@@ -327,6 +327,13 @@ Emit: `[Team Created] implement`
 
 ### Step 3 — TDD Specialist Teammate (Failing Tests First)
 
+**Progressive Disclosure:** TDD Specialist receives full TDD delivery plan and test plan from the blueprint, plus an architecture digest (not the full architecture document).
+
+Before spawning:
+```
+architecture_digest = summarize(architecture, max_tokens=500, format=context_digest)
+```
+
 Spawn TDD Specialist to produce the first failing tests before any production code:
 
 ```
@@ -337,14 +344,14 @@ Agent(
   prompt = """
 ## TDD — First Failing Tests
 
-### TDD Delivery Plan
+### TDD Delivery Plan (full)
 {{tdd_delivery_plan}}
 
-### Test Plan
+### Test Plan (full)
 {{test_plan}}
 
-### Architecture
-{{architecture}}
+### Architecture (digest)
+{{architecture_digest}}
 
 ### Architecture Style
 {{architecture_style}}
@@ -378,15 +385,23 @@ Only spawn `backend-dev` if the workstream requires backend changes. Only spawn 
 
 Emit: `[Batch Spawned] implementation | Teammates: <list>`
 
+**Progressive Disclosure:** Implementation agents receive full TDD failing tests + their specific workstream, plus digests of the broader blueprint context. They do NOT receive the entire discovery document.
+
+Before spawning:
+```
+blueprint_digest = summarize(blueprint, max_tokens=500, format=context_digest)
+```
+
 Each implementation agent prompt must include:
-- TechLead execution plan (their specific workstream)
-- Architecture decisions
-- Failing test files from TDD Specialist
-- Relevant specialist notes (backend-arch, frontend-arch, api-designer, etc.)
+- TechLead execution plan — their specific workstream only (full)
+- Architecture decisions relevant to their layer (full)
+- Failing test files from TDD Specialist (full — they implement against these)
+- Relevant specialist notes for their domain only (full)
+- Blueprint context (digest — not the full discovery document)
 - Detected project commands: `{{test_command}}`, `{{build_command}}` (from Step 0)
 - Lint/static-analysis profile: `{{lint_profile}}`
 - Chosen architecture style: `{{architecture_style}}`
-- Design principles guardrails
+- Design principles guardrails (full)
 - Project commands: `{{project_commands}}` — use these exact commands, never infer
 - Instruction: "Implement until the failing tests pass. Follow TDD. When done, return a summary of files changed and test results. Do NOT chain to other agents."
 
@@ -409,6 +424,14 @@ Wait for all implementation teammates to complete.
 
 ### Step 5 — Reviewer Teammate
 
+**Progressive Disclosure:** Reviewer receives full implementation diff (must see all code) + architecture digest (structural context only). Does NOT receive full blueprint, PM/BA/PO outputs, or specialist notes.
+
+Before spawning:
+```
+architecture_digest = summarize(architecture_and_design_principles, max_tokens=500, format=context_digest)
+test_plan_digest    = summarize(test_plan, max_tokens=500, format=context_digest)
+```
+
 Spawn Reviewer with implementation output:
 
 ```
@@ -419,11 +442,11 @@ Agent(
   prompt = """
 ## Code Review
 
-### Files Changed
+### Files Changed (full)
 {{implementation_batch_output}}
 
-### Architecture and Design Guardrails
-{{architecture_and_design_principles}}
+### Architecture and Design Guardrails (digest)
+{{architecture_digest}}
 
 ### Architecture Style
 {{architecture_style}}
@@ -434,8 +457,8 @@ Agent(
 ### Project Commands
 {{project_commands}}
 
-### Test Plan
-{{test_plan}}
+### Test Plan (digest)
+{{test_plan_digest}}
 
 ---
 You are the Reviewer. Review for correctness, simplicity, maintainability,
@@ -467,6 +490,13 @@ Options:
 
 ### Step 6 — QA Teammate
 
+**Progressive Disclosure:** QA receives full acceptance criteria + full test plan (must validate against these) + implementation digest (summary of what changed, not the full diff). QA runs commands, not reads code.
+
+Before spawning:
+```
+implementation_digest = summarize(approved_implementation, max_tokens=500, format=context_digest)
+```
+
 Spawn QA after reviewer approval:
 
 ```
@@ -477,13 +507,13 @@ Agent(
   prompt = """
 ## QA Validation
 
-### Implementation Output
-{{approved_implementation}}
+### Implementation Summary (digest — run tests, don't review code)
+{{implementation_digest}}
 
-### Acceptance Criteria
+### Acceptance Criteria (full)
 {{acceptance_criteria}}
 
-### Test Plan
+### Test Plan (full)
 {{test_plan}}
 
 ### Test Command
@@ -758,7 +788,18 @@ Return the updated implementation with all blocking issues resolved.
 
 ### Step 8 — Docs Writer Teammate
 
-Spawn Docs Writer with the complete delivery package:
+**Progressive Disclosure:** Docs Writer receives full implementation output (must document what changed) + full acceptance criteria + digests of QA, conformance, and quality bench (summary findings only, not full review details).
+
+Before spawning:
+```
+architecture_digest    = summarize(architecture, max_tokens=500, format=context_digest)
+qa_digest              = summarize(qa_output, max_tokens=500, format=context_digest)
+conformance_digest     = summarize(conformance_output, max_tokens=500, format=context_digest)
+quality_bench_digest   = summarize(quality_bench_output, max_tokens=500, format=context_digest)
+test_plan_digest       = summarize(test_plan, max_tokens=500, format=context_digest)
+```
+
+Spawn Docs Writer:
 
 ```
 Agent(
@@ -768,26 +809,26 @@ Agent(
   prompt = """
 ## Documentation Update
 
-### Implementation Output
+### Implementation Output (full)
 {{approved_implementation}}
 
-### Architecture Decisions
-{{architecture}}
+### Architecture Decisions (digest)
+{{architecture_digest}}
 
-### Acceptance Criteria
+### Acceptance Criteria (full)
 {{acceptance_criteria}}
 
-### Test Plan
-{{test_plan}}
+### Test Plan (digest)
+{{test_plan_digest}}
 
-### QA Validation Output
-{{qa_output}}
+### QA Validation (digest)
+{{qa_digest}}
 
-### TechLead Conformance Audit
-{{conformance_output}}
+### TechLead Conformance Audit (digest)
+{{conformance_digest}}
 
-### Quality Review Findings
-{{quality_bench_output}}
+### Quality Review Findings (digest)
+{{quality_bench_digest}}
 
 ---
 You are the Docs Writer. Update technical docs, migration notes, operator guidance,
@@ -862,6 +903,15 @@ If coverage tool is not available or delta >= 0: proceed silently.
 
 ### Step 10 — PM UAT Gate
 
+**Progressive Disclosure:** PM UAT receives full acceptance criteria (must validate against these) + digests of QA results, conformance, and quality bench findings. PM validates evidence, not code.
+
+Before spawning:
+```
+qa_digest            = summarize(qa_output, max_tokens=500, format=context_digest)
+conformance_digest   = summarize(conformance_output, max_tokens=500, format=context_digest)
+quality_bench_digest = summarize(quality_bench_output, max_tokens=500, format=context_digest)
+```
+
 Spawn PM for UAT validation:
 
 ```
@@ -872,17 +922,17 @@ Agent(
   prompt = """
 ## UAT Validation
 
-### Original Acceptance Criteria
+### Original Acceptance Criteria (full)
 {{acceptance_criteria}}
 
-### Implementation Evidence
-{{qa_output}}
+### QA Evidence (digest)
+{{qa_digest}}
 
-### TechLead Conformance Audit
-{{conformance_output}}
+### TechLead Conformance Audit (digest)
+{{conformance_digest}}
 
-### Quality Reviews
-{{quality_bench_output}}
+### Quality Reviews (digest)
+{{quality_bench_digest}}
 
 ---
 You are the PM performing UAT. Validate that each acceptance criterion has concrete
