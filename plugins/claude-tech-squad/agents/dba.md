@@ -1,6 +1,7 @@
 ---
 name: dba
 description: Database administration specialist. Owns schema safety, query behavior, indexing, migration risk, locking, rollback feasibility, and database performance.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # DBA Agent

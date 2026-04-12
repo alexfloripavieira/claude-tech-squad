@@ -1,6 +1,7 @@
 ---
 name: monitoring-specialist
 description: Production monitoring specialist. Owns dashboards, APM configuration, SLO/SLA tracking, alert tuning, incident correlation, and business metrics visibility across Grafana, New Relic, Datadog, and similar platforms.
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Monitoring Specialist Agent

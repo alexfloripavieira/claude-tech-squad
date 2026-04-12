@@ -1,6 +1,7 @@
 ---
 name: rag-engineer
 description: RAG (Retrieval-Augmented Generation) specialist. Owns the full retrieval stack: chunking strategies, embedding models, vector stores, hybrid search, reranking, context window management, and advanced retrieval techniques.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # RAG Engineer Agent

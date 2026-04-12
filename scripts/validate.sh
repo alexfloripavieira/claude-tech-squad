@@ -192,6 +192,10 @@ for agent_file in "$AGENTS_DIR"/*.md; do
     echo "Agent missing Context7 fallback section: $agent_name"
     exit 1
   fi
+  if ! grep -q "^tool_allowlist:" "$agent_file"; then
+    echo "Agent missing tool_allowlist in frontmatter: $agent_name"
+    exit 1
+  fi
 done
 
 # ── Skill frontmatter validation ─────────────────────────────────────────────

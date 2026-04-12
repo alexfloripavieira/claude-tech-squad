@@ -5,6 +5,7 @@ tools:
   - Read
   - Glob
   - Grep
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Observability Engineer Agent

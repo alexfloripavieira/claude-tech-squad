@@ -1,6 +1,7 @@
 ---
 name: chaos-engineer
 description: Chaos engineering and resilience specialist. Designs and runs fault injection experiments, validates circuit breakers, tests degraded-mode behavior, and ensures distributed systems and LLM agents survive dependency failures.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # Chaos Engineer Agent

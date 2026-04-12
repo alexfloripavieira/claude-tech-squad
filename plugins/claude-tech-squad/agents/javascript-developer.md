@@ -15,6 +15,7 @@ tools:
   - mcp__plugin_playwright_playwright__browser_evaluate
   - mcp__plugin_playwright_playwright__browser_console_messages
   - mcp__plugin_playwright_playwright__browser_take_screenshot
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # JavaScript Developer Agent

@@ -7,6 +7,7 @@ tools:
   - Grep
   - mcp__plugin_context7_context7__resolve-library-id
   - mcp__plugin_context7_context7__query-docs
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Architect Agent

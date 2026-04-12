@@ -20,6 +20,7 @@ tools:
   - mcp__plugin_playwright_playwright__browser_console_messages
   - mcp__plugin_playwright_playwright__browser_network_requests
   - mcp__plugin_playwright_playwright__browser_resize
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # QA Agent

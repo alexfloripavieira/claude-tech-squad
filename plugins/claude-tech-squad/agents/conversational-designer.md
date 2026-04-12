@@ -1,6 +1,7 @@
 ---
 name: conversational-designer
 description: Conversational design specialist. Owns dialog flows, intent architecture, conversation states, fallback handling, persona design, tone of voice, and the UX of chatbot and voice interfaces.
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Conversational Designer Agent

@@ -1,6 +1,7 @@
 ---
 name: ai-engineer
 description: AI systems specialist for model integrations, prompt contracts, tool use, retrieval, evals, latency, and safety-aware implementation.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # AI Engineer Agent

@@ -1,6 +1,7 @@
 ---
 name: data-engineer
 description: Data engineering specialist. Builds ETL/ELT pipelines, streaming data infrastructure, data warehouses, and lakehouse architectures. Owns Kafka, Airflow, Spark, dbt, and data quality frameworks.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # Data Engineer Agent

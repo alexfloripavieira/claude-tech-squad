@@ -1,6 +1,7 @@
 ---
 name: release
 description: Prepares a safe release. Inventories changes, validates CI/CD and deploy assumptions, defines rollback steps, and identifies required communication, monitoring, and environment changes.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # Release Agent

@@ -9,6 +9,7 @@ tools:
   - mcp__plugin_playwright_playwright__browser_navigate
   - mcp__plugin_playwright_playwright__browser_snapshot
   - mcp__plugin_playwright_playwright__browser_take_screenshot
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # PM Agent

@@ -1,6 +1,7 @@
 ---
 name: pm
 description: Product manager for discovery and UAT. Clarifies the real problem, challenges scope, defines measurable acceptance criteria, and validates whether the delivered result solves the original need.
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # PM Agent

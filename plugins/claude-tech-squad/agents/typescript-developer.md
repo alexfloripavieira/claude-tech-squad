@@ -13,6 +13,7 @@ tools:
   - mcp__plugin_playwright_playwright__browser_navigate
   - mcp__plugin_playwright_playwright__browser_snapshot
   - mcp__plugin_playwright_playwright__browser_console_messages
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # TypeScript Developer Agent

@@ -1,6 +1,7 @@
 ---
 name: ci-cd
 description: CI/CD specialist for pipelines, build automation, quality gates, artifact flow, deployment stages, and release workflow validation.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # CI/CD Agent

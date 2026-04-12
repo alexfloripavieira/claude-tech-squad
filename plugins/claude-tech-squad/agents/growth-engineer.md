@@ -1,6 +1,7 @@
 ---
 name: growth-engineer
 description: Growth engineering specialist. Owns experimentation infrastructure, A/B testing frameworks, funnel instrumentation, conversion optimization, feature flags for gradual rollouts, and growth loop implementation.
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Growth Engineer Agent

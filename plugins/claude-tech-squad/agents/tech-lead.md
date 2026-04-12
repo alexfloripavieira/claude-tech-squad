@@ -8,6 +8,7 @@ tools:
   - Bash
   - mcp__plugin_context7_context7__resolve-library-id
   - mcp__plugin_context7_context7__query-docs
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Tech Lead Agent

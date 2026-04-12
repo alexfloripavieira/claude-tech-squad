@@ -1,6 +1,7 @@
 ---
 name: prompt-engineer
 description: Prompt engineering specialist for LLM products. Owns prompt design, chain-of-thought, few-shot strategies, token optimization, prompt compression, caching, versioning, and systematic prompt testing.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # Prompt Engineer Agent

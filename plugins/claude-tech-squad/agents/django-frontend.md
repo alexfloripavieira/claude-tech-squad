@@ -15,6 +15,7 @@ tools:
   - mcp__plugin_playwright_playwright__browser_resize
   - mcp__plugin_playwright_playwright__browser_evaluate
   - mcp__plugin_playwright_playwright__browser_console_messages
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # Django Frontend Agent

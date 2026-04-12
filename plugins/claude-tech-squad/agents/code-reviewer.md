@@ -6,6 +6,7 @@ tools:
   - Glob
   - Grep
   - Bash
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Code Reviewer Agent

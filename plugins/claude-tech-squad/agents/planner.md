@@ -1,6 +1,7 @@
 ---
 name: planner
 description: Technical discovery and feasibility lead. Inspects the real stack, validates current capabilities against docs, identifies constraints, decomposes workstreams, and surfaces user tradeoffs before design starts.
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Planner Agent

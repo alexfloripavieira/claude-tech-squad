@@ -1,6 +1,7 @@
 ---
 name: accessibility-reviewer
 description: Accessibility specialist for semantics, keyboard flows, assistive technology support, contrast, focus handling, and accessible UX states.
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Accessibility Reviewer Agent

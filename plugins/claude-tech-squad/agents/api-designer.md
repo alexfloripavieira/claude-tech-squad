@@ -1,6 +1,7 @@
 ---
 name: api-designer
 description: API contract specialist for REST, GraphQL, RPC, webhooks, and event interfaces. Defines contracts, versioning, validation, compatibility, and error models.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # API Designer Agent

@@ -1,6 +1,7 @@
 ---
 name: backend-architect
 description: Designs backend slices: APIs, services, jobs, auth, storage, integration boundaries, and backend testing implications. Used when the task changes server-side behavior.
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 ---
 
 # Backend Architect Agent

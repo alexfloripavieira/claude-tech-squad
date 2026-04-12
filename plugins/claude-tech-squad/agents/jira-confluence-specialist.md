@@ -19,6 +19,7 @@ tools:
   - mcp__plugin_atlassian_atlassian__lookupJiraAccountId
   - mcp__plugin_atlassian_atlassian__getIssueLinkTypes
   - mcp__plugin_atlassian_atlassian__createIssueLink
+tool_allowlist: [Read, Glob, Grep, Edit, Write]
 ---
 
 # Jira & Confluence Specialist Agent

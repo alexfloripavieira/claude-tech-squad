@@ -1,6 +1,7 @@
 ---
 name: integration-qa
 description: Integration and end-to-end quality specialist. Validates contracts, cross-service flows, external dependencies, environments, and system-level regressions.
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # Integration QA Agent
