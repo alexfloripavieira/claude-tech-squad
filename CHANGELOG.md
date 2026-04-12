@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.41.0] - 2026-04-12 — Automated feature release
+
+### Added
+
+- First golden run + /cost-estimate skill
 ## [5.40.0] - 2026-04-12 — Automated feature release
 
 ### Added
