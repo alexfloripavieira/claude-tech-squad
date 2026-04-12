@@ -67,6 +67,34 @@ Emit these lines for every teammate action:
 
 ---
 
+## Progressive Disclosure — Context Digest Protocol
+
+Do not forward full upstream agent output to every downstream agent. Instead, produce a **context digest** (max 500 tokens) between sequential phases.
+
+**Digest format:**
+
+```markdown
+## Context Digest — {{source_agent}} ({{phase}})
+
+**Key decisions:** {{bullet_list}}
+**Artifacts produced:** {{file_list}}
+**Open questions:** {{list_or_none}}
+**Blockers:** {{list_or_none}}
+**Architecture style:** {{style}}
+**Full output reference:** available on request from orchestrator
+```
+
+**Rules:**
+- Implementation agents receive the full TDD failing tests + their specific workstream from the TechLead plan, but only a digest of the blueprint (not the entire discovery document)
+- Reviewer receives the full implementation diff but only a digest of the architecture decisions
+- QA receives the full test plan and acceptance criteria but only a digest of the implementation
+- Quality bench agents each receive only the implementation diff relevant to their specialty plus a digest of the architecture
+- Docs-writer receives full implementation output but only digests of quality bench findings
+- PM UAT receives full acceptance criteria + a digest of QA results and quality bench findings
+- The orchestrator tracks token consumption per teammate and logs it in the SEP log
+
+---
+
 ## Required Input
 
 This command expects a Discovery & Blueprint Document (from `/discovery` or `/squad`).
@@ -159,6 +187,9 @@ Check and store:
 Preflight rules:
 - Emit `[Preflight Start] implement`
 - Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- **Chain validation** — Check `ai-docs/.squad-log/` for a discovery SEP log matching the blueprint's `feature_slug`. If no upstream discovery log exists, emit `[Preflight Warning] no discovery SEP log found for {{feature_slug}} — implementation has no traceable origin`. This does not block the run but is logged as a gap for `/factory-retrospective`.
+- **Orphan detection** — If `entropy_management.orphan_detection.check_at_preflight` is true in the runtime policy, scan for orphaned discoveries older than the configured threshold and emit `[Preflight Warning] {{count}} orphaned discovery(ies) found`
+- **Cost budget initialization** — Read `cost_guardrails.token_budget.implement_max_tokens` from the runtime policy and initialize the token counter for this run
 - If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
 - If `{{architecture_style}}` is missing from the blueprint, emit `[Preflight Warning] architecture_style missing — defaulting to existing-repo-pattern`
 - If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`
@@ -633,16 +664,26 @@ For each agent that fails:
    - Consult `fallback_matrix.implement.<agent-name>`
    - If a fallback exists, emit `[Fallback Invoked] <agent-name> -> <fallback-subagent> | Reason: quality bench recovery`
    - Spawn the fallback once before surfacing a gate
-4. If the fallback also fails, or no fallback exists: emit `[Gate] Quality Bench Failure | <agent-name> failed twice` and surface to the user:
+4. If the fallback also fails, or no fallback exists: add to the consolidated failure list.
+
+**Consolidated Gate (batch failures):** After all quality bench agents have been attempted (including retries and fallbacks), if multiple agents remain in a failed state, present a single consolidated gate instead of individual prompts:
 
 ```
-Quality Bench agent <agent-name> failed to complete (attempt 1 and 2).
+[Gate] Batch Failure — Quality Bench | N of M agents failed
+
+Failed agents:
+1. <agent-1> — <failure reason>
+2. <agent-2> — <failure reason>
+3. <agent-3> — <failure reason>
 
 Options:
-- [R] Retry once more
-- [S] Skip this reviewer and continue (accept the risk)
+- [R] Retry all N failed agents
+- [1,3] Retry specific agents by number
+- [S] Skip all failed agents and continue (log risk for each)
 - [X] Abort the run
 ```
+
+If only one agent failed, use the standard single-agent gate format.
 
 Block Step 8 until the user resolves every failed agent.
 
@@ -888,6 +929,16 @@ After UAT gate resolves, write the structured execution log.
 mkdir -p ai-docs/.squad-log
 ```
 
+**Retro counter increment:**
+After writing the SEP log, increment the retrospective counter:
+```bash
+COUNTER_FILE="ai-docs/.squad-log/.retro-counter"
+CURRENT=$(cat "$COUNTER_FILE" 2>/dev/null || echo "0")
+echo "$((CURRENT + 1))" > "$COUNTER_FILE"
+```
+If the counter reaches the threshold defined in `entropy_management.factory_retrospective_auto_trigger.trigger_after_runs`, emit:
+`[Entropy Check] {{count}} runs since last retrospective — recommend running /factory-retrospective`
+
 Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md`:
 
 ```markdown
@@ -925,6 +976,22 @@ teammate_reliability:
 load_test_run: true | false | skipped
 teammates: [tdd-specialist, backend-dev?, frontend-dev?, reviewer, qa, techlead-audit, security-rev?, code-quality, docs-writer, jira-confluence, pm-uat]
 uat_result: APPROVED | REJECTED
+tokens_input: {{total_input_tokens_across_all_teammates}}
+tokens_output: {{total_output_tokens_across_all_teammates}}
+estimated_cost_usd: {{estimated_total_cost}}
+total_duration_ms: {{wall_clock_duration_from_preflight_to_sep_log_write}}
+doom_loops_detected: {{count_or_0}}
+auto_advanced_gates: {{list_of_auto_advanced_gate_names_or_empty}}
+teammate_token_breakdown:
+  tdd-specialist: {tokens_in: N, tokens_out: N, duration_ms: N}
+  backend-dev: {tokens_in: N, tokens_out: N, duration_ms: N}
+  frontend-dev: {tokens_in: N, tokens_out: N, duration_ms: N}
+  reviewer: {tokens_in: N, tokens_out: N, duration_ms: N}
+  qa: {tokens_in: N, tokens_out: N, duration_ms: N}
+  techlead-audit: {tokens_in: N, tokens_out: N, duration_ms: N}
+  quality-bench: {tokens_in: N, tokens_out: N, duration_ms: N}
+  docs-writer: {tokens_in: N, tokens_out: N, duration_ms: N}
+  pm-uat: {tokens_in: N, tokens_out: N, duration_ms: N}
 ---
 
 ## Output Digest

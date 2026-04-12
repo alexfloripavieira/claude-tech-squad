@@ -163,6 +163,18 @@ Fix console errors before handing off.
 {{anything uncertain or needing review}}
 ```
 
+## Self-Verification Protocol
+
+Before returning your final output, verify it against these checks:
+
+1. **Completeness** — Does your output address every item in the input prompt? List each requirement and confirm coverage.
+2. **Accuracy** — Are all code snippets, commands, and technical references verified against real files in the repository (not assumed from training data)?
+3. **Contract compliance** — Does your output include the required `result_contract` block with accurate `status`, `confidence`, and `findings`?
+4. **Scope discipline** — Did you stay within your role boundary? Flag if you made recommendations outside your ownership area.
+5. **Downstream readiness** — Can the next agent in the chain consume your output without ambiguity? Are all required fields populated?
+
+If any check fails, fix the issue before returning. Do not rely on the reviewer or QA to catch problems you can detect yourself.
+
 ## Result Contract
 
 Always end your response with the following block after the role-specific body:

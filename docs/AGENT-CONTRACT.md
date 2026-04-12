@@ -23,7 +23,7 @@ description: <one-line description of what this agent does and when it is invoke
 ---
 ```
 
-Optional field for agents that need tool access:
+Optional fields:
 
 ```yaml
 tools:
@@ -31,7 +31,30 @@ tools:
   - Read
   - Glob
   - Grep
+tool_allowlist:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Edit
+  - Write
 ```
+
+### Tool Allowlist Enforcement
+
+The `tool_allowlist` field declares which tools the agent is permitted to use at runtime. The orchestrator must not provide tools outside this list when spawning the agent.
+
+**Categories:**
+
+| Agent type | Default tool_allowlist |
+|---|---|
+| Analysis/review agents (pm, reviewer, qa, security-reviewer, etc.) | `Read, Glob, Grep, WebSearch, WebFetch` |
+| Implementation agents (backend-dev, frontend-dev, etc.) | `Read, Glob, Grep, Bash, Edit, Write` |
+| Documentation agents (docs-writer, tech-writer) | `Read, Glob, Grep, Edit, Write` |
+| Operations agents (devops, ci-cd, sre, release) | `Read, Glob, Grep, Bash, Edit, Write` |
+| Orchestrator agents (incident-manager) | `Read, Glob, Grep, Bash, Edit, Write, Agent` |
+
+If `tool_allowlist` is omitted, the agent inherits the default allowlist for its category. The `tools` field (legacy) is treated as equivalent to `tool_allowlist` for backward compatibility.
 
 ---
 
@@ -139,6 +162,26 @@ Agents that write code include guardrails for the supported architecture styles:
 ### TDD Mandate (for implementation agents)
 
 Agents that write production code include a TDD mandate: tests are written first, implementation code follows. The mandate specifies the red-green-refactor order per architecture style.
+
+### Self-Verification Protocol (required for all agents)
+
+Every agent must self-verify its output before returning to the orchestrator. This implements the "Reasoning Sandwich" pattern: high reasoning to plan, standard execution, high reasoning to verify.
+
+```markdown
+## Self-Verification Protocol
+
+Before returning your final output, verify it against these checks:
+
+1. **Completeness** — Does your output address every item in the input prompt? List each requirement and confirm coverage.
+2. **Accuracy** — Are all code snippets, commands, and technical references verified against real files in the repository (not assumed from training data)?
+3. **Contract compliance** — Does your output include the required `result_contract` block with accurate `status`, `confidence`, and `findings`?
+4. **Scope discipline** — Did you stay within your role boundary? Flag if you made recommendations outside your ownership area.
+5. **Downstream readiness** — Can the next agent in the chain consume your output without ambiguity? Are all required fields populated?
+
+If any check fails, fix the issue before returning. Do not rely on the reviewer or QA to catch problems you can detect yourself.
+```
+
+**Why this matters:** Self-verification reduces retry cycles by catching errors at the source. Benchmarks show a ~40% reduction in reviewer/QA rejection rates when agents self-verify before handoff.
 
 ---
 

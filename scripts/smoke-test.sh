@@ -147,4 +147,49 @@ grep -q 'skill: squad' "$SKILLS_DIR/squad/SKILL.md" || {
   exit 1
 }
 
+# ── Harness Engineering: Self-Verification Protocol ─────────────────────────
+SELF_VERIFY_COUNT=$(grep -c '^## Self-Verification Protocol$' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+if [ "$SELF_VERIFY_COUNT" != "$AGENT_COUNT" ]; then
+  echo "Smoke test failed: Self-Verification Protocol count ($SELF_VERIFY_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+# ── Harness Engineering: Progressive Disclosure in orchestrator skills ──────
+for skill in discovery implement squad; do
+  grep -q 'Progressive Disclosure' "$SKILLS_DIR/$skill/SKILL.md" || {
+    echo "Smoke test failed: missing Progressive Disclosure in $skill"
+    exit 1
+  }
+done
+
+# ── Harness Engineering: runtime policy new keys ───────────────────────────
+for key in '^cost_guardrails:' '^doom_loop_detection:' '^auto_advance:' '^entropy_management:' '^tool_allowlists:' '^observability:'; do
+  grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml" || {
+    echo "Smoke test failed: runtime-policy.yaml missing Harness Engineering key $key"
+    exit 1
+  }
+done
+
+# ── Harness Engineering: PreToolUse hook exists and is executable ──────────
+test -f "$PLUGIN_DIR/hooks/pre-tool-guard.sh" || {
+  echo "Smoke test failed: missing hooks/pre-tool-guard.sh"
+  exit 1
+}
+test -x "$PLUGIN_DIR/hooks/pre-tool-guard.sh" || {
+  echo "Smoke test failed: hooks/pre-tool-guard.sh not executable"
+  exit 1
+}
+
+# ── Harness Engineering: token tracking in SEP log templates ───────────────
+for skill in discovery implement; do
+  grep -q 'tokens_input:' "$SKILLS_DIR/$skill/SKILL.md" || {
+    echo "Smoke test failed: missing token tracking in $skill SEP log template"
+    exit 1
+  }
+  grep -q 'teammate_token_breakdown:' "$SKILLS_DIR/$skill/SKILL.md" || {
+    echo "Smoke test failed: missing teammate_token_breakdown in $skill SEP log template"
+    exit 1
+  }
+done
+
 echo "claude-tech-squad smoke test passed"

@@ -79,6 +79,28 @@ Emit these lines for every teammate action:
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
 - `[Phase Done] <phase-name> | Outcome: <summary>`
 
+## Progressive Disclosure — Context Digest Protocol
+
+Do not forward full upstream agent output to every downstream agent. Instead, produce a **context digest** (max 500 tokens) between sequential phases.
+
+**Digest format:**
+
+```markdown
+## Context Digest — {{source_agent}} ({{phase}})
+
+**Key decisions:** {{bullet_list}}
+**Artifacts produced:** {{file_list}}
+**Open questions:** {{list_or_none}}
+**Blockers:** {{list_or_none}}
+**Architecture style:** {{style}}
+**Full output reference:** available on request from orchestrator
+```
+
+**Rules:**
+- When transitioning from discovery to implementation, produce a digest of the full blueprint — the implementation phase receives the digest plus the full blueprint file path for on-demand access
+- Within each phase (discovery, implement), follow the phase-specific progressive disclosure rules defined in the respective skill
+- The orchestrator tracks token consumption per teammate and logs it in the SEP log
+
 ## Teammate Failure Protocol
 
 A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role, including the required `result_contract` block.
@@ -166,6 +188,9 @@ Check and store:
 Preflight rules:
 - Emit `[Preflight Start] squad`
 - Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- **Cost budget initialization** — Read `cost_guardrails.token_budget.squad_max_tokens` from the runtime policy and initialize the token counter for this run
+- **Orphan detection** — If `entropy_management.orphan_detection.check_at_preflight` is true, scan for orphaned discoveries older than the configured threshold and emit `[Preflight Warning] {{count}} orphaned discovery(ies) found`
+- **Retro counter check** — Read `entropy_management.factory_retrospective_auto_trigger.counter_file` and check if the counter has reached the threshold. If so, suggest running `/factory-retrospective` before proceeding
 - If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
 - If `{{architecture_style}}` had to be defaulted, emit `[Preflight Warning] architecture_style ambiguous — defaulting to existing-repo-pattern`
 - If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`

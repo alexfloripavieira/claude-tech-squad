@@ -384,4 +384,38 @@ for trace_line in '\[Fallback Invoked\]' '\[Resume From\]' '\[Checkpoint Saved\]
   fi
 done
 
+# ── Self-Verification Protocol in all agents ────────────────────────────────
+SELF_VERIFY_COUNT=$(grep -c '^## Self-Verification Protocol$' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+if [ "$SELF_VERIFY_COUNT" != "$AGENT_COUNT" ]; then
+  echo "Self-Verification Protocol count ($SELF_VERIFY_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+# ── Runtime policy: new Harness Engineering keys ────────────────────────────
+for key in '^cost_guardrails:' '^doom_loop_detection:' '^auto_advance:' '^entropy_management:' '^tool_allowlists:' '^observability:'; do
+  if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
+    echo "runtime-policy.yaml missing Harness Engineering key: $key"
+    exit 1
+  fi
+done
+
+# ── Progressive Disclosure in orchestrator skills ───────────────────────────
+for skill in discovery implement squad; do
+  skill_file="$SKILLS_DIR/$skill/SKILL.md"
+  if ! grep -q 'Progressive Disclosure' "$skill_file"; then
+    echo "Skill missing Progressive Disclosure section: $skill"
+    exit 1
+  fi
+done
+
+# ── Hooks directory and guard script ────────────────────────────────────────
+test -f "$PLUGIN_DIR/hooks/pre-tool-guard.sh" || {
+  echo "Missing runtime hook: hooks/pre-tool-guard.sh"
+  exit 1
+}
+test -x "$PLUGIN_DIR/hooks/pre-tool-guard.sh" || {
+  echo "Runtime hook not executable: hooks/pre-tool-guard.sh"
+  exit 1
+}
+
 echo "claude-tech-squad validation passed (v$PLUGIN_VERSION, $AGENT_COUNT agents)"

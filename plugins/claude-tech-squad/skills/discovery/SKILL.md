@@ -58,6 +58,29 @@ Emit these lines for every teammate action:
 - `[Gate] <gate-name> | Waiting for user input`
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
 
+## Progressive Disclosure — Context Digest Protocol
+
+Do not forward full upstream agent output to every downstream agent. Instead, produce a **context digest** (max 500 tokens) between sequential phases.
+
+**Digest format:**
+
+```markdown
+## Context Digest — {{source_agent}} ({{phase}})
+
+**Key decisions:** {{bullet_list}}
+**Artifacts produced:** {{file_list}}
+**Open questions:** {{list_or_none}}
+**Blockers:** {{list_or_none}}
+**Architecture style:** {{style}}
+**Full output reference:** available on request from orchestrator
+```
+
+**Rules:**
+- Sequential agents (PM → BA → PO → Planner → Architect → TechLead): each receives a digest of the prior agent's output plus the full output of the immediately preceding agent only
+- Parallel batch agents (specialist-bench, quality-baseline): each receives only the context relevant to its specialty, not the complete output of all prior agents
+- Agents that explicitly need full upstream output (e.g., TechLead needs full Architect output, Architect needs full Planner output): receive it in addition to digests of earlier phases
+- The orchestrator tracks token consumption per teammate and logs it in the SEP log
+
 ## Teammate Failure Protocol
 
 A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role, including the required `result_contract` block.
@@ -742,6 +765,24 @@ output_artifact: ai-docs/{{feature_slug}}/blueprint.md
 adrs_generated: N
 feature_flag_required: true | false
 implement_triggered: false
+tokens_input: {{total_input_tokens_across_all_teammates}}
+tokens_output: {{total_output_tokens_across_all_teammates}}
+estimated_cost_usd: {{estimated_total_cost}}
+total_duration_ms: {{wall_clock_duration_from_preflight_to_sep_log_write}}
+doom_loops_detected: {{count_or_0}}
+auto_advanced_gates: {{list_of_auto_advanced_gate_names_or_empty}}
+teammate_token_breakdown:
+  pm: {tokens_in: N, tokens_out: N, duration_ms: N}
+  ba: {tokens_in: N, tokens_out: N, duration_ms: N}
+  po: {tokens_in: N, tokens_out: N, duration_ms: N}
+  planner: {tokens_in: N, tokens_out: N, duration_ms: N}
+  architect: {tokens_in: N, tokens_out: N, duration_ms: N}
+  techlead: {tokens_in: N, tokens_out: N, duration_ms: N}
+  specialist-bench: {tokens_in: N, tokens_out: N, duration_ms: N}
+  quality-baseline: {tokens_in: N, tokens_out: N, duration_ms: N}
+  design-principles: {tokens_in: N, tokens_out: N, duration_ms: N}
+  test-planner: {tokens_in: N, tokens_out: N, duration_ms: N}
+  tdd-specialist: {tokens_in: N, tokens_out: N, duration_ms: N}
 ---
 
 ## Output Digest
