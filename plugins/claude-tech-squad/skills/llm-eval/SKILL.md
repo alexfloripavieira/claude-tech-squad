@@ -330,6 +330,10 @@ examples_evaluated: N
 regressions_detected: N
 gate_override: true | false
 baseline_updated: true | false
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
 ---
 
 ## Scores

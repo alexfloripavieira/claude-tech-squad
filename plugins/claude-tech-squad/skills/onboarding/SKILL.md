@@ -341,6 +341,10 @@ stack: {{primary_stack}}
 claude_md_created: true | false
 security_findings_critical: N
 dependency_cves_critical: N
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
 ---
 
 ## Baseline Summary

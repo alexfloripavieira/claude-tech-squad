@@ -201,14 +201,29 @@ test -x "$PLUGIN_DIR/hooks/pre-tool-guard.sh" || {
   exit 1
 }
 
-# ── Harness Engineering: token tracking in SEP log templates ───────────────
-for skill in discovery implement; do
-  grep -q 'tokens_input:' "$SKILLS_DIR/$skill/SKILL.md" || {
+# ── Harness Engineering: token tracking in ALL SEP log templates ───────────
+for skill_dir in "$SKILLS_DIR"/*/; do
+  skill=$(basename "$skill_dir")
+  skill_file="$skill_dir/SKILL.md"
+  [ -f "$skill_file" ] || continue
+  grep -q 'tokens_input:' "$skill_file" || {
     echo "Smoke test failed: missing token tracking in $skill SEP log template"
     exit 1
   }
+done
+
+# ── Harness Engineering: teammate_token_breakdown in orchestrator skills ───
+for skill in discovery implement; do
   grep -q 'teammate_token_breakdown:' "$SKILLS_DIR/$skill/SKILL.md" || {
     echo "Smoke test failed: missing teammate_token_breakdown in $skill SEP log template"
+    exit 1
+  }
+done
+
+# ── Harness Engineering: new trace lines documented ───────────────────────
+for trace_line in 'Cost Warning' 'Doom Loop' 'Auto-Advanced' 'Entropy Check' 'SEP Log Written'; do
+  grep -q "$trace_line" "$ROOT/docs/EXECUTION-TRACE.md" || {
+    echo "Smoke test failed: EXECUTION-TRACE.md missing documentation for [$trace_line]"
     exit 1
   }
 done

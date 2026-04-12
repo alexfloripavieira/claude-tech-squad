@@ -125,6 +125,42 @@ A healthy run shows:
 `[Teammate Done]`
 - Teammate finished and returned results to the orchestrator
 
+### Cost and resilience lines
+
+`[Cost Warning]`
+- The run has consumed 75% or more of its token budget (defined in `cost_guardrails.token_budget` in the runtime policy)
+- Shows skill name, percentage consumed, and tokens used vs max
+- Example: `[Cost Warning] implement | 78% of token budget consumed (3120000/4000000)`
+- This is an early signal — the run is not halted yet but will be if it reaches 100%
+
+`[Gate] Cost Limit Reached`
+- The run has consumed 100% of its token budget and cannot continue without user action
+- The user must choose: `[E] Extend budget by 50%` or `[X] Abort`
+- If this line appears frequently, the token budget in `runtime-policy.yaml` may need adjustment
+
+`[Doom Loop Detected]`
+- The orchestrator detected that a retry is diverging instead of converging
+- Three patterns trigger this: growing diff (each retry changes more), oscillating fix (agent alternates between two states), or same error (identical failure after retry)
+- Example: `[Doom Loop Detected] backend-dev | pattern=oscillating_fix | retries=2`
+- When this appears, the orchestrator stops retrying and invokes the fallback agent immediately
+- Frequent doom loops for a specific agent indicate that the agent's prompt needs improvement — `/factory-retrospective` tracks this
+
+`[Auto-Advanced]`
+- A non-mandatory gate was passed automatically because all agents returned `confidence: high` and zero BLOCKING findings
+- Example: `[Auto-Advanced] quality-baseline | all agents returned confidence=high, zero BLOCKING findings`
+- The user is informed post-hoc — no action needed
+- Mandatory gates (UAT, release-sign-off, conformance-audit, deploy-checklist) are never auto-advanced
+
+`[Entropy Check]`
+- The run counter reached the threshold for automatic retrospective suggestion (default: every 5 runs)
+- Example: `[Entropy Check] 5 runs since last retrospective — recommend running /factory-retrospective`
+- This is a recommendation, not a block — the user can accept or dismiss
+
+`[SEP Log Written]`
+- The structured execution log was written to `ai-docs/.squad-log/`
+- Example: `[SEP Log Written] ai-docs/.squad-log/2026-04-12T14-30-00-implement-abc123.md`
+- If this line is missing at the end of a run, the SEP log was not written — `/factory-retrospective` will detect this as an observability gap
+
 ---
 
 ## What A Healthy Run Looks Like
@@ -137,7 +173,10 @@ A healthy run shows:
 - Checkpoint or resume lines appear when a run is resumed or a major gate/phase is cleared
 - The final `Agent Execution Log` matches the visible trace
 - The final report contains real artifact output, not only the trace
-- Specialist outputs include role-specific content plus `result_contract`
+- Specialist outputs include role-specific content plus `result_contract` and `verification_checklist`
+- A `[SEP Log Written]` line appears at the end of the run
+- Cost warning lines appear only when approaching budget limits, not on every run
+- `[Auto-Advanced]` lines appear only for non-mandatory gates with unanimous high confidence
 
 ---
 
@@ -150,9 +189,12 @@ These patterns mean the run did not execute as intended:
 - The workflow jumps from Discovery straight to Release with no intermediate activity
 - The `Agent Execution Log` lists agents that never appeared in the visible trace
 - The output claims a specialist reviewed something but gives no role-specific summary
-- Specialist outputs do not include `result_contract`
+- Specialist outputs do not include `result_contract` or `verification_checklist`
 - A resumed run starts from the beginning with no `[Resume From]` line even though a checkpoint exists
 - In teammate mode: no tmux panes open (Claude Code not started inside tmux, or env vars missing)
+- A `[Doom Loop Detected]` line appears more than once per run for the same agent — the fallback matrix may need updating
+- No `[SEP Log Written]` at the end of a run — the execution log was lost
+- `[Cost Warning]` appears at the start of the run — the token budget is too low for this skill
 
 ---
 

@@ -363,6 +363,10 @@ reviewer_result: APPROVED
 security_checked: true | skipped
 postmortem_recommended: true
 uat_result: N/A
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
 ---
 
 ## Root Cause
