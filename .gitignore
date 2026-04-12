@@ -6,6 +6,8 @@ ai-docs/.squad-log/*
 !ai-docs/.squad-log/sep-log.schema.json
 ai-docs/dogfood-runs/*
 !ai-docs/dogfood-runs/.gitkeep
+ai-docs/.live-status.json
+ai-docs/.live-status.json.tmp
 __pycache__/
 .pytest_cache/
 dist/

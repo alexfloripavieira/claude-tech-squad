@@ -101,6 +101,17 @@ Do not forward full upstream agent output to every downstream agent. Instead, pr
 - Within each phase (discovery, implement), follow the phase-specific progressive disclosure rules defined in the respective skill
 - The orchestrator tracks token consumption per teammate and logs it in the SEP log
 
+## Live Status Protocol
+
+After every trace line emission, write the current run state to `ai-docs/.live-status.json` (as defined in `observability.live_dashboard` in `runtime-policy.yaml`). This enables the live dashboard (`dashboard/live.html`) to show real-time teammate status.
+
+**Update triggers:** `[Preflight Passed]`, `[Team Created]`, `[Teammate Spawned]`, `[Teammate Done]`, `[Teammate Retry]`, `[Fallback Invoked]`, `[Checkpoint Saved]`, `[Gate]`, `[Batch Spawned]`, `[Doom Loop Detected]`, `[Auto-Advanced]`, `[Cost Warning]`, `[SEP Log Written]`.
+
+For each update:
+1. Build the JSON object with: skill, run_id, phase, started_at, checkpoint_cursor, checkpoints, completed_checkpoints, tokens_used, tokens_max, current_gate, teammates array (name, status, started_at, duration_ms, tokens, output_summary), events array (time, line).
+2. Write atomically: write to `.live-status.json.tmp`, then rename to `.live-status.json`.
+3. On `[SEP Log Written]`, set phase to `"completed"`.
+
 ## Teammate Failure Protocol
 
 A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role, including the required `result_contract` block.
