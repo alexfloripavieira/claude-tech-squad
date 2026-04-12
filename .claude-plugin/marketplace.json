@@ -8,7 +8,7 @@
     {
       "name": "claude-tech-squad",
       "description": "74-agent software delivery squad: stack-aware routing (Django/React/Vue/TypeScript/Python), LLM/AI specialist bench, TDD-first implementation, security, QA, and automated release.",
-      "version": "5.39.0",
+      "version": "5.40.0",
       "source": "./plugins/claude-tech-squad"
     }
   ]

@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.40.0] - 2026-04-12 — Automated feature release
+
+### Added
+
+- Practical improvements — cost guide, escape hatch, dev feedback, overlap docs
 ## [5.39.0] - 2026-04-12 — Automated feature release
 
 ### Added
