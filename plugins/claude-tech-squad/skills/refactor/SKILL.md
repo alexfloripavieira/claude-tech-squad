@@ -70,7 +70,9 @@ Options:
 
 ### Step 1 — Refactor Intake Gate
 
-Ask the user (if not already provided):
+**Ticket Intake:** If the user provides a ticket ID (e.g., `/refactor PROJ-321`), read the ticket first via MCP. Extract target, goal, and constraints from the ticket description. Emit `[Ticket Read]` and skip asking for info already in the ticket.
+
+Ask the user (skip fields already extracted from ticket):
 1. **Target**: What code needs to be refactored? (file, module, class, function)
 2. **Goal**: What specific improvement? (extract class, rename, reduce coupling, improve testability, remove duplication)
 3. **Constraint**: What must NOT change? (public API, external behavior, DB schema)

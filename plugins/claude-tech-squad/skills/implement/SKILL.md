@@ -234,6 +234,12 @@ Check and store:
 Preflight rules:
 - Emit `[Preflight Start] implement`
 - Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- **Ticket Intake** — If the user's input matches a ticket ID pattern (`[A-Z]+-[0-9]+` for Jira, `#[0-9]+` for GitHub Issues, `LIN-[0-9]+` for Linear):
+  1. Read the ticket via the appropriate MCP tool
+  2. Extract: title, description, acceptance criteria, priority, subtasks, labels, comments
+  3. Use the extracted content as the task context — if acceptance criteria exist in the ticket, use them as `{{acceptance_criteria}}`
+  4. Emit: `[Ticket Read] {{source}} | {{ticket_id}} | type={{issue_type}} | priority={{priority}}`
+  5. If MCP is unavailable, ask the user to paste the ticket content — do not block
 - **Chain validation** — Check `ai-docs/.squad-log/` for a discovery SEP log matching the blueprint's `feature_slug`. If no upstream discovery log exists, emit `[Preflight Warning] no discovery SEP log found for {{feature_slug}} — implementation has no traceable origin`. This does not block the run but is logged as a gap for `/factory-retrospective`.
 - **Orphan detection** — If `entropy_management.orphan_detection.check_at_preflight` is true in the runtime policy, scan for orphaned discoveries older than the configured threshold and emit `[Preflight Warning] {{count}} orphaned discovery(ies) found`
 - **Cost budget initialization** — Read `cost_guardrails.token_budget.implement_max_tokens` from the runtime policy and initialize the token counter for this run

@@ -101,7 +101,17 @@ For less common situations — refactor, security audit, migration, LLM eval, mu
 /claude-tech-squad:dashboard             # instant pipeline health: success rates, blocked gates, pending post-mortems
 ```
 
-> **Work directly from tickets.** Instead of retyping specs, point any skill at a Jira ticket: `/from-ticket PROJ-123`. The plugin reads the ticket, extracts ACs and subtasks, recommends the right skill, and launches it. After completion, it can update the ticket status and add a summary comment.
+> **Work directly from tickets.** Every execution skill accepts a ticket ID directly:
+> ```
+> /claude-tech-squad:discovery APP-123     # read Jira ticket → run discovery
+> /claude-tech-squad:implement APP-456     # read ticket → build from ACs
+> /claude-tech-squad:squad APP-789         # read epic → full pipeline
+> /claude-tech-squad:bug-fix APP-101       # read bug ticket → diagnose + fix
+> /claude-tech-squad:hotfix APP-102        # read incident ticket → emergency patch
+> /claude-tech-squad:refactor APP-103      # read tech debt ticket → safe refactor
+> /claude-tech-squad:from-ticket APP-200   # don't know which skill? → auto-recommend
+> ```
+> Supports Jira (`PROJ-123`), GitHub Issues (`#42`), and Linear (`LIN-123`). If the MCP tool isn't available, the skill asks you to paste the ticket content.
 
 ## Teammate Mode (tmux panes)
 
