@@ -6,9 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repository is
 
-This is the source repository for the `claude-tech-squad` Claude Code plugin — a full software delivery squad of 61 specialist agents and 20 skills that replicate big tech engineering pipelines. The repository ships a marketplace manifest, the plugin itself, a validation ladder, and a dogfooding pack with golden run support.
+This is the source repository for the `claude-tech-squad` Claude Code plugin — a full software delivery squad of 74 specialist agents and 21 skills that replicate big tech engineering pipelines. The repository ships a marketplace manifest, the plugin itself, a validation ladder, a dogfooding pack with golden run support, and a live pipeline dashboard.
 
-There is no application server, no database, and no build step. The artifacts are Markdown files (agents, skills), a YAML policy file, and JSON manifests.
+Built on **Harness Engineering** principles — the infrastructure, constraints, and feedback loops that make AI agents reliable in production. The plugin scores 10/10 across all 5 pillars (Tool Orchestration, Guardrails, Error Recovery, Observability, Human-in-the-Loop) and all 5 practical concepts (Rule Files, Progressive Disclosure, Mechanical Enforcers, Reasoning Sandwich, Entropy Management).
+
+There is no application server, no database, and no build step. The artifacts are Markdown files (agents, skills), a YAML policy file, JSON manifests, and a self-contained HTML dashboard.
 
 ---
 
@@ -51,21 +53,35 @@ bash scripts/dogfood-report.sh
 **Version consistency** — `marketplace.json`, `plugins/claude-tech-squad/.claude-plugin/plugin.json`, and `docs/MANUAL.md` must all carry the same version string. Editing one without updating the others breaks validation.
 
 **Agent contract** — every `.md` in `plugins/claude-tech-squad/agents/` must have:
-- `name:` and `description:` frontmatter
+- `name:`, `description:`, and `tool_allowlist:` frontmatter
 - `## Result Contract` section
+- `## Self-Verification Protocol` with role-specific checks
+- `verification_checklist:` block (mechanically validated by orchestrator)
+- `## Pre-Execution Plan` (execution agents) or `## Analysis Plan` (analysis agents)
 - `## Documentation Standard — Context7 First, Repository Fallback` section
 
 **Skill contract** — the three main skills (`discovery`, `implement`, `squad`) must have:
 - `### Preflight Gate`
-- `## Agent Result Contract (ARC)`
+- `## Agent Result Contract (ARC)` — requires both `result_contract` and `verification_checklist`
 - `## Runtime Resilience Contract`
 - `### Checkpoint / Resume Rules`
+- `## Progressive Disclosure — Context Digest Protocol`
+- `## Live Status Protocol` (writes `ai-docs/.live-status.json` for the live dashboard)
 
 **No self-chaining** — only `incident-manager.md` may expose the `Agent` tool or reference `subagent_type`. Any other agent file with those will fail validation.
 
 **Namespace enforcement** — all `subagent_type` values in skills must use the `claude-tech-squad:` prefix.
 
-**Runtime policy keys** — `runtime-policy.yaml` must contain: `version:`, `retry_budgets:`, `severity_policy:`, `fallback_matrix:`, `checkpoint_resume:`, `reliability_metrics:`.
+**Runtime policy keys** — `runtime-policy.yaml` must contain: `version:`, `retry_budgets:`, `severity_policy:`, `fallback_matrix:`, `checkpoint_resume:`, `reliability_metrics:`, `cost_guardrails:`, `doom_loop_detection:`, `auto_advance:`, `entropy_management:`, `tool_allowlists:`, `observability:`.
+
+**Harness Engineering enforcement** — validate.sh runs 39 checks including:
+- Self-Verification Protocol in all 74 agents
+- `verification_checklist` in all 74 agents
+- Role-specific checks in all 74 agents
+- Pre-Execution Plan / Analysis Plan in all 74 agents
+- Progressive Disclosure in orchestrator skills
+- `hooks/pre-tool-guard.sh` exists and is executable
+- Token tracking (`tokens_input:`) in all 21 skill SEP log templates
 
 ---
 
@@ -76,20 +92,28 @@ bash scripts/dogfood-report.sh
 ├── .claude-plugin/marketplace.json          # marketplace registration
 ├── plugins/claude-tech-squad/
 │   ├── .claude-plugin/plugin.json           # plugin metadata and version
-│   ├── runtime-policy.yaml                  # retry budgets, fallback matrix, severity, checkpoints
-│   ├── agents/                              # 61 specialist agent files (one .md per agent)
-│   └── skills/                              # 20 skill directories (each with SKILL.md)
-│       └── <skill-name>/SKILL.md
+│   ├── runtime-policy.yaml                  # retry, fallback, severity, checkpoints, cost, doom loop, auto-advance, entropy, tool allowlists, observability
+│   ├── agents/                              # 74 specialist agent files (one .md per agent)
+│   ├── skills/                              # 21 skill directories (each with SKILL.md)
+│   │   └── <skill-name>/SKILL.md
+│   ├── hooks/                               # runtime PreToolUse mechanical enforcers
+│   │   ├── pre-tool-guard.sh                # blocks destructive operations deterministically
+│   │   ├── settings-template.json           # copy to .claude/settings.json to activate hooks
+│   │   └── README.md
+│   └── dashboard/                           # live pipeline monitoring
+│       └── live.html                        # auto-refresh HTML dashboard (polls .live-status.json)
 ├── fixtures/dogfooding/
-│   ├── scenarios.json                       # dogfood scenario manifest (must have exactly 3)
+│   ├── scenarios.json                       # dogfood scenario manifest (must have exactly 4)
 │   ├── layered-monolith/                    # simulates a layered repo for discovery
 │   ├── hexagonal-billing/                   # simulates a hexagonal repo for discovery
-│   └── hotfix-checkout/                     # simulates a broken prod for hotfix
+│   ├── hotfix-checkout/                     # simulates a broken prod for hotfix
+│   └── llm-rag/                             # simulates a RAG pipeline for AI bench
 ├── ai-docs/
 │   ├── .squad-log/                          # SEP logs from real runs (gitignored, .gitkeep tracked)
+│   ├── .live-status.json                    # live dashboard status file (gitignored, runtime only)
 │   └── dogfood-runs/                        # captured golden runs (gitignored, .gitkeep tracked)
 ├── templates/                               # RFC, service readiness review, golden run scorecard
-├── scripts/                                 # validate, smoke-test, dogfood, release scripts
+├── scripts/                                 # validate, smoke-test, dogfood, release, open-dashboard
 └── docs/                                    # operator and contributor documentation
 ```
 
@@ -102,13 +126,24 @@ A skill (`skills/<name>/SKILL.md`) defines a pipeline: preflight → agent chain
 Every skill reads `runtime-policy.yaml` at preflight. The policy provides:
 - `failure_handling` — max retries (2) and fallback attempts (1) before a user gate
 - `retry_budgets` — cycle caps per phase (review: 3, QA: 2, conformance: 2, UAT: 2)
-- `fallback_matrix` — which agent to invoke when the primary fails
+- `fallback_matrix` — which agent to invoke when the primary fails (complete coverage: all agents including LLM/AI specialists)
 - `severity_policy` — what is BLOCKING (stops pipeline) vs WARNING (logged, continues) vs INFO
 - `checkpoint_resume` — which checkpoints each skill defines and the resume rule
+- `cost_guardrails` — token budget per skill with circuit breaker (warn at 75%, halt at 100%)
+- `doom_loop_detection` — 3 divergence patterns that short-circuit futile retries
+- `auto_advance` — gates that can be skipped when all agents return high confidence + zero BLOCKING
+- `entropy_management` — auto-trigger `/factory-retrospective` after every 5 runs + orphan detection at preflight
+- `tool_allowlists` — per-category tool access (analysis, implementation, documentation, operations, orchestrator)
+- `observability.live_dashboard` — schema for the live status JSON file
+- `observability.sep_log_schema` — required and teammate fields for SEP logs
 
 ### SEP log
 
-Every skill writes a Squad Execution Protocol log to `ai-docs/.squad-log/<skill>-<timestamp>.json` before ending. This file is the data source for `/factory-retrospective`. Real run artifacts are gitignored; only `.gitkeep` files are tracked.
+Every skill writes a Squad Execution Protocol log to `ai-docs/.squad-log/<skill>-<timestamp>.md` before ending, including `tokens_input`, `tokens_output`, `estimated_cost_usd`, and `total_duration_ms`. This file is the data source for `/factory-retrospective` and `/dashboard`. Real run artifacts are gitignored; only `.gitkeep` files are tracked.
+
+### Live dashboard
+
+Orchestrator skills write `ai-docs/.live-status.json` after every trace event. The dashboard (`plugins/claude-tech-squad/dashboard/live.html`) polls this file every 2 seconds and shows real-time teammate status, token budget, checkpoint progress, and event timeline. Open it with `bash scripts/open-dashboard.sh`.
 
 ---
 
@@ -140,13 +175,15 @@ All other files — agents, skills, scripts, docs, fixtures, templates — are e
 
 ## Adding a new agent
 
-1. Create `plugins/claude-tech-squad/agents/<slug>.md` with required frontmatter (`name:`, `description:`).
-2. Include `## Result Contract`, `## Documentation Standard — Context7 First, Repository Fallback`, and (for execution agents) `## Absolute Prohibitions`.
-3. Add the agent slug to the `REQUIRED_AGENTS` array in `scripts/validate.sh`.
-4. Register it in the roster in `README.md`.
-5. Run `bash scripts/validate.sh` to confirm the contract is satisfied.
+1. Create `plugins/claude-tech-squad/agents/<slug>.md` with required frontmatter (`name:`, `description:`, `tool_allowlist:`).
+2. Include `## Result Contract`, `## Self-Verification Protocol` (with role-specific checks), `verification_checklist:` block, `## Documentation Standard — Context7 First, Repository Fallback`.
+3. Include `## Pre-Execution Plan` (for execution agents) or `## Analysis Plan` (for analysis agents).
+4. Include (for execution agents) `## Absolute Prohibitions`.
+5. Add the agent slug to the `REQUIRED_AGENTS` array in `scripts/validate.sh`.
+6. Register it in the roster in `README.md`.
+7. Run `bash scripts/validate.sh` to confirm all contracts are satisfied.
 
-See `docs/AGENT-CONTRACT.md` for the full required structure.
+See `docs/AGENT-CONTRACT.md` for the full required structure including the Reasoning Sandwich protocol.
 
 ## Adding a new skill
 
