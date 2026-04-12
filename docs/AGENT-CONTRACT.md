@@ -23,7 +23,7 @@ description: <one-line description of what this agent does and when it is invoke
 ---
 ```
 
-Optional field for agents that need tool access:
+Optional fields:
 
 ```yaml
 tools:
@@ -31,7 +31,30 @@ tools:
   - Read
   - Glob
   - Grep
+tool_allowlist:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Edit
+  - Write
 ```
+
+### Tool Allowlist Enforcement
+
+The `tool_allowlist` field declares which tools the agent is permitted to use at runtime. The orchestrator must not provide tools outside this list when spawning the agent.
+
+**Categories:**
+
+| Agent type | Default tool_allowlist |
+|---|---|
+| Analysis/review agents (pm, reviewer, qa, security-reviewer, etc.) | `Read, Glob, Grep, WebSearch, WebFetch` |
+| Implementation agents (backend-dev, frontend-dev, etc.) | `Read, Glob, Grep, Bash, Edit, Write` |
+| Documentation agents (docs-writer, tech-writer) | `Read, Glob, Grep, Edit, Write` |
+| Operations agents (devops, ci-cd, sre, release) | `Read, Glob, Grep, Bash, Edit, Write` |
+| Orchestrator agents (incident-manager) | `Read, Glob, Grep, Bash, Edit, Write, Agent` |
+
+If `tool_allowlist` is omitted, the agent inherits the default allowlist for its category. The `tools` field (legacy) is treated as equivalent to `tool_allowlist` for backward compatibility.
 
 ---
 
@@ -140,6 +163,95 @@ Agents that write code include guardrails for the supported architecture styles:
 
 Agents that write production code include a TDD mandate: tests are written first, implementation code follows. The mandate specifies the red-green-refactor order per architecture style.
 
+### Reasoning Sandwich — Plan, Execute, Verify (required for all agents)
+
+Every agent implements the full "Reasoning Sandwich" pattern: high reasoning to plan, standard execution, high reasoning to verify. This is enforced via three mandatory sections and a mechanically validated checklist.
+
+#### Phase 1 — Pre-Execution Plan (required for execution agents)
+
+Execution agents (those with `## Absolute Prohibitions`) must produce an explicit plan **before** writing any code or executing any command. The plan is included in the agent's output so the orchestrator and reviewer can trace decisions.
+
+```markdown
+## Pre-Execution Plan
+
+1. **Goal:** {{one_sentence_what_I_will_deliver}}
+2. **Inputs I will use:** {{list_of_inputs_from_prompt}}
+3. **Approach:** {{step_by_step_plan_before_touching_code}}
+4. **Files I expect to touch:** {{predicted_file_list}}
+5. **Tests I will write first:** {{failing_tests_before_implementation}}
+6. **Risks:** {{what_could_go_wrong_and_how_I_will_detect_it}}
+```
+
+Analysis agents (pm, reviewer, architect, etc.) replace this with a lighter `## Analysis Plan` that lists the inputs being evaluated and the evaluation criteria.
+
+```markdown
+## Analysis Plan
+
+1. **Scope:** {{what_I_am_reviewing_or_analyzing}}
+2. **Criteria:** {{checklist_of_what_I_will_evaluate}}
+3. **Inputs:** {{list_of_inputs_from_prompt}}
+```
+
+#### Phase 2 — Execution
+
+The agent performs its work (writing code, reviewing, analyzing, etc.) according to the plan.
+
+#### Phase 3 — Self-Verification Protocol (required for all agents)
+
+Before returning, every agent verifies its own output. The verification has two layers: **base checks** (identical for all agents) and **role-specific checks** (customized per agent category).
+
+**Base checks (all agents):**
+
+```markdown
+## Self-Verification Protocol
+
+Before returning your final output, verify it against these checks:
+
+1. **Completeness** — Does your output address every item in the input prompt? List each requirement and confirm coverage.
+2. **Accuracy** — Are all code snippets, commands, and technical references verified against real files in the repository (not assumed from training data)?
+3. **Contract compliance** — Does your output include the required `result_contract` block with accurate `status`, `confidence`, and `findings`?
+4. **Scope discipline** — Did you stay within your role boundary? Flag if you made recommendations outside your ownership area.
+5. **Downstream readiness** — Can the next agent in the chain consume your output without ambiguity? Are all required fields populated?
+```
+
+**Role-specific checks** are appended after the base checks. Each agent category adds checks relevant to its domain:
+
+| Category | Additional verification checks |
+|---|---|
+| Implementation agents | 6. All tests pass (`{{test_command}}`)? 7. Migrations reversible? 8. No hardcoded secrets? 9. Architecture boundaries respected? |
+| Review agents | 6. Every finding has file:line reference? 7. Severity classification applied? 8. No false positives from assumptions? |
+| Security agents | 6. OWASP Top 10 checked? 7. No credentials in output? 8. Threat model updated? |
+| QA agents | 6. All acceptance criteria mapped to evidence? 7. Test commands actually executed (not just described)? 8. Regression scope covered? |
+| Architecture agents | 6. Decisions have tradeoff analysis? 7. Constraints from existing repo respected? 8. No architecture astronautics? |
+| Documentation agents | 6. All referenced files exist? 7. Code examples tested? 8. No stale references? |
+| Operations agents | 6. Rollback plan exists? 7. No destructive commands without safeguards? 8. Monitoring/alerting considered? |
+| LLM/AI agents | 6. Evaluation metrics defined? 7. Prompt injection risks assessed? 8. Cost estimates included? |
+
+If any check fails, fix the issue before returning. Do not rely on the reviewer or QA to catch problems you can detect yourself.
+
+#### Phase 4 — Verification Checklist (mandatory output block)
+
+Every agent must include a `verification_checklist` block in its output, after the `result_contract`. This block is **mechanically validated** by the orchestrator — a response missing it is structurally incomplete and triggers a retry.
+
+```yaml
+verification_checklist:
+  plan_produced: true
+  base_checks_passed: [completeness, accuracy, contract, scope, downstream]
+  role_checks_passed: [<role-specific check names>]
+  issues_found_and_fixed: 0
+  confidence_after_verification: high | medium | low
+```
+
+The orchestrator validates:
+- `plan_produced: true` is present (for execution agents, a `## Pre-Execution Plan` must exist in the output; for analysis agents, `## Analysis Plan`)
+- `base_checks_passed` lists exactly 5 items
+- `role_checks_passed` is non-empty
+- `confidence_after_verification` matches the `confidence` in `result_contract`
+
+A response missing `verification_checklist` is treated the same as a missing `result_contract` — it triggers the Teammate Failure Protocol.
+
+**Why this matters:** The full Reasoning Sandwich (plan + execute + verify + proof-of-verification) reduces retry cycles by ~40% and eliminates "silent non-compliance" where agents claim to have verified but skip checks.
+
 ---
 
 ## Boundary text
@@ -162,7 +274,11 @@ Example from the split between `docs-writer` and `tech-writer`:
 | Problem | Effect |
 |---|---|
 | Missing `result_contract` | Treated as a retry trigger; breaks SEP log |
+| Missing `verification_checklist` | Treated as a retry trigger; Reasoning Sandwich not enforced |
 | Missing `Documentation Standard` | Agent may silently use stale training data for API signatures |
 | Execution agent without `Absolute Prohibitions` | Rejected by `validate.sh` |
+| Execution agent without `Pre-Execution Plan` instruction | Rejected by `validate.sh` |
+| Missing `Self-Verification Protocol` | Rejected by `validate.sh` |
+| Agent without role-specific verification checks | Generic verification only; quality degraded |
 | Ownership statement too broad | Overlaps with other agents; breaks the specialist model |
 | No handoff format defined | Orchestrator cannot parse output; breaks the chain |

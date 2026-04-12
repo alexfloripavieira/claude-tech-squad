@@ -363,6 +363,10 @@ action_items_total: N
 runbook_generated: true | false
 postmortem_artifact: ai-docs/postmortem-{{date}}-{{slug}}.md
 runbook_artifact: ai-docs/runbook-{{service_slug}}.md | null
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
 ---
 ```
 

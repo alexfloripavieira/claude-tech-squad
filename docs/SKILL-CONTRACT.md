@@ -101,7 +101,31 @@ Defines the tool sequence for spawning agents:
 **Do NOT use Agent without team_name** — that runs an inline subagent, not a visible teammate pane.
 ```
 
-### 5. Agent chain definition
+### 5. Progressive Disclosure (Context Digest Protocol)
+
+Skills must not forward full upstream agent output to every downstream agent. Instead, the orchestrator produces a **context digest** between phases to reduce token consumption and maintain agent focus.
+
+**Rules:**
+
+1. **Sequential agents** — When agent B depends on agent A's output, forward a context digest (max 500 tokens) unless agent B explicitly needs the full output. The digest summarizes: key decisions, artifacts produced, open questions, and blockers.
+2. **Parallel batch agents** — Each agent in a batch receives only the context relevant to its specialty, not the complete output of all prior agents.
+3. **Full output access** — Agents that explicitly need the full upstream output (e.g., Reviewer needs the complete implementation diff, QA needs the full test plan) receive it. All others receive the digest.
+4. **Digest format:**
+
+```markdown
+## Context Digest — {{source_agent}} ({{phase}})
+
+**Key decisions:** {{bullet_list}}
+**Artifacts produced:** {{file_list}}
+**Open questions:** {{list_or_none}}
+**Blockers:** {{list_or_none}}
+**Architecture style:** {{style}}
+**Full output reference:** available on request from orchestrator
+```
+
+5. **Token savings target** — Progressive disclosure should reduce total token consumption by 20-30% compared to forwarding full outputs.
+
+### 6. Agent chain definition
 
 The ordered list of agents invoked by the skill, with their phase, purpose, and any gate that precedes or follows them.
 
@@ -121,7 +145,7 @@ Spawn in order:
 4. `<agent-subagent-type>` — <one-line purpose> (parallel with 3)
 ```
 
-### 6. Gate definitions
+### 7. Gate definitions
 
 Gates pause the workflow and require a user decision before continuing. Each gate must define:
 - Its name (used in the `[Gate]` trace line)
@@ -131,7 +155,28 @@ Gates pause the workflow and require a user decision before continuing. Each gat
 
 Gates exist only where human judgment is irreplaceable. Do not add gates for decisions that agents can resolve autonomously.
 
-### 7. Checkpoint and resume block
+**Gate Consolidation Rule:** When multiple agents fail in the same parallel batch (e.g., quality bench), the orchestrator must present a single consolidated gate instead of sequential individual gates. The consolidated gate lists all failed agents and offers batch actions:
+
+```
+[Gate] Batch Failure — Quality Bench | 3 of 6 agents failed
+
+Failed agents:
+1. security-rev — empty response after retry
+2. perf-eng — structurally invalid output
+3. access-rev — error: tool unavailable
+
+Options:
+- [R] Retry all 3 failed agents
+- [1,3] Retry specific agents by number
+- [S] Skip all failed agents and continue (log risk for each)
+- [X] Abort the run
+```
+
+This prevents gate fatigue — the user makes one decision instead of N sequential ones.
+
+**Auto-advance Rule:** Non-mandatory gates may be auto-advanced when all conditions in `auto_advance` from `runtime-policy.yaml` are met. The auto-advance is logged with `[Auto-Advanced]` and the user is informed post-hoc. Mandatory gates (listed in `auto_advance.mandatory_gates`) always require explicit user input.
+
+### 8. Checkpoint and resume block
 
 Every skill must define checkpoints and the resume rule. Written to the SEP log via `checkpoint_resume.write_to_sep_log: true` in `runtime-policy.yaml`.
 
@@ -146,7 +191,7 @@ Save a checkpoint after each of the following:
 Resume rule: resume from the highest completed checkpoint unless inputs materially changed.
 ```
 
-### 8. SEP log instruction
+### 9. SEP log instruction
 
 The skill must instruct the orchestrator to write a Squad Execution Protocol log to `ai-docs/.squad-log/` before the run ends.
 
@@ -161,6 +206,19 @@ Minimum fields required in the SEP log:
 
 ---
 
+## Teammate output validation (Reasoning Sandwich enforcement)
+
+A teammate response is structurally valid only when it contains ALL of:
+1. The role-specific body requested by that agent
+2. A `result_contract` block with valid `status`, `confidence`, `blockers`, `artifacts`, `findings`, `next_action`
+3. A `verification_checklist` block with `plan_produced: true`, non-empty `base_checks_passed`, non-empty `role_checks_passed`, and `confidence_after_verification` matching the `result_contract.confidence`
+
+Missing `result_contract` OR missing `verification_checklist` = structurally invalid = trigger the Teammate Failure Protocol.
+
+For execution agents, the output must also contain a `## Pre-Execution Plan` section. For analysis agents, it must contain a `## Analysis Plan` section. Absence of the plan section means the agent skipped Phase 1 of the Reasoning Sandwich and must be retried.
+
+---
+
 ## Failure handling
 
 Skills rely on `runtime-policy.yaml` for retry and fallback behavior. A skill does not define its own retry limits — it inherits them from the central policy:
@@ -168,11 +226,29 @@ Skills rely on `runtime-policy.yaml` for retry and fallback behavior. A skill do
 | Situation | Policy |
 |---|---|
 | Agent produces invalid output | Retry same agent, max 2 times |
+| Agent missing `verification_checklist` | Retry same agent (Phase 3 not completed) |
+| Agent missing plan section | Retry same agent (Phase 1 not completed) |
 | Agent fails after 2 retries | Invoke fallback from `fallback_matrix` |
 | Fallback also fails | Present gate to user: R (retry) / S (skip with risk log) / X (abort) |
 | Finding is BLOCKING | Pause pipeline, require resolution before continuing |
 
 Skills reference the fallback matrix implicitly — they do not hardcode fallback agents.
+
+### Doom Loop Detection
+
+Before executing each retry, the orchestrator must check for divergence patterns defined in `doom_loop_detection` from `runtime-policy.yaml`. A doom loop is detected when:
+
+1. **Growing diff** — the retry produces a larger diff than the previous attempt (agent is making more changes, not converging)
+2. **Oscillating fix** — the retry reverts lines changed in the previous attempt (agent is alternating between two states)
+3. **Same error** — the same test failure or lint error reappears unchanged after the retry
+
+When a doom loop is detected:
+- Emit: `[Doom Loop Detected] <agent> | pattern=<rule_name> | retries=<count>`
+- Immediately stop retrying the same agent
+- Invoke the fallback agent from `fallback_matrix` with the doom loop evidence as context
+- If the fallback also loops or fails, surface the gate to the user with the doom loop pattern as evidence
+
+This prevents wasted tokens on agents that are not converging toward a solution.
 
 ---
 

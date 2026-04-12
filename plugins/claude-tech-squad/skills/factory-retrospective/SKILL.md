@@ -336,15 +336,54 @@ logs_analyzed: N
 patterns_identified: N
 changes_applied: N
 report_artifact: ai-docs/factory-retrospective-YYYY-MM-DD.md
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
 ---
 ```
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
-### Step 9 — Report to user
+### Step 9 — Entropy Management (Automated Cleanup)
+
+After writing the SEP log, perform these automated entropy checks:
+
+**9a. Reset retrospective counter:**
+```bash
+echo "0" > ai-docs/.squad-log/.retro-counter
+```
+
+**9b. Stale artifact detection:**
+Scan `ai-docs/` for files older than 30 days that have no corresponding SEP log entry:
+```bash
+find ai-docs/ -name "*.md" -not -path "ai-docs/.squad-log/*" -mtime +30 2>/dev/null
+```
+For each stale file, emit: `[Entropy] Stale artifact: {{file}} ({{age}} days old, no matching SEP log)`
+
+**9c. Broken chain cleanup recommendations:**
+For each broken chain identified in Step 2 (discovery without implement, hotfix without postmortem):
+- Emit: `[Entropy] Broken chain: {{chain_description}}`
+- Recommend: close the orphan, trigger the missing downstream skill, or archive
+
+**9d. Token cost trend analysis:**
+If SEP logs contain `tokens_input` and `tokens_output` fields, compute:
+- Average token cost per skill over the analysis period
+- Skill with highest average cost
+- Trend: is cost per run increasing, stable, or decreasing?
+- Emit: `[Entropy] Token cost trend: {{trend}} — avg {{avg_tokens}} tokens/run, highest: {{skill}} at {{max_tokens}} tokens/run`
+
+**9e. Doom loop frequency report:**
+Count `[Doom Loop Detected]` entries across SEP logs and trace files:
+- If any: recommend specific agent prompt improvements
+- Emit: `[Entropy] Doom loops: {{count}} detected in analysis period — top agent: {{agent_name}} ({{agent_count}} occurrences)`
+
+### Step 10 — Report to user
 
 Tell the user:
 - Number of patterns identified
 - Changes applied (if any)
 - Path to the saved retrospective report
+- Entropy management actions taken
+- Token cost trends (if data available)
 - Suggested cadence for running the next retrospective

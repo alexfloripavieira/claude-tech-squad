@@ -79,6 +79,28 @@ Emit these lines for every teammate action:
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
 - `[Phase Done] <phase-name> | Outcome: <summary>`
 
+## Progressive Disclosure — Context Digest Protocol
+
+Do not forward full upstream agent output to every downstream agent. Instead, produce a **context digest** (max 500 tokens) between sequential phases.
+
+**Digest format:**
+
+```markdown
+## Context Digest — {{source_agent}} ({{phase}})
+
+**Key decisions:** {{bullet_list}}
+**Artifacts produced:** {{file_list}}
+**Open questions:** {{list_or_none}}
+**Blockers:** {{list_or_none}}
+**Architecture style:** {{style}}
+**Full output reference:** available on request from orchestrator
+```
+
+**Rules:**
+- When transitioning from discovery to implementation, produce a digest of the full blueprint — the implementation phase receives the digest plus the full blueprint file path for on-demand access
+- Within each phase (discovery, implement), follow the phase-specific progressive disclosure rules defined in the respective skill
+- The orchestrator tracks token consumption per teammate and logs it in the SEP log
+
 ## Teammate Failure Protocol
 
 A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role, including the required `result_contract` block.
@@ -87,9 +109,11 @@ A teammate has **failed silently** if it returns an empty response, an error, or
 
 1. Wait for the teammate to return a structured output.
 2. If the return is empty, an error, or structurally invalid:
-   - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
-   - Re-spawn the teammate once with the identical prompt.
-3. If the second attempt also fails:
+   - **Doom loop check** — before re-spawning, consult `doom_loop_detection` in `runtime-policy.yaml`. Compare the failed output against the prior attempt (if any). If a doom loop pattern is detected (growing_diff, oscillating_fix, or same_error):
+     - Emit: `[Doom Loop Detected] <name> | pattern=<rule_name> | retries=<count>`
+     - Skip the retry and go directly to step 3 (fallback) — retrying the same agent will waste tokens
+   - If no doom loop detected: Emit `[Teammate Retry] <name> | Reason: silent failure — re-spawning` and re-spawn the teammate once with the identical prompt.
+3. If the second attempt also fails (or doom loop was detected in step 2):
    - Read `plugins/claude-tech-squad/runtime-policy.yaml` and consult `fallback_matrix.squad.<name>`
    - If a fallback subagent is listed:
      - Emit: `[Fallback Invoked] <name> -> <fallback-subagent> | Reason: primary failed twice`
@@ -114,11 +138,13 @@ Options:
 
 ## Agent Result Contract (ARC)
 
-A teammate response is only considered structurally valid when it contains both:
+A teammate response is only considered structurally valid when it contains ALL of:
 - the role-specific body requested by that agent
+- a plan section (`## Pre-Execution Plan` for execution agents, `## Analysis Plan` for analysis agents)
 - a final `result_contract` block
+- a final `verification_checklist` block
 
-Required block:
+Required blocks:
 
 ```yaml
 result_contract:
@@ -128,13 +154,21 @@ result_contract:
   artifacts: []
   findings: []
   next_action: "..."
+
+verification_checklist:
+  plan_produced: true
+  base_checks_passed: [completeness, accuracy, contract, scope, downstream]
+  role_checks_passed: [<role-specific check names>]
+  issues_found_and_fixed: 0
+  confidence_after_verification: high | medium | low
 ```
 
 Validation rules:
 - `status` must reflect the real execution outcome
 - `blockers`, `artifacts`, and `findings` use empty lists when there is nothing to report
 - `next_action` must identify the single best downstream step
-- Missing `result_contract` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
+- `confidence_after_verification` must match `confidence` in `result_contract`
+- Missing `result_contract` OR missing `verification_checklist` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
 
 ## Runtime Resilience Contract
 
@@ -166,6 +200,9 @@ Check and store:
 Preflight rules:
 - Emit `[Preflight Start] squad`
 - Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- **Cost budget initialization** — Read `cost_guardrails.token_budget.squad_max_tokens` from the runtime policy and initialize the token counter for this run
+- **Orphan detection** — If `entropy_management.orphan_detection.check_at_preflight` is true, scan for orphaned discoveries older than the configured threshold and emit `[Preflight Warning] {{count}} orphaned discovery(ies) found`
+- **Retro counter check** — Read `entropy_management.factory_retrospective_auto_trigger.counter_file` and check if the counter has reached the threshold. If so, suggest running `/factory-retrospective` before proceeding
 - If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
 - If `{{architecture_style}}` had to be defaulted, emit `[Preflight Warning] architecture_style ambiguous — defaulting to existing-repo-pattern`
 - If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`
@@ -520,6 +557,12 @@ teammate_reliability:
   release: primary
 uat_result: APPROVED | REJECTED
 release_result: GO | NO-GO
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
+doom_loops_detected: {{count_or_0}}
+auto_advanced_gates: {{list_of_auto_advanced_gate_names_or_empty}}
 ---
 
 ## Output Digest

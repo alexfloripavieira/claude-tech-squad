@@ -147,4 +147,85 @@ grep -q 'skill: squad' "$SKILLS_DIR/squad/SKILL.md" || {
   exit 1
 }
 
+# ── Reasoning Sandwich: Full enforcement ──────────────────────────────────
+SELF_VERIFY_COUNT=$(grep -c '^## Self-Verification Protocol$' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+if [ "$SELF_VERIFY_COUNT" != "$AGENT_COUNT" ]; then
+  echo "Smoke test failed: Self-Verification Protocol count ($SELF_VERIFY_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+VERIFY_CHECKLIST_COUNT=$(grep -c 'verification_checklist:' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+if [ "$VERIFY_CHECKLIST_COUNT" != "$AGENT_COUNT" ]; then
+  echo "Smoke test failed: verification_checklist count ($VERIFY_CHECKLIST_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+ROLE_CHECKS_COUNT=$(grep -c 'Role-specific checks' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+if [ "$ROLE_CHECKS_COUNT" != "$AGENT_COUNT" ]; then
+  echo "Smoke test failed: Role-specific checks count ($ROLE_CHECKS_COUNT) != agent count ($AGENT_COUNT)"
+  exit 1
+fi
+
+# Verify Pre-Execution Plan in execution agents and Analysis Plan in others
+PRE_EXEC_COUNT=$(grep -c '^## Pre-Execution Plan$' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+ANALYSIS_PLAN_COUNT=$(grep -c '^## Analysis Plan$' "$AGENTS_DIR"/*.md | grep -v ":0$" | wc -l | tr -d ' ')
+TOTAL_PLAN=$((PRE_EXEC_COUNT + ANALYSIS_PLAN_COUNT))
+if [ "$TOTAL_PLAN" != "$AGENT_COUNT" ]; then
+  echo "Smoke test failed: Plan section count ($TOTAL_PLAN) != agent count ($AGENT_COUNT). Pre-Exec=$PRE_EXEC_COUNT, Analysis=$ANALYSIS_PLAN_COUNT"
+  exit 1
+fi
+
+# ── Harness Engineering: Progressive Disclosure in orchestrator skills ──────
+for skill in discovery implement squad; do
+  grep -q 'Progressive Disclosure' "$SKILLS_DIR/$skill/SKILL.md" || {
+    echo "Smoke test failed: missing Progressive Disclosure in $skill"
+    exit 1
+  }
+done
+
+# ── Harness Engineering: runtime policy new keys ───────────────────────────
+for key in '^cost_guardrails:' '^doom_loop_detection:' '^auto_advance:' '^entropy_management:' '^tool_allowlists:' '^observability:'; do
+  grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml" || {
+    echo "Smoke test failed: runtime-policy.yaml missing Harness Engineering key $key"
+    exit 1
+  }
+done
+
+# ── Harness Engineering: PreToolUse hook exists and is executable ──────────
+test -f "$PLUGIN_DIR/hooks/pre-tool-guard.sh" || {
+  echo "Smoke test failed: missing hooks/pre-tool-guard.sh"
+  exit 1
+}
+test -x "$PLUGIN_DIR/hooks/pre-tool-guard.sh" || {
+  echo "Smoke test failed: hooks/pre-tool-guard.sh not executable"
+  exit 1
+}
+
+# ── Harness Engineering: token tracking in ALL SEP log templates ───────────
+for skill_dir in "$SKILLS_DIR"/*/; do
+  skill=$(basename "$skill_dir")
+  skill_file="$skill_dir/SKILL.md"
+  [ -f "$skill_file" ] || continue
+  grep -q 'tokens_input:' "$skill_file" || {
+    echo "Smoke test failed: missing token tracking in $skill SEP log template"
+    exit 1
+  }
+done
+
+# ── Harness Engineering: teammate_token_breakdown in orchestrator skills ───
+for skill in discovery implement; do
+  grep -q 'teammate_token_breakdown:' "$SKILLS_DIR/$skill/SKILL.md" || {
+    echo "Smoke test failed: missing teammate_token_breakdown in $skill SEP log template"
+    exit 1
+  }
+done
+
+# ── Harness Engineering: new trace lines documented ───────────────────────
+for trace_line in 'Cost Warning' 'Doom Loop' 'Auto-Advanced' 'Entropy Check' 'SEP Log Written'; do
+  grep -q "$trace_line" "$ROOT/docs/EXECUTION-TRACE.md" || {
+    echo "Smoke test failed: EXECUTION-TRACE.md missing documentation for [$trace_line]"
+    exit 1
+  }
+done
+
 echo "claude-tech-squad smoke test passed"

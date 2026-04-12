@@ -18,12 +18,135 @@ failure_handling:
       S: skip and continue with explicit risk logging
       X: abort the run
 
+cost_guardrails:
+  token_budget:
+    discovery_max_tokens: 2000000
+    implement_max_tokens: 4000000
+    squad_max_tokens: 6000000
+    hotfix_max_tokens: 1000000
+    default_max_tokens: 1500000
+  cost_tracking:
+    track_per_teammate: true
+    fields:
+      - tokens_input
+      - tokens_output
+      - estimated_cost_usd
+      - duration_ms
+  circuit_breaker:
+    enabled: true
+    warn_at_percent: 75
+    halt_at_percent: 100
+    on_warn: "emit [Cost Warning] {{skill}} | {{percent}}% of token budget consumed ({{tokens_used}}/{{tokens_max}})"
+    on_halt: "emit [Gate] Cost Limit Reached | {{skill}} consumed 100% of token budget. Options: [E] Extend budget by 50% / [X] Abort"
+
 retry_budgets:
   review_cycles_max: 3
   qa_cycles_max: 2
   conformance_cycles_max: 2
   quality_fix_cycles_max: 2
   uat_cycles_max: 2
+
+doom_loop_detection:
+  enabled: true
+  strategy: divergence_check
+  rules:
+    - name: growing_diff
+      description: each retry produces a larger diff than the previous — the agent is diverging
+      condition: "diff_size(retry_N) > diff_size(retry_N-1) for 2 consecutive retries"
+      action: halt_and_fallback
+    - name: oscillating_fix
+      description: the agent reverts a previous fix — it is oscillating between two states
+      condition: "retry_N restores lines removed in retry_N-1 or removes lines added in retry_N-1"
+      action: halt_and_fallback
+    - name: same_error
+      description: the same test or lint error appears in consecutive retries unchanged
+      condition: "error_signature(retry_N) == error_signature(retry_N-1)"
+      action: halt_and_fallback
+  on_detection: "emit [Doom Loop Detected] {{agent}} | pattern={{rule_name}} | retries={{count}} — halting retry cycle and invoking fallback"
+  escalation: surface unresolved gate to user with doom loop evidence
+
+auto_advance:
+  enabled: true
+  description: >
+    When all agents in a phase return high confidence and zero BLOCKING findings,
+    the orchestrator may advance automatically without pausing for a user gate.
+    The advance is logged and the user is informed post-hoc.
+  conditions:
+    all_of:
+      - every agent in the phase returned confidence=high
+      - zero BLOCKING findings across all agents in the phase
+      - zero failed agents (no retry or fallback was needed)
+      - the gate is not in the mandatory_gates list
+  mandatory_gates:
+    - uat
+    - release-sign-off
+    - deploy-checklist
+    - conformance-audit
+    - diagnosis-confirm
+    - implement-bridge
+  on_auto_advance: "emit [Auto-Advanced] {{gate_name}} | all agents returned confidence=high, zero BLOCKING findings — advancing without user gate"
+  on_skip: "emit [Gate] {{gate_name}} | auto-advance conditions not met — waiting for user input"
+
+entropy_management:
+  factory_retrospective_auto_trigger:
+    enabled: true
+    trigger_after_runs: 5
+    description: >
+      After every 5th skill run that writes a SEP log, the orchestrator
+      automatically suggests running /factory-retrospective. The user
+      can accept or dismiss. This prevents entropy accumulation.
+    counter_file: ai-docs/.squad-log/.retro-counter
+    on_trigger: >
+      emit [Entropy Check] {{run_count}} runs since last retrospective —
+      recommend running /factory-retrospective.
+      Run now? [Y/N]
+    on_dismiss: reset counter and continue
+  orphan_detection:
+    enabled: true
+    check_at_preflight: true
+    description: >
+      During preflight of /implement and /squad, check for orphaned
+      discoveries (implement_triggered=false) older than 7 days.
+      Emit a warning if found.
+    stale_threshold_days: 7
+    on_detection: "emit [Preflight Warning] {{count}} orphaned discovery(ies) found older than {{days}} days — consider running /factory-retrospective"
+
+tool_allowlists:
+  description: >
+    Default tool allowlists per agent category. Agents may override
+    via tool_allowlist in their frontmatter. The orchestrator must not
+    provide tools outside the resolved allowlist when spawning an agent.
+  categories:
+    analysis:
+      tools: [Read, Glob, Grep, WebSearch, WebFetch]
+      agents: [pm, po, business-analyst, planner, architect, techlead, tech-lead,
+               reviewer, code-reviewer, security-reviewer, privacy-reviewer,
+               compliance-reviewer, accessibility-reviewer, code-quality,
+               performance-engineer, observability-engineer, monitoring-specialist,
+               analytics-engineer, design-principles-specialist, test-planner,
+               llm-eval-specialist, llm-cost-analyst, llm-safety-reviewer,
+               cost-optimizer, growth-engineer, solutions-architect, agent-architect,
+               conversational-designer, search-engineer, django-pm]
+    implementation:
+      tools: [Read, Glob, Grep, Bash, Edit, Write]
+      agents: [backend-dev, frontend-dev, mobile-dev, data-engineer, platform-dev,
+               tdd-specialist, django-backend, django-frontend, javascript-developer,
+               python-developer, react-developer, typescript-developer,
+               vue-developer, shell-developer, ml-engineer, ai-engineer,
+               rag-engineer, prompt-engineer, integration-engineer,
+               design-system-engineer, qa-tester]
+    documentation:
+      tools: [Read, Glob, Grep, Edit, Write]
+      agents: [docs-writer, tech-writer, jira-confluence-specialist, developer-relations,
+               devex-engineer]
+    operations:
+      tools: [Read, Glob, Grep, Bash, Edit, Write]
+      agents: [devops, ci-cd, dba, cloud-architect, sre, release, chaos-engineer,
+               incident-manager, security-engineer, backend-architect, frontend-architect,
+               hexagonal-architect, api-designer, data-architect, ux-designer, qa]
+    orchestrator:
+      tools: [Read, Glob, Grep, Bash, Edit, Write, Agent]
+      agents: [incident-manager]
 
 severity_policy:
   blocking:
@@ -66,6 +189,72 @@ fallback_matrix:
       - claude-tech-squad:tdd-specialist
     tdd-specialist:
       - claude-tech-squad:test-planner
+    backend-architect:
+      - claude-tech-squad:architect
+      - claude-tech-squad:solutions-architect
+    frontend-architect:
+      - claude-tech-squad:architect
+      - claude-tech-squad:ux-designer
+    hexagonal-architect:
+      - claude-tech-squad:backend-architect
+      - claude-tech-squad:architect
+    api-designer:
+      - claude-tech-squad:backend-architect
+      - claude-tech-squad:architect
+    data-architect:
+      - claude-tech-squad:backend-architect
+      - claude-tech-squad:dba
+    ux-designer:
+      - claude-tech-squad:frontend-architect
+      - claude-tech-squad:design-system-engineer
+    dba:
+      - claude-tech-squad:data-architect
+      - claude-tech-squad:backend-architect
+    security-reviewer:
+      - claude-tech-squad:security-engineer
+      - claude-tech-squad:compliance-reviewer
+    privacy-reviewer:
+      - claude-tech-squad:compliance-reviewer
+      - claude-tech-squad:security-reviewer
+    compliance-reviewer:
+      - claude-tech-squad:privacy-reviewer
+      - claude-tech-squad:security-reviewer
+    performance-engineer:
+      - claude-tech-squad:observability-engineer
+      - claude-tech-squad:sre
+    observability-engineer:
+      - claude-tech-squad:monitoring-specialist
+      - claude-tech-squad:sre
+    ai-engineer:
+      - claude-tech-squad:ml-engineer
+      - claude-tech-squad:prompt-engineer
+    rag-engineer:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:search-engineer
+    prompt-engineer:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:conversational-designer
+    llm-eval-specialist:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:qa
+    llm-safety-reviewer:
+      - claude-tech-squad:security-reviewer
+      - claude-tech-squad:ai-engineer
+    llm-cost-analyst:
+      - claude-tech-squad:cost-optimizer
+      - claude-tech-squad:ai-engineer
+    ml-engineer:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:data-engineer
+    agent-architect:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:architect
+    conversational-designer:
+      - claude-tech-squad:prompt-engineer
+      - claude-tech-squad:ux-designer
+    search-engineer:
+      - claude-tech-squad:rag-engineer
+      - claude-tech-squad:data-engineer
   implement:
     tdd-specialist:
       - claude-tech-squad:test-planner
@@ -97,6 +286,57 @@ fallback_matrix:
       - claude-tech-squad:developer-relations
     pm-uat:
       - claude-tech-squad:po
+    backend-dev:
+      - claude-tech-squad:python-developer
+      - claude-tech-squad:techlead
+    frontend-dev:
+      - claude-tech-squad:react-developer
+      - claude-tech-squad:techlead
+    django-backend:
+      - claude-tech-squad:python-developer
+      - claude-tech-squad:backend-dev
+    django-frontend:
+      - claude-tech-squad:frontend-dev
+      - claude-tech-squad:react-developer
+    react-developer:
+      - claude-tech-squad:frontend-dev
+      - claude-tech-squad:typescript-developer
+    vue-developer:
+      - claude-tech-squad:frontend-dev
+      - claude-tech-squad:javascript-developer
+    typescript-developer:
+      - claude-tech-squad:javascript-developer
+      - claude-tech-squad:frontend-dev
+    javascript-developer:
+      - claude-tech-squad:typescript-developer
+      - claude-tech-squad:frontend-dev
+    python-developer:
+      - claude-tech-squad:backend-dev
+      - claude-tech-squad:django-backend
+    shell-developer:
+      - claude-tech-squad:devops
+      - claude-tech-squad:platform-dev
+    platform-dev:
+      - claude-tech-squad:devops
+      - claude-tech-squad:backend-dev
+    ai-engineer:
+      - claude-tech-squad:ml-engineer
+      - claude-tech-squad:prompt-engineer
+    rag-engineer:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:search-engineer
+    prompt-engineer:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:conversational-designer
+    llm-eval-specialist:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:qa
+    llm-safety-reviewer:
+      - claude-tech-squad:security-reviewer
+      - claude-tech-squad:ai-engineer
+    llm-cost-analyst:
+      - claude-tech-squad:cost-optimizer
+      - claude-tech-squad:ai-engineer
   squad:
     pm:
       - claude-tech-squad:po
@@ -117,6 +357,24 @@ fallback_matrix:
       - claude-tech-squad:sre
     sre:
       - claude-tech-squad:release
+    ai-engineer:
+      - claude-tech-squad:ml-engineer
+      - claude-tech-squad:prompt-engineer
+    rag-engineer:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:search-engineer
+    prompt-engineer:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:conversational-designer
+    llm-eval-specialist:
+      - claude-tech-squad:ai-engineer
+      - claude-tech-squad:qa
+    llm-safety-reviewer:
+      - claude-tech-squad:security-reviewer
+      - claude-tech-squad:ai-engineer
+    llm-cost-analyst:
+      - claude-tech-squad:cost-optimizer
+      - claude-tech-squad:ai-engineer
 
 checkpoint_resume:
   write_to_sep_log: true
@@ -167,9 +425,56 @@ reliability_metrics:
     - completed_checkpoints
     - resume_from
     - teammate_reliability
+    - tokens_input
+    - tokens_output
+    - estimated_cost_usd
+    - total_duration_ms
+    - teammate_durations
   teammate_reliability_states:
     - primary
     - primary-after-retry
     - fallback-used
     - skipped-with-risk
     - unresolved
+
+observability:
+  sep_log_schema:
+    required_fields:
+      - run_id
+      - skill
+      - timestamp
+      - final_status
+      - execution_mode
+      - architecture_style
+      - checkpoints
+      - fallbacks_invoked
+      - retry_count
+      - tokens_input
+      - tokens_output
+      - estimated_cost_usd
+      - total_duration_ms
+    teammate_fields:
+      - name
+      - subagent_type
+      - status
+      - tokens_input
+      - tokens_output
+      - duration_ms
+      - reliability_state
+    trace_lines:
+      - "[Preflight Start]"
+      - "[Preflight Warning]"
+      - "[Preflight Passed]"
+      - "[Team Created]"
+      - "[Teammate Spawned]"
+      - "[Teammate Done]"
+      - "[Teammate Retry]"
+      - "[Fallback Invoked]"
+      - "[Resume From]"
+      - "[Checkpoint Saved]"
+      - "[Gate]"
+      - "[Batch Spawned]"
+      - "[Cost Warning]"
+      - "[Doom Loop Detected]"
+      - "[Auto-Advanced]"
+      - "[SEP Log Written]"

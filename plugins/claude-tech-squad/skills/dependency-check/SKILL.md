@@ -242,6 +242,10 @@ fallbacks_invoked: []
 vulnerabilities_critical: N
 major_updates: N
 remediation_artifact: ai-docs/dependency-remediation-YYYY-MM-DD.md
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
 ---
 
 ## Findings Gerados

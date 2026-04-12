@@ -258,6 +258,10 @@ findings_high: N
 findings_medium: N
 findings_low: N
 threads_posted: N
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
 ---
 
 ## Findings Summary

@@ -162,6 +162,10 @@ fallbacks_invoked: []
 tools_configured: [list of detected tools]
 hook_written: true
 settings_path: .claude/settings.json
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
 ---
 
 ## Configuration Summary

@@ -417,6 +417,10 @@ critical_findings: N
 security_result: APPROVED | ISSUES_FOUND | BLOCKED
 cost_result: CLEAR | RISK
 overall: GO | NO-GO
+tokens_input: {{total_input_tokens}}
+tokens_output: {{total_output_tokens}}
+estimated_cost_usd: {{estimated_cost}}
+total_duration_ms: {{wall_clock_duration}}
 ---
 
 ## Key Findings

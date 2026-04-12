@@ -67,6 +67,34 @@ Emit these lines for every teammate action:
 
 ---
 
+## Progressive Disclosure — Context Digest Protocol
+
+Do not forward full upstream agent output to every downstream agent. Instead, produce a **context digest** (max 500 tokens) between sequential phases.
+
+**Digest format:**
+
+```markdown
+## Context Digest — {{source_agent}} ({{phase}})
+
+**Key decisions:** {{bullet_list}}
+**Artifacts produced:** {{file_list}}
+**Open questions:** {{list_or_none}}
+**Blockers:** {{list_or_none}}
+**Architecture style:** {{style}}
+**Full output reference:** available on request from orchestrator
+```
+
+**Rules:**
+- Implementation agents receive the full TDD failing tests + their specific workstream from the TechLead plan, but only a digest of the blueprint (not the entire discovery document)
+- Reviewer receives the full implementation diff but only a digest of the architecture decisions
+- QA receives the full test plan and acceptance criteria but only a digest of the implementation
+- Quality bench agents each receive only the implementation diff relevant to their specialty plus a digest of the architecture
+- Docs-writer receives full implementation output but only digests of quality bench findings
+- PM UAT receives full acceptance criteria + a digest of QA results and quality bench findings
+- The orchestrator tracks token consumption per teammate and logs it in the SEP log
+
+---
+
 ## Required Input
 
 This command expects a Discovery & Blueprint Document (from `/discovery` or `/squad`).
@@ -80,9 +108,11 @@ A teammate has **failed silently** if it returns an empty response, an error, or
 
 1. Wait for the teammate to return a structured output.
 2. If the return is empty, an error, or structurally invalid:
-   - Emit: `[Teammate Retry] <name> | Reason: silent failure — re-spawning`
-   - Re-spawn the teammate once with the identical prompt.
-3. If the second attempt also fails:
+   - **Doom loop check** — before re-spawning, consult `doom_loop_detection` in `runtime-policy.yaml`. Compare the failed output against the prior attempt (if any). If a doom loop pattern is detected (growing_diff, oscillating_fix, or same_error):
+     - Emit: `[Doom Loop Detected] <name> | pattern=<rule_name> | retries=<count>`
+     - Skip the retry and go directly to step 3 (fallback) — retrying the same agent will waste tokens
+   - If no doom loop detected: Emit `[Teammate Retry] <name> | Reason: silent failure — re-spawning` and re-spawn the teammate once with the identical prompt.
+3. If the second attempt also fails (or doom loop was detected in step 2):
    - Read `plugins/claude-tech-squad/runtime-policy.yaml` and consult `fallback_matrix.implement.<name>`
    - If a fallback subagent is listed:
      - Emit: `[Fallback Invoked] <name> -> <fallback-subagent> | Reason: primary failed twice`
@@ -107,11 +137,13 @@ Options:
 
 ## Agent Result Contract (ARC)
 
-A teammate response is only considered structurally valid when it contains both:
+A teammate response is only considered structurally valid when it contains ALL of:
 - the role-specific body requested by that agent
+- a plan section (`## Pre-Execution Plan` for execution agents, `## Analysis Plan` for analysis agents)
 - a final `result_contract` block
+- a final `verification_checklist` block
 
-Required block:
+Required blocks:
 
 ```yaml
 result_contract:
@@ -121,13 +153,21 @@ result_contract:
   artifacts: []
   findings: []
   next_action: "..."
+
+verification_checklist:
+  plan_produced: true
+  base_checks_passed: [completeness, accuracy, contract, scope, downstream]
+  role_checks_passed: [<role-specific check names>]
+  issues_found_and_fixed: 0
+  confidence_after_verification: high | medium | low
 ```
 
 Validation rules:
 - `status` must reflect the real execution outcome
 - `blockers`, `artifacts`, and `findings` use empty lists when there is nothing to report
 - `next_action` must identify the single best downstream step
-- Missing `result_contract` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
+- `confidence_after_verification` must match `confidence` in `result_contract`
+- Missing `result_contract` OR missing `verification_checklist` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
 
 ## Runtime Resilience Contract
 
@@ -159,6 +199,9 @@ Check and store:
 Preflight rules:
 - Emit `[Preflight Start] implement`
 - Read `plugins/claude-tech-squad/runtime-policy.yaml`
+- **Chain validation** — Check `ai-docs/.squad-log/` for a discovery SEP log matching the blueprint's `feature_slug`. If no upstream discovery log exists, emit `[Preflight Warning] no discovery SEP log found for {{feature_slug}} — implementation has no traceable origin`. This does not block the run but is logged as a gap for `/factory-retrospective`.
+- **Orphan detection** — If `entropy_management.orphan_detection.check_at_preflight` is true in the runtime policy, scan for orphaned discoveries older than the configured threshold and emit `[Preflight Warning] {{count}} orphaned discovery(ies) found`
+- **Cost budget initialization** — Read `cost_guardrails.token_budget.implement_max_tokens` from the runtime policy and initialize the token counter for this run
 - If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
 - If `{{architecture_style}}` is missing from the blueprint, emit `[Preflight Warning] architecture_style missing — defaulting to existing-repo-pattern`
 - If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`
@@ -286,6 +329,13 @@ Emit: `[Team Created] implement`
 
 ### Step 3 — TDD Specialist Teammate (Failing Tests First)
 
+**Progressive Disclosure:** TDD Specialist receives full TDD delivery plan and test plan from the blueprint, plus an architecture digest (not the full architecture document).
+
+Before spawning:
+```
+architecture_digest = summarize(architecture, max_tokens=500, format=context_digest)
+```
+
 Spawn TDD Specialist to produce the first failing tests before any production code:
 
 ```
@@ -296,14 +346,14 @@ Agent(
   prompt = """
 ## TDD — First Failing Tests
 
-### TDD Delivery Plan
+### TDD Delivery Plan (full)
 {{tdd_delivery_plan}}
 
-### Test Plan
+### Test Plan (full)
 {{test_plan}}
 
-### Architecture
-{{architecture}}
+### Architecture (digest)
+{{architecture_digest}}
 
 ### Architecture Style
 {{architecture_style}}
@@ -337,15 +387,23 @@ Only spawn `backend-dev` if the workstream requires backend changes. Only spawn 
 
 Emit: `[Batch Spawned] implementation | Teammates: <list>`
 
+**Progressive Disclosure:** Implementation agents receive full TDD failing tests + their specific workstream, plus digests of the broader blueprint context. They do NOT receive the entire discovery document.
+
+Before spawning:
+```
+blueprint_digest = summarize(blueprint, max_tokens=500, format=context_digest)
+```
+
 Each implementation agent prompt must include:
-- TechLead execution plan (their specific workstream)
-- Architecture decisions
-- Failing test files from TDD Specialist
-- Relevant specialist notes (backend-arch, frontend-arch, api-designer, etc.)
+- TechLead execution plan — their specific workstream only (full)
+- Architecture decisions relevant to their layer (full)
+- Failing test files from TDD Specialist (full — they implement against these)
+- Relevant specialist notes for their domain only (full)
+- Blueprint context (digest — not the full discovery document)
 - Detected project commands: `{{test_command}}`, `{{build_command}}` (from Step 0)
 - Lint/static-analysis profile: `{{lint_profile}}`
 - Chosen architecture style: `{{architecture_style}}`
-- Design principles guardrails
+- Design principles guardrails (full)
 - Project commands: `{{project_commands}}` — use these exact commands, never infer
 - Instruction: "Implement until the failing tests pass. Follow TDD. When done, return a summary of files changed and test results. Do NOT chain to other agents."
 
@@ -368,6 +426,14 @@ Wait for all implementation teammates to complete.
 
 ### Step 5 — Reviewer Teammate
 
+**Progressive Disclosure:** Reviewer receives full implementation diff (must see all code) + architecture digest (structural context only). Does NOT receive full blueprint, PM/BA/PO outputs, or specialist notes.
+
+Before spawning:
+```
+architecture_digest = summarize(architecture_and_design_principles, max_tokens=500, format=context_digest)
+test_plan_digest    = summarize(test_plan, max_tokens=500, format=context_digest)
+```
+
 Spawn Reviewer with implementation output:
 
 ```
@@ -378,11 +444,11 @@ Agent(
   prompt = """
 ## Code Review
 
-### Files Changed
+### Files Changed (full)
 {{implementation_batch_output}}
 
-### Architecture and Design Guardrails
-{{architecture_and_design_principles}}
+### Architecture and Design Guardrails (digest)
+{{architecture_digest}}
 
 ### Architecture Style
 {{architecture_style}}
@@ -393,8 +459,8 @@ Agent(
 ### Project Commands
 {{project_commands}}
 
-### Test Plan
-{{test_plan}}
+### Test Plan (digest)
+{{test_plan_digest}}
 
 ---
 You are the Reviewer. Review for correctness, simplicity, maintainability,
@@ -426,6 +492,13 @@ Options:
 
 ### Step 6 — QA Teammate
 
+**Progressive Disclosure:** QA receives full acceptance criteria + full test plan (must validate against these) + implementation digest (summary of what changed, not the full diff). QA runs commands, not reads code.
+
+Before spawning:
+```
+implementation_digest = summarize(approved_implementation, max_tokens=500, format=context_digest)
+```
+
 Spawn QA after reviewer approval:
 
 ```
@@ -436,13 +509,13 @@ Agent(
   prompt = """
 ## QA Validation
 
-### Implementation Output
-{{approved_implementation}}
+### Implementation Summary (digest — run tests, don't review code)
+{{implementation_digest}}
 
-### Acceptance Criteria
+### Acceptance Criteria (full)
 {{acceptance_criteria}}
 
-### Test Plan
+### Test Plan (full)
 {{test_plan}}
 
 ### Test Command
@@ -633,16 +706,26 @@ For each agent that fails:
    - Consult `fallback_matrix.implement.<agent-name>`
    - If a fallback exists, emit `[Fallback Invoked] <agent-name> -> <fallback-subagent> | Reason: quality bench recovery`
    - Spawn the fallback once before surfacing a gate
-4. If the fallback also fails, or no fallback exists: emit `[Gate] Quality Bench Failure | <agent-name> failed twice` and surface to the user:
+4. If the fallback also fails, or no fallback exists: add to the consolidated failure list.
+
+**Consolidated Gate (batch failures):** After all quality bench agents have been attempted (including retries and fallbacks), if multiple agents remain in a failed state, present a single consolidated gate instead of individual prompts:
 
 ```
-Quality Bench agent <agent-name> failed to complete (attempt 1 and 2).
+[Gate] Batch Failure — Quality Bench | N of M agents failed
+
+Failed agents:
+1. <agent-1> — <failure reason>
+2. <agent-2> — <failure reason>
+3. <agent-3> — <failure reason>
 
 Options:
-- [R] Retry once more
-- [S] Skip this reviewer and continue (accept the risk)
+- [R] Retry all N failed agents
+- [1,3] Retry specific agents by number
+- [S] Skip all failed agents and continue (log risk for each)
 - [X] Abort the run
 ```
+
+If only one agent failed, use the standard single-agent gate format.
 
 Block Step 8 until the user resolves every failed agent.
 
@@ -707,7 +790,18 @@ Return the updated implementation with all blocking issues resolved.
 
 ### Step 8 — Docs Writer Teammate
 
-Spawn Docs Writer with the complete delivery package:
+**Progressive Disclosure:** Docs Writer receives full implementation output (must document what changed) + full acceptance criteria + digests of QA, conformance, and quality bench (summary findings only, not full review details).
+
+Before spawning:
+```
+architecture_digest    = summarize(architecture, max_tokens=500, format=context_digest)
+qa_digest              = summarize(qa_output, max_tokens=500, format=context_digest)
+conformance_digest     = summarize(conformance_output, max_tokens=500, format=context_digest)
+quality_bench_digest   = summarize(quality_bench_output, max_tokens=500, format=context_digest)
+test_plan_digest       = summarize(test_plan, max_tokens=500, format=context_digest)
+```
+
+Spawn Docs Writer:
 
 ```
 Agent(
@@ -717,26 +811,26 @@ Agent(
   prompt = """
 ## Documentation Update
 
-### Implementation Output
+### Implementation Output (full)
 {{approved_implementation}}
 
-### Architecture Decisions
-{{architecture}}
+### Architecture Decisions (digest)
+{{architecture_digest}}
 
-### Acceptance Criteria
+### Acceptance Criteria (full)
 {{acceptance_criteria}}
 
-### Test Plan
-{{test_plan}}
+### Test Plan (digest)
+{{test_plan_digest}}
 
-### QA Validation Output
-{{qa_output}}
+### QA Validation (digest)
+{{qa_digest}}
 
-### TechLead Conformance Audit
-{{conformance_output}}
+### TechLead Conformance Audit (digest)
+{{conformance_digest}}
 
-### Quality Review Findings
-{{quality_bench_output}}
+### Quality Review Findings (digest)
+{{quality_bench_digest}}
 
 ---
 You are the Docs Writer. Update technical docs, migration notes, operator guidance,
@@ -811,6 +905,15 @@ If coverage tool is not available or delta >= 0: proceed silently.
 
 ### Step 10 — PM UAT Gate
 
+**Progressive Disclosure:** PM UAT receives full acceptance criteria (must validate against these) + digests of QA results, conformance, and quality bench findings. PM validates evidence, not code.
+
+Before spawning:
+```
+qa_digest            = summarize(qa_output, max_tokens=500, format=context_digest)
+conformance_digest   = summarize(conformance_output, max_tokens=500, format=context_digest)
+quality_bench_digest = summarize(quality_bench_output, max_tokens=500, format=context_digest)
+```
+
 Spawn PM for UAT validation:
 
 ```
@@ -821,17 +924,17 @@ Agent(
   prompt = """
 ## UAT Validation
 
-### Original Acceptance Criteria
+### Original Acceptance Criteria (full)
 {{acceptance_criteria}}
 
-### Implementation Evidence
-{{qa_output}}
+### QA Evidence (digest)
+{{qa_digest}}
 
-### TechLead Conformance Audit
-{{conformance_output}}
+### TechLead Conformance Audit (digest)
+{{conformance_digest}}
 
-### Quality Reviews
-{{quality_bench_output}}
+### Quality Reviews (digest)
+{{quality_bench_digest}}
 
 ---
 You are the PM performing UAT. Validate that each acceptance criterion has concrete
@@ -888,6 +991,16 @@ After UAT gate resolves, write the structured execution log.
 mkdir -p ai-docs/.squad-log
 ```
 
+**Retro counter increment:**
+After writing the SEP log, increment the retrospective counter:
+```bash
+COUNTER_FILE="ai-docs/.squad-log/.retro-counter"
+CURRENT=$(cat "$COUNTER_FILE" 2>/dev/null || echo "0")
+echo "$((CURRENT + 1))" > "$COUNTER_FILE"
+```
+If the counter reaches the threshold defined in `entropy_management.factory_retrospective_auto_trigger.trigger_after_runs`, emit:
+`[Entropy Check] {{count}} runs since last retrospective — recommend running /factory-retrospective`
+
 Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md`:
 
 ```markdown
@@ -925,6 +1038,22 @@ teammate_reliability:
 load_test_run: true | false | skipped
 teammates: [tdd-specialist, backend-dev?, frontend-dev?, reviewer, qa, techlead-audit, security-rev?, code-quality, docs-writer, jira-confluence, pm-uat]
 uat_result: APPROVED | REJECTED
+tokens_input: {{total_input_tokens_across_all_teammates}}
+tokens_output: {{total_output_tokens_across_all_teammates}}
+estimated_cost_usd: {{estimated_total_cost}}
+total_duration_ms: {{wall_clock_duration_from_preflight_to_sep_log_write}}
+doom_loops_detected: {{count_or_0}}
+auto_advanced_gates: {{list_of_auto_advanced_gate_names_or_empty}}
+teammate_token_breakdown:
+  tdd-specialist: {tokens_in: N, tokens_out: N, duration_ms: N}
+  backend-dev: {tokens_in: N, tokens_out: N, duration_ms: N}
+  frontend-dev: {tokens_in: N, tokens_out: N, duration_ms: N}
+  reviewer: {tokens_in: N, tokens_out: N, duration_ms: N}
+  qa: {tokens_in: N, tokens_out: N, duration_ms: N}
+  techlead-audit: {tokens_in: N, tokens_out: N, duration_ms: N}
+  quality-bench: {tokens_in: N, tokens_out: N, duration_ms: N}
+  docs-writer: {tokens_in: N, tokens_out: N, duration_ms: N}
+  pm-uat: {tokens_in: N, tokens_out: N, duration_ms: N}
 ---
 
 ## Output Digest

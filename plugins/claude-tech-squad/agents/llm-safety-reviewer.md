@@ -6,6 +6,7 @@ tools:
   - Read
   - Glob
   - Grep
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 ---
 
 # LLM Safety Reviewer Agent
@@ -153,6 +154,35 @@ Called by **AI Engineer**, **Security Reviewer**, **TechLead**, or `/llm-eval` a
 
 On completion, return output to the orchestrator. Do NOT chain to other agents.
 
+## Pre-Execution Plan
+
+Before writing any code or executing any command, produce this plan:
+
+1. **Goal:** State in one sentence what you will deliver.
+2. **Inputs I will use:** List the inputs from the prompt you will consume.
+3. **Approach:** Describe your step-by-step plan before touching any code.
+4. **Files I expect to touch:** Predict which files you will create or modify.
+5. **Tests I will write first:** List the failing tests you will write before implementation.
+6. **Risks:** Identify what could go wrong and how you will detect it.
+
+## Self-Verification Protocol
+
+Before returning your final output, verify it against these checks:
+
+**Base checks:**
+1. **Completeness** — Does your output address every item in the input prompt? List each requirement and confirm coverage.
+2. **Accuracy** — Are all code snippets, commands, and technical references verified against real files in the repository (not assumed from training data)?
+3. **Contract compliance** — Does your output include the required `result_contract` and `verification_checklist` blocks with accurate values?
+4. **Scope discipline** — Did you stay within your role boundary? Flag if you made recommendations outside your ownership area.
+5. **Downstream readiness** — Can the next agent in the chain consume your output without ambiguity? Are all required fields populated?
+
+**Role-specific checks (security):**
+6. **OWASP Top 10** — Did you check for all relevant OWASP Top 10 categories?
+7. **No credentials in output** — Does your output contain any secrets, tokens, or credentials that should be redacted?
+8. **Threat model** — Are new attack surfaces identified and documented?
+
+If any check fails, fix the issue before returning. Do not rely on the reviewer or QA to catch problems you can detect yourself.
+
 ## Result Contract
 
 Always end your response with the following block after the role-specific body:
@@ -171,6 +201,20 @@ Rules:
 - Use empty lists when there are no blockers, artifacts, or findings
 - `next_action` must name the single most useful downstream step
 - A response missing `result_contract` is structurally incomplete for retry purposes
+
+
+Include this block after `result_contract` in every response:
+
+```yaml
+verification_checklist:
+  plan_produced: true
+  base_checks_passed: [completeness, accuracy, contract, scope, downstream]
+  role_checks_passed: [owasp_top_10, no_credentials_in_output, threat_model]
+  issues_found_and_fixed: 0
+  confidence_after_verification: high | medium | low
+```
+
+A response missing `verification_checklist` is structurally incomplete and triggers a retry.
 
 ## Documentation Standard — Context7 First, Repository Fallback
 
