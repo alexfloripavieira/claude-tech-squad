@@ -216,7 +216,36 @@ Save a checkpoint after each of the following:
 Resume rule: resume from the highest completed checkpoint unless inputs materially changed.
 ```
 
-### 9. SEP log instruction
+### 9. Developer Feedback Gate (end of every run)
+
+Before writing the SEP log, every skill must ask the dev for a quick satisfaction signal. This is a **non-blocking** prompt — the dev can skip it. The response is recorded in the SEP log for `/factory-retrospective` to analyze.
+
+```
+Run complete. Quick feedback (optional — press Enter to skip):
+
+How useful was this run?
+[1] Not useful — I'll redo this manually
+[2] Partially useful — some good output, some wasted
+[3] Useful — saved me real time
+[4] Very useful — I couldn't have done this alone
+[S] Skip
+
+One-line comment (optional): ___
+```
+
+Record in the SEP log as:
+```yaml
+developer_feedback:
+  score: 1-4 | skipped
+  comment: "..." | null
+```
+
+**Rules:**
+- Never block the run on feedback — if the dev doesn't respond in 10 seconds, record `skipped`
+- The feedback is for `/factory-retrospective` analysis only — it does not change the pipeline behavior
+- Over time, the retrospective can correlate: "runs with 2+ retries get lower satisfaction scores" → actionable improvement
+
+### 10. SEP log instruction
 
 The skill must instruct the orchestrator to write a Squad Execution Protocol log to `ai-docs/.squad-log/` before the run ends.
 
@@ -228,6 +257,7 @@ Minimum fields required in the SEP log:
 - `fallbacks_invoked` (array, empty if none)
 - `final_status`
 - `timestamp`
+- `developer_feedback` (score + comment, or `skipped`)
 
 ### 10. Live Status Protocol (for orchestrator skills)
 

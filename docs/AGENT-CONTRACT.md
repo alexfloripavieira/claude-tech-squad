@@ -269,6 +269,46 @@ Example from the split between `docs-writer` and `tech-writer`:
 
 ---
 
+## Agent Overlap Map — Why Similar Agents Exist
+
+Some agents appear to overlap. This is by design — they are **stack variants** of the same role, not duplicates. The skill routing table selects one variant per run based on the detected stack.
+
+### Stack variants (same role, different stack expertise)
+
+| Generic agent | Stack variant | When the variant is used |
+|---|---|---|
+| `pm` | `django-pm` | Django projects — PM with Django/DRF domain knowledge |
+| `techlead` | `tech-lead` | Django projects — TechLead with Django-specific patterns |
+| `backend-dev` | `django-backend`, `python-developer` | Django → django-backend; Python (no Django) → python-developer |
+| `frontend-dev` | `django-frontend`, `react-developer`, `vue-developer`, `typescript-developer`, `javascript-developer` | One is selected based on detected frontend stack |
+| `reviewer` | `code-reviewer` | Django → code-reviewer (Django-specific review checks) |
+| `qa` | `qa-tester` | Web stacks → qa-tester (Playwright-based E2E) |
+
+**Rule:** Only ONE variant per role is spawned per run. The routing table in `/implement` Step 0.5 resolves this at preflight. A run never has both `backend-dev` and `django-backend` active simultaneously.
+
+### Adjacent but distinct roles (different responsibilities)
+
+| Agent A | Agent B | A does | B does | Boundary |
+|---|---|---|---|---|
+| `security-reviewer` | `security-engineer` | Reviews code for vulnerabilities | Implements security features (OAuth, WAF) | Review vs implementation |
+| `architect` | `solutions-architect` | Solution design for a specific feature | Cross-cutting architecture across multiple systems | Feature vs system scope |
+| `reviewer` | `code-quality` | PR-level review (correctness, TDD) | Strategic quality baseline (lint config, tech debt trends) | Tactical vs strategic |
+| `docs-writer` | `tech-writer` | Internal dev docs | External user-facing docs | Audience |
+| `observability-engineer` | `monitoring-specialist` | System-level (logs, traces, metrics) | Dashboard/APM configuration | Infrastructure vs tooling |
+| `test-planner` | `tdd-specialist` | Maps AC to test types | Defines red-green-refactor cycles | Planning vs execution |
+
+### Actual agent count
+
+| Category | Count | Notes |
+|---|---|---|
+| Unique roles (generic) | ~45 | Core roles without stack specialization |
+| Stack variants | ~15 | Django (4), React (1), Vue (1), TS (1), JS (1), Python (1), Shell (1), plus generic QA/reviewer variants |
+| LLM/AI specialists | ~9 | Distinct roles (ai-engineer, rag, prompt, eval, safety, cost, ml, agent-architect, conversational) |
+| Specialist reviewers | ~5 | Each covers a distinct domain (security, privacy, compliance, accessibility, performance) |
+| **Total** | **74** | All have distinct prompts; ~15 are stack-variant selections |
+
+---
+
 ## What makes an agent invalid
 
 | Problem | Effect |

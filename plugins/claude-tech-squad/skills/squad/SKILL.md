@@ -252,6 +252,32 @@ Checkpoint behavior:
 - On resume, skip already-completed phase boundaries unless scope, code, or release assumptions changed materially
 - Record `checkpoint_cursor`, `completed_checkpoints`, `resume_from`, `fallback_invocations`, and `teammate_reliability` in the SEP log
 
+### Escape Hatch — Skip Forward
+
+At any gate during `/squad`, the user can jump forward to a later phase. This prevents wasting tokens on phases the user doesn't need.
+
+**At every gate, include this option in addition to the normal choices:**
+
+```
+[J] Jump forward — skip remaining discovery and go to /implement
+    (provide your own context or blueprint path)
+```
+
+**Supported jumps:**
+
+| Current phase | Jump to | What the user provides | What is skipped |
+|---|---|---|---|
+| Discovery (any gate) | Implementation | Blueprint or context summary | Remaining discovery agents |
+| Implementation (review/QA gate) | Docs + UAT | Confirmation that code is ready | Remaining review/QA cycles |
+| Implementation (any gate) | Release | Confirmation that implementation is done | Remaining implementation gates |
+
+**Rules:**
+- Emit `[Escape Hatch] jumping from {{current_phase}} to {{target_phase}} | Reason: user requested`
+- Log the skip in the SEP log as `escape_hatch_used: true` with `skipped_phases: [list]`
+- The skipped phases are **not** recoverable — if the user wants to go back, they must start a new run
+- The health check after the jump must flag: `[Health Warning] phases skipped via escape hatch — downstream quality may be degraded`
+- Token savings are immediate — skipped agents are never spawned
+
 ### Step 1 — Repository Recon
 
 Read the following files to understand the project:
