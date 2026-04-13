@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.43.4] - 2026-04-13 — Automated maintenance release
+
+### Fixed
+
+- Dashboard black screen when no skill is running
 ## [5.43.3] - 2026-04-13 — Automated maintenance release
 
 ### Fixed
