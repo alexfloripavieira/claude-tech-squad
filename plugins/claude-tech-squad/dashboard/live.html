@@ -132,6 +132,13 @@ function costPercent(used, max) {
 
 function render(data) {
   if (!data || !data.skill) {
+    document.getElementById('content').innerHTML = '<div class="no-data">' +
+      '<p>Waiting for live status data...</p>' +
+      '<p style="margin-top:12px"><strong>Dashboard is connected</strong> — polling every 2 seconds.</p>' +
+      '<p style="margin-top:12px">Run a skill in Claude Code to start streaming:</p>' +
+      '<p style="margin-top:8px"><code>/discovery</code> &nbsp; <code>/implement</code> &nbsp; <code>/squad</code></p>' +
+      '<p style="margin-top:16px; font-size:0.8em; color:var(--green)">Status file: reading OK</p>' +
+      '</div>';
     return;
   }
 
