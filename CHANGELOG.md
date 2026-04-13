@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.44.3] - 2026-04-13 — Automated maintenance release
+
+### Fixed
+
+- 3 bugs from golden run testing on real project
 ## [5.44.2] - 2026-04-13 — Automated maintenance release
 
 ### Fixed
