@@ -100,17 +100,6 @@ Do not forward full upstream agent output to every downstream agent. Instead, pr
 This command expects a Discovery & Blueprint Document (from `/discovery` or `/squad`).
 If not available, ask the user to run `/discovery` first or paste the blueprint.
 
-## Live Status Protocol
-
-After every trace line emission, write the current run state to `ai-docs/.live-status.json` (as defined in `observability.live_dashboard` in `runtime-policy.yaml`). This enables the live dashboard (`dashboard/live.html`) to show real-time teammate status.
-
-**Update triggers:** `[Preflight Passed]`, `[Team Created]`, `[Teammate Spawned]`, `[Teammate Done]`, `[Teammate Retry]`, `[Fallback Invoked]`, `[Checkpoint Saved]`, `[Gate]`, `[Batch Spawned]`, `[Doom Loop Detected]`, `[Auto-Advanced]`, `[Cost Warning]`, `[SEP Log Written]`.
-
-For each update:
-1. Build the JSON object with: skill, run_id, phase, started_at, checkpoint_cursor, checkpoints, completed_checkpoints, tokens_used, tokens_max, current_gate, teammates array (name, status, started_at, duration_ms, tokens, output_summary), events array (time, line).
-2. Write atomically: write to `.live-status.json.tmp`, then rename to `.live-status.json`.
-3. On `[SEP Log Written]`, set phase to `"completed"`.
-
 ## Teammate Failure Protocol
 
 A teammate has **failed silently** if it returns an empty response, an error, or output that does not match the expected format for its role, including the required `result_contract` block.
@@ -158,7 +147,6 @@ After every `[Teammate Done]`, run the health check defined in `inline_health_ch
 4. If any signal triggered:
    - **warning signals** (retry_detected, fallback_used, token_budget_pressure): prepend context to the next teammate's prompt so it can avoid the same problem.
    - **critical signals** (doom_loop_short_circuit, low_confidence_chain, blocking_findings_accumulating): emit `[Health Warning] <description>` and surface to user if action is needed.
-5. Update `.live-status.json` with the health check result.
 
 **Context enrichment example** (prepended to next teammate's prompt):
 

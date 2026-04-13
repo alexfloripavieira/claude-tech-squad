@@ -122,7 +122,6 @@ inline_health_check:
       action: "emit [Health Warning] accumulating blockers — <N> BLOCKING findings across <M> teammates. Recommend pausing to resolve before spawning more teammates."
       severity: critical
   trace_line: "[Health Check] <teammate> | signals: <list_of_triggered_signals_or_ok>"
-  live_dashboard_update: true
 
 entropy_management:
   factory_retrospective_auto_trigger:
@@ -517,41 +516,3 @@ observability:
       - "[Health Check]"
       - "[Health Warning]"
       - "[SEP Log Written]"
-  live_dashboard:
-    enabled: true
-    status_file: ai-docs/.live-status.json
-    poll_interval_ms: 2000
-    description: >
-      The orchestrator writes a JSON status file after every trace event.
-      The live dashboard HTML polls this file and renders teammate status,
-      token budget, checkpoints, and event timeline in real time.
-    update_on:
-      - "[Preflight Start]"
-      - "[Preflight Passed]"
-      - "[Team Created]"
-      - "[Teammate Spawned]"
-      - "[Teammate Done]"
-      - "[Teammate Retry]"
-      - "[Fallback Invoked]"
-      - "[Checkpoint Saved]"
-      - "[Gate]"
-      - "[Batch Spawned]"
-      - "[Cost Warning]"
-      - "[Doom Loop Detected]"
-      - "[Auto-Advanced]"
-      - "[Health Check]"
-      - "[Health Warning]"
-      - "[SEP Log Written]"
-    schema:
-      skill: string
-      run_id: string
-      phase: string
-      started_at: ISO8601
-      checkpoint_cursor: string
-      checkpoints: array
-      completed_checkpoints: array
-      tokens_used: number
-      tokens_max: number
-      current_gate: string_or_null
-      teammates: array_of_objects
-      events: array_of_objects
