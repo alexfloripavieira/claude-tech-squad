@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.44.1] - 2026-04-13 — Automated maintenance release
+
+### Fixed
+
+- Dashboard hook must never block agent execution
 ## [5.44.0] - 2026-04-13 — Automated feature release
 
 ### Added
