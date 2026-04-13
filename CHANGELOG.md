@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.45.1] - 2026-04-13 — Automated maintenance release
+
+### Fixed
+
+- Apply factory-retrospective improvements from 2026-04-13 run
 ## [5.45.0] - 2026-04-13 — Automated feature release
 
 ### Added
