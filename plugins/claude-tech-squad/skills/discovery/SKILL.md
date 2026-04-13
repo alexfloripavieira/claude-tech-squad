@@ -277,6 +277,36 @@ Call `TeamCreate` (fetch schema via ToolSearch if needed):
 
 Emit: `[Team Created] discovery`
 
+### Step 2b — Scope Confirmation Gate (Gate 0)
+
+If the ticket or user request involves **multiple API versions, multiple features, or ambiguous scope**, present a scope confirmation gate BEFORE spawning PM:
+
+**Trigger conditions** (check any):
+- Ticket title contains "v1" AND "v2" (or multiple version references)
+- User request mentions "and also", "plus", or lists 3+ distinct features
+- Ticket has subtasks spanning different modules or APIs
+
+If triggered:
+
+```
+[Gate] Scope Confirmation
+
+The task appears to involve multiple scopes:
+- {{scope_a}} (e.g., v1 API)
+- {{scope_b}} (e.g., v2 API)
+
+Which scope should this discovery cover?
+[1] {{scope_a}} only
+[2] {{scope_b}} only
+[A] Both (larger discovery)
+```
+
+Store the confirmed scope as `{{confirmed_scope}}` and pass it to PM as context.
+
+If no ambiguity is detected, skip this gate silently — do not ask unnecessary questions.
+
+Emit (if triggered): `[Gate] Scope Confirmation | Waiting for user input`
+
 ### Step 3 — PM Teammate (Gate 1)
 
 Spawn PM as a teammate:
@@ -822,11 +852,13 @@ Emit: `[ADRs Generated] N decisions recorded in ai-docs/{{feature_slug}}/adr/`
 
 After blueprint confirmation, write the structured execution log.
 
+**CRITICAL FORMAT REQUIREMENT:** The SEP log MUST use YAML frontmatter between `---` delimiters as shown below. Do NOT write narrative markdown or prose. The `/dashboard` and `/factory-retrospective` skills parse these fields programmatically — a non-YAML log is invisible to them.
+
 ```bash
 mkdir -p ai-docs/.squad-log
 ```
 
-Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-discovery-{{run_id}}.md`:
+Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-discovery-{{run_id}}.md` using the **exact** structure below (YAML frontmatter + output digest):
 
 ```markdown
 ---
@@ -917,6 +949,20 @@ If the user answers **N**:
 - The `factory-retrospective` will detect this as an orphaned discovery
 
 Emit: `[Gate] implement-bridge | Waiting for user input`
+
+### Step 16 — Team Cleanup (mandatory epilogue)
+
+After the bridge gate resolves (regardless of user choice), clean up the team to prevent ghost members from blocking future TeamCreate calls:
+
+```
+TeamDelete(name="discovery")
+```
+
+Emit: `[Team Deleted] discovery | cleanup complete`
+
+If TeamDelete fails (team does not exist or already deleted), ignore the error silently — do not block the run.
+
+**Why this is mandatory:** Team members persist across session restarts. If not cleaned up, the next skill that calls TeamCreate will fail with "Already leading team". This was discovered in golden run testing (APPS-519 ghost team blocked factory-retrospective TeamCreate).
 
 ---
 

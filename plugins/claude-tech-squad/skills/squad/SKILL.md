@@ -622,6 +622,19 @@ auto_advanced_gates: {{list_of_auto_advanced_gate_names_or_empty}}
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
+### Team Cleanup (mandatory epilogue)
+
+After writing the SEP log, clean up all teams created during this run:
+
+```
+TeamDelete(name="discovery")
+TeamDelete(name="implement")
+```
+
+Emit: `[Team Deleted] squad | cleanup complete`
+
+If TeamDelete fails, ignore silently.
+
 ---
 
 ## Final Output

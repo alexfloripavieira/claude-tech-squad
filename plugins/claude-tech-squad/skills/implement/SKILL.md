@@ -1097,6 +1097,18 @@ teammate_token_breakdown:
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
+### Step 12 — Team Cleanup (mandatory epilogue)
+
+After writing the SEP log, clean up the team:
+
+```
+TeamDelete(name="implement")
+```
+
+Emit: `[Team Deleted] implement | cleanup complete`
+
+If TeamDelete fails, ignore silently.
+
 ---
 
 ## Output: Implementation Report
