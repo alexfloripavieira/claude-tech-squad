@@ -218,7 +218,27 @@ Save a checkpoint after each of the following:
 Resume rule: resume from the highest completed checkpoint unless inputs materially changed.
 ```
 
-### 9. Developer Feedback Gate (end of every run)
+### 9. Run Cost Summary (end of every run)
+
+After the last gate resolves and before asking for developer feedback, every skill must emit a one-line cost summary. This is **mandatory** and **not skippable** — the dev sees the cost of every run.
+
+```
+[Run Summary] /{{skill}} | teammates: {{N}} | tokens: {{input}}K in / {{output}}K out | est. cost: ~${{usd}} | duration: {{time}}
+```
+
+Example:
+```
+[Run Summary] /implement | teammates: 12 | tokens: 1,450K in / 210K out | est. cost: ~$12.40 | duration: 32m
+```
+
+**Rules:**
+- Token counts are summed across all teammates (or the inline run if no teammates)
+- Cost estimate uses: input tokens × $15/M + output tokens × $75/M (Opus pricing) — adjust if the model is different
+- Duration is wall clock from `[Preflight Start]` to `[SEP Log Written]`
+- For zero-agent skills (cost-estimate, dashboard), still emit the summary with the orchestrator's own token usage
+- Write the same values to the SEP log fields: `tokens_input`, `tokens_output`, `estimated_cost_usd`, `total_duration_ms`
+
+### 10. Developer Feedback Gate (end of every run)
 
 Before writing the SEP log, every skill must ask the dev for a quick satisfaction signal. This is a **non-blocking** prompt — the dev can skip it. The response is recorded in the SEP log for `/factory-retrospective` to analyze.
 
@@ -247,7 +267,7 @@ developer_feedback:
 - The feedback is for `/factory-retrospective` analysis only — it does not change the pipeline behavior
 - Over time, the retrospective can correlate: "runs with 2+ retries get lower satisfaction scores" → actionable improvement
 
-### 10. SEP log instruction
+### 11. SEP log instruction
 
 The skill must instruct the orchestrator to write a Squad Execution Protocol log to `ai-docs/.squad-log/` before the run ends.
 

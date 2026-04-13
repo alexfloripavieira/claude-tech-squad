@@ -1012,6 +1012,16 @@ Options:
 
 Implementation is complete when user approves UAT or chooses [S].
 
+### Step 10b — Run Cost Summary
+
+Before writing the SEP log, emit the cost summary:
+
+```
+[Run Summary] /implement | teammates: {{N}} | tokens: {{total_input}}K in / {{total_output}}K out | est. cost: ~${{usd}} | duration: {{elapsed}}
+```
+
+Sum tokens across all teammates. Estimate cost at input × $15/M + output × $75/M. Duration from `[Preflight Start]` to now.
+
 ### Step 11 — Write Execution Log (SEP Contrato 1)
 
 After UAT gate resolves, write the structured execution log.
