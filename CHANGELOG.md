@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.45.0] - 2026-04-13 — Automated feature release
+
+### Added
+
+- Mandatory Run Cost Summary at end of every skill
 ## [5.44.3] - 2026-04-13 — Automated maintenance release
 
 ### Fixed
