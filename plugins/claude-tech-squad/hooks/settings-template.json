@@ -10,17 +10,6 @@
           }
         ]
       }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Agent",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash plugins/claude-tech-squad/hooks/dashboard-updater.sh"
-          }
-        ]
-      }
     ]
   }
 }
