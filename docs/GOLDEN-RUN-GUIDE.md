@@ -70,14 +70,25 @@ The `pre-tool-guard.sh` hook blocks destructive operations mechanically (DROP TA
 
 The dashboard auto-updates every 2 seconds during execution, showing teammate status, token budget, and event timeline.
 
-```bash
-# Find your plugin path
-PLUGIN_PATH=$(find ~/.claude/plugins/cache -path "*/claude-tech-squad/*/dashboard/live.html" 2>/dev/null | head -1)
+**Important:** The dashboard needs a local HTTP server to read the status file (browsers block direct `file://` access for security). Run from your project directory:
 
+```bash
+# Option A: Use the launcher script (recommended)
+# Find the installed plugin path and run the script:
+bash $(find ~/.claude/plugins/cache -path "*/claude-tech-squad/*/scripts/open-dashboard.sh" 2>/dev/null | head -1)
+
+# Option B: Manual server (if Option A doesn't work)
+mkdir -p ai-docs
+echo '{"skill":null,"phase":"waiting","teammates":[],"events":[]}' > ai-docs/.live-status.json
+# Copy the dashboard HTML to ai-docs/
+cp $(find ~/.claude/plugins/cache -path "*/claude-tech-squad/*/dashboard/live.html" 2>/dev/null | head -1) ai-docs/dashboard.html
+# Fix the status path in the copied file
+sed -i "s|../../../ai-docs/.live-status.json|.live-status.json|g" ai-docs/dashboard.html
+# Start the server
+python3 -m http.server 3742 --bind 127.0.0.1 -d ai-docs &
 # Open in browser
-open "$PLUGIN_PATH"          # macOS
-xdg-open "$PLUGIN_PATH"     # Linux
-start "$PLUGIN_PATH"         # Windows
+xdg-open http://localhost:3742/dashboard.html   # Linux
+open http://localhost:3742/dashboard.html        # macOS
 ```
 
 Leave the dashboard open in a browser tab. It will stay on "Waiting for data..." until you run a skill.
