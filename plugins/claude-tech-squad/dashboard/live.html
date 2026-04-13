@@ -88,15 +88,26 @@
 <div id="content">
   <div class="no-data">
     <p>Waiting for live status data...</p>
-    <p style="margin-top:12px">Run a skill in Claude Code to start streaming:</p>
+    <p style="margin-top:12px"><strong>Step 1:</strong> Start the dashboard server from your project directory:</p>
+    <p style="margin-top:8px"><code>cd ~/your-project && python3 -m http.server 3742 --bind 127.0.0.1 -d ai-docs</code></p>
+    <p style="margin-top:4px">Then open: <code>http://localhost:3742/dashboard.html</code></p>
+    <p style="margin-top:12px"><strong>Or use the launcher script:</strong></p>
+    <p style="margin-top:4px"><code>bash scripts/open-dashboard.sh</code></p>
+    <p style="margin-top:12px"><strong>Step 2:</strong> Run a skill in Claude Code:</p>
     <p style="margin-top:8px"><code>/discovery</code> &nbsp; <code>/implement</code> &nbsp; <code>/squad</code></p>
-    <p style="margin-top:16px; font-size:0.8em">Polling <code>ai-docs/.live-status.json</code> every 2 seconds</p>
+    <p style="margin-top:16px; font-size:0.8em">Polling <code>.live-status.json</code> every 2 seconds</p>
   </div>
 </div>
 
 <script>
 const POLL_INTERVAL = 2000;
-const STATUS_PATH = '../../../ai-docs/.live-status.json';
+// Try multiple paths — works both via HTTP server and direct file access
+const STATUS_PATHS = [
+  '.live-status.json',                        // same directory (when served via open-dashboard.sh)
+  '../../../ai-docs/.live-status.json',       // relative from plugin source repo
+  'ai-docs/.live-status.json',                // from project root via server
+];
+let activePath = STATUS_PATHS[0];
 let lastData = null;
 
 function formatDuration(ms) {
@@ -245,21 +256,42 @@ function render(data) {
   document.getElementById('content').innerHTML = html;
 }
 
+async function tryFetch(path) {
+  const resp = await fetch(path + '?t=' + Date.now());
+  if (!resp.ok) throw new Error(resp.status);
+  return resp.json();
+}
+
 async function poll() {
   const dot = document.getElementById('refreshDot');
   const label = document.getElementById('refreshLabel');
   try {
-    const resp = await fetch(STATUS_PATH + '?t=' + Date.now());
-    if (!resp.ok) throw new Error(resp.status);
-    const data = await resp.json();
+    const data = await tryFetch(activePath);
     lastData = data;
     render(data);
     dot.className = 'refresh-dot';
     label.textContent = 'live • ' + new Date().toLocaleTimeString();
   } catch (e) {
-    dot.className = 'refresh-dot disconnected';
-    label.textContent = 'no data • ' + new Date().toLocaleTimeString();
-    if (lastData) render(lastData);
+    // Try other paths on failure
+    let found = false;
+    for (const path of STATUS_PATHS) {
+      if (path === activePath) continue;
+      try {
+        const data = await tryFetch(path);
+        activePath = path; // remember the working path
+        lastData = data;
+        render(data);
+        dot.className = 'refresh-dot';
+        label.textContent = 'live • ' + new Date().toLocaleTimeString();
+        found = true;
+        break;
+      } catch (e2) { /* try next */ }
+    }
+    if (!found) {
+      dot.className = 'refresh-dot disconnected';
+      label.textContent = 'no data • ' + new Date().toLocaleTimeString();
+      if (lastData) render(lastData);
+    }
   }
 }
 
