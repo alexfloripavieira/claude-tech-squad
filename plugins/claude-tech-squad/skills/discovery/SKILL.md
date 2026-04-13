@@ -848,6 +848,16 @@ Write one file per decision to `ai-docs/{{feature_slug}}/adr/ADR-NNN-{{slug}}.md
 
 Emit: `[ADRs Generated] N decisions recorded in ai-docs/{{feature_slug}}/adr/`
 
+### Step 13c — Run Cost Summary
+
+Before writing the SEP log, emit the cost summary:
+
+```
+[Run Summary] /discovery | teammates: {{N}} | tokens: {{total_input}}K in / {{total_output}}K out | est. cost: ~${{usd}} | duration: {{elapsed}}
+```
+
+Sum tokens across all teammates. Estimate cost at input × $15/M + output × $75/M. Duration from `[Preflight Start]` to now.
+
 ### Step 14 — Write Execution Log (SEP Contrato 1)
 
 After blueprint confirmation, write the structured execution log.
