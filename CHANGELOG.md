@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.44.0] - 2026-04-13 — Automated feature release
+
+### Added
+
+- Mechanical dashboard updater — PostToolUse hook for live updates
 ## [5.43.4] - 2026-04-13 — Automated maintenance release
 
 ### Fixed
