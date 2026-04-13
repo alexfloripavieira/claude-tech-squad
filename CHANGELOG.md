@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.44.2] - 2026-04-13 — Automated maintenance release
+
+### Fixed
+
+- Remove HTML dashboard and dashboard-updater hook
 ## [5.44.1] - 2026-04-13 — Automated maintenance release
 
 ### Fixed
