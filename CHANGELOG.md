@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.43.3] - 2026-04-13 — Automated maintenance release
+
+### Fixed
+
+- Dashboard CORS — use local HTTP server instead of file://
 ## [5.43.2] - 2026-04-12 — Automated maintenance release
 
 ### Changed
