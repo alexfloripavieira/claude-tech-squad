@@ -373,11 +373,38 @@ total_duration_ms: {{wall_clock_duration}}
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 Emit: `[Post-Mortem Written] ai-docs/postmortem-{{date}}-{{slug}}.md`
 
+### Step 8b — Generate pending-implement tracker for P1 action items (mandatory)
+
+If `action_items_p1 > 0`, immediately write a pending-implement tracker **without asking the user**:
+
+```
+Write to tasks/pending-implement-postmortem-{{date}}-{{slug}}.md:
+# Pending Implementation: Post-Mortem P1 Actions — {{incident_title}}
+
+**Post-Mortem:** ai-docs/postmortem-{{date}}-{{slug}}.md
+**Incident date:** {{incident_date}}
+**Severity:** {{P1/P2/P3/P4}}
+
+## P1 Action Items (prevents recurrence — implement this sprint)
+
+{{for each P1 action item:}}
+- [ ] {{action}} — owner: {{role}} — due: {{sprint}}
+
+## How to implement
+
+For code changes: /implement pointing to this file as blueprint context
+For infra changes: /squad with this file as context
+For process changes: add to CLAUDE.md directly
+```
+
+Emit: `[P1 Tracker Written] tasks/pending-implement-postmortem-{{date}}-{{slug}}.md — {{N}} P1 items`
+
 ### Step 9 — Report to user
 
 Tell the user:
 - Root cause (1 sentence)
 - Number of action items by priority (P1/P2/P3)
 - Path to the post-mortem document
+- Path to the P1 pending-implement tracker (if created)
 - Suggest: open Jira tickets for P1 action items with `/claude-tech-squad:squad` or manually
 - Suggest: schedule a team review of the post-mortem within 48 hours of incident resolution

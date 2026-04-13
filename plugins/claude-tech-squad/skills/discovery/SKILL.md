@@ -955,7 +955,21 @@ If the user answers **S**:
 
 If the user answers **N**:
 - Leave `implement_triggered: false` in the log
-- Inform: "Para implementar depois: /implement ai-docs/{{feature_slug}}/blueprint.md"
+- Write a pending-implement tracker file so the blueprint is not lost:
+  ```
+  Write to tasks/pending-implement-{{feature_slug}}.md:
+  # Pending Implementation: {{feature_slug}}
+
+  **Blueprint:** ai-docs/{{feature_slug}}/blueprint.md
+  **Discovery run:** {{run_id}}
+  **Date:** {{YYYY-MM-DD}}
+
+  To implement: /implement ai-docs/{{feature_slug}}/blueprint.md
+
+  ## Reason for deferral
+  {{user_reason_or_deferred_by_user}}
+  ```
+- Inform: "Registrado em tasks/pending-implement-{{feature_slug}}.md. Para implementar depois: /implement ai-docs/{{feature_slug}}/blueprint.md"
 - The `factory-retrospective` will detect this as an orphaned discovery
 
 Emit: `[Gate] implement-bridge | Waiting for user input`

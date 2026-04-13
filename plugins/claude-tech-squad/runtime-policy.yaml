@@ -247,8 +247,8 @@ fallback_matrix:
       - claude-tech-squad:data-architect
       - claude-tech-squad:backend-architect
     security-reviewer:
-      - claude-tech-squad:security-engineer
       - claude-tech-squad:compliance-reviewer
+      - claude-tech-squad:security-engineer
     privacy-reviewer:
       - claude-tech-squad:compliance-reviewer
       - claude-tech-squad:security-reviewer
@@ -304,6 +304,7 @@ fallback_matrix:
       - claude-tech-squad:architect
       - claude-tech-squad:backend-architect
     security-rev:
+      - claude-tech-squad:compliance-reviewer
       - claude-tech-squad:security-engineer
     privacy-rev:
       - claude-tech-squad:compliance-reviewer

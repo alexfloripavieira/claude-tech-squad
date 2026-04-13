@@ -66,6 +66,40 @@ Options:
 5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
 6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
 
+### Step 0 — Remediation Gate (blocking)
+
+Before running any analysis, check for open CRITICAL findings from prior audits:
+
+```bash
+# Find most recent remediation file
+LAST=$(ls ai-docs/security-remediation-*.md 2>/dev/null | sort -r | head -1)
+if [ -n "$LAST" ]; then
+  OPEN_CRITICAL=$(grep -c "^- \[ \].*CRITICAL\|^- \[ \].*\[CRIT\|^- \[ \].*critical" "$LAST" 2>/dev/null || echo 0)
+  echo "Last remediation file: $LAST | Open critical items: $OPEN_CRITICAL"
+fi
+```
+
+**If open CRITICAL items exist in the most recent remediation file:**
+
+```
+[Gate] Remediation Blocker | {{N}} open CRITICAL finding(s) from {{last_remediation_file}} require resolution before a new audit.
+
+Options:
+- [C] Continue anyway — add reason (e.g. "accepted risk", "in progress")
+- [S] Skip audit — open /bug-fix or /squad for the open critical items first
+- [R] Show me the open critical items
+```
+
+If the user selects [R], print the open `- [ ]` CRITICAL lines from the remediation file.
+
+If the user selects [C], log the reason in the SEP log under `remediation_gate_override_reason` and continue.
+
+If the user selects [S], stop. Do not run the audit.
+
+If no prior remediation file exists, skip this gate silently and continue.
+
+Emit: `[Remediation Gate] passed | open_critical={{N}} | action={{continued|overridden|skipped}}`
+
 ### Step 1 — Detect project stack
 
 Read the following files to determine the project stack:

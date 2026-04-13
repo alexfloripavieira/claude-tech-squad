@@ -284,6 +284,23 @@ For each approved recommendation:
 - If it adds a new process rule: append to `CLAUDE.md` or the appropriate config file
 - If it documents a lesson: append to `tasks/lessons.md`
 
+**Mandatory — HIGH priority tracking (runs regardless of user approval selection):**
+
+After applying approved changes, write all `priority: high` recommendations that were NOT approved to `tasks/todo.md` as pending checkboxes so they are not silently dropped:
+
+```
+Append to tasks/todo.md (create if missing):
+
+## Factory Retrospective — {{YYYY-MM-DD}} — Pending HIGH Items
+
+{{for each HIGH recommendation not approved in this session:}}
+- [ ] [RETRO-{{N}}] {{recommendation_title}} — {{one_line_description}}
+```
+
+Emit: `[TODO Written] tasks/todo.md — {{N}} HIGH items added`
+
+This ensures the next retrospective can detect unresolved HIGH items from prior runs via the orphaned-recommendation check in Step 2.
+
 Document all changes applied in the retrospective report.
 
 ### Step 7b — Sync changes to installed plugin cache
