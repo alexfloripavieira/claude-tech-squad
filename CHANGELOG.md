@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.47.0] - 2026-04-14 — Automated feature release
+
+### Added
+
+- Add previous retrospective follow-up and implementation metrics to factory-retrospective skill feat: implement prerequisite gate for llm-eval skill to ensure evaluation infrastructure exists feat: enhance security-audit skill with cross-run deduplication for recurring findings
 ## [5.46.0] - 2026-04-14 — Automated feature release
 
 ### Added
