@@ -217,6 +217,28 @@ BLOCKING findings must be surfaced first. No merge or release is permitted until
 
 Emit: `[LLM Safety Review] llm-safety-reviewer invoked — findings will be marked BLOCKING where applicable`
 
+### Step 3c — Cross-run deduplication (mandatory)
+
+Before producing the final report, compare current findings against the most recent remediation file to identify recurring issues:
+
+```bash
+LAST_REMEDIATION=$(ls ai-docs/security-remediation-*.md 2>/dev/null | sort -r | head -1)
+echo "Last remediation: ${LAST_REMEDIATION:-NONE}"
+```
+
+If a prior remediation file exists:
+1. Read its contents and extract all finding IDs and descriptions (both `- [ ]` and `- [x]` items)
+2. For each current finding, check if a substantially similar finding exists in the prior remediation file (match by: file path, finding type, or CVE ID)
+3. If a match is found:
+   - Count how many prior remediation files contain the same finding (scan all `ai-docs/security-remediation-*.md`)
+   - Tag the finding as `RECURRING (N audits)` in the report
+   - If the finding is `- [x]` (resolved) in the prior file but reappears: tag as `REGRESSED`
+4. New findings (no prior match) are tagged as `NEW`
+
+This deduplication prevents the same finding from appearing as novel in every audit and highlights findings that have been ignored across multiple runs.
+
+Emit: `[Dedup] {{new_count}} new | {{recurring_count}} recurring | {{regressed_count}} regressed`
+
 ### Step 4 — Produce structured report
 
 Generate a markdown report with the following structure:
@@ -226,13 +248,14 @@ Generate a markdown report with the following structure:
 
 ## Summary
 - BLOCKING (LLM): N findings
-- Critical: N findings
-- High: N findings
+- Critical: N findings (N new, N recurring, N regressed)
+- High: N findings (N new, N recurring, N regressed)
 - Medium: N findings
 - Low: N findings
 - Tools executed: [list]
 - Tools not available: [list]
 - LLM detected: yes/no — {{detected_llm_libraries or "none"}}
+- Dedup: N new | N recurring | N regressed
 
 ## BLOCKING Findings — LLM Threat Surface (merge prohibited until resolved)
 > Populated only when `llm_detected=true`. Empty section = no LLM code detected.
@@ -241,6 +264,7 @@ Generate a markdown report with the following structure:
 - **File:** path/to/file:line
 - **Tool:** llm-safety-reviewer
 - **Category:** prompt-injection / pii-leak / model-pinning / tool-authorization / jailbreak
+- **Status:** NEW | RECURRING (N audits) | REGRESSED
 - **Description:** ...
 - **Remediation:** ...
 
@@ -248,6 +272,7 @@ Generate a markdown report with the following structure:
 ### [Finding title]
 - **File:** path/to/file:line
 - **Tool:** bandit / pip-audit / npm audit / secrets scan
+- **Status:** NEW | RECURRING (N audits) | REGRESSED
 - **Description:** ...
 - **Remediation:** ...
 
@@ -315,12 +340,17 @@ status: completed
 final_status: completed
 execution_mode: inline
 architecture_style: n/a
-checkpoints: [preflight-passed, scan-complete, findings-reviewed]
+checkpoints: [preflight-passed, remediation-gate-checked, scan-complete, dedup-complete, findings-reviewed]
 fallbacks_invoked: []
+remediation_gate: passed | overridden | skipped
+findings_blocking: N
 findings_critical: N
 findings_high: N
 findings_medium: N
 findings_low: N
+dedup_new: N
+dedup_recurring: N
+dedup_regressed: N
 remediation_artifact: ai-docs/security-remediation-YYYY-MM-DD.md
 tokens_input: {{total_input_tokens}}
 tokens_output: {{total_output_tokens}}

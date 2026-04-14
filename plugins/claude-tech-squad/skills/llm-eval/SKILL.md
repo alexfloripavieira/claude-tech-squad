@@ -61,6 +61,51 @@ Options:
 5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
 6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
 
+### Step 0 — Prerequisite Gate (blocking)
+
+Before running any evaluation, verify that minimum eval infrastructure exists:
+
+```bash
+# Check for eval datasets (golden datasets, test sets)
+EVAL_FILES=$(find . -name "*.jsonl" -o -name "*eval*.json" -o -name "*golden*.json" -o -name "*testset*" 2>/dev/null | grep -v node_modules | grep -v .venv | head -5)
+EVAL_CONFIG=$(ls promptfooconfig.yaml .promptfoo/ ragas.yaml deepeval.yaml 2>/dev/null | head -1)
+BASELINE=$(ls ai-docs/llm-eval-baseline.json 2>/dev/null)
+
+echo "Eval datasets: ${EVAL_FILES:-NONE}"
+echo "Eval config: ${EVAL_CONFIG:-NONE}"
+echo "Baseline: ${BASELINE:-NONE}"
+```
+
+**If NO eval datasets AND NO eval config exist:**
+
+```
+[Gate] Prerequisite Blocker | No eval dataset or eval framework config found.
+
+Running /llm-eval without eval data produces SETUP_REQUIRED with zero useful output.
+
+Options:
+- [B] Build prerequisites first — spawn llm-eval-specialist to create a golden dataset scaffold and eval config
+- [C] Continue anyway — will produce SETUP_REQUIRED status and recommendations only
+- [X] Abort — set up eval infrastructure manually first
+```
+
+If the user selects [B]:
+- Skip to Step 2 (spawn llm-eval-specialist) with an explicit mandate to produce a golden dataset scaffold
+- After the specialist returns, re-check prerequisites before continuing to Step 3
+- Log `prerequisite_gate: scaffolded` in the SEP log
+
+If the user selects [C]:
+- Continue normally — the run will produce SETUP_REQUIRED and specialist recommendations
+- Log `prerequisite_gate: overridden` in the SEP log
+
+If the user selects [X]:
+- Stop. Do not run the eval.
+- Log `prerequisite_gate: aborted` in the SEP log
+
+If eval datasets OR eval config exist, skip this gate silently.
+
+Emit: `[Prerequisite Gate] {{passed|scaffolded|overridden|aborted}} | datasets={{count}} | config={{present|absent}}`
+
 ### Step 1 — Discover AI features and eval assets
 
 Scan the project for:
@@ -322,8 +367,9 @@ status: completed
 final_status: completed
 execution_mode: inline
 architecture_style: n/a
-checkpoints: [preflight-passed, eval-run, ragas-gate-checked]
+checkpoints: [prerequisite-gate-checked, preflight-passed, eval-run, ragas-gate-checked]
 fallbacks_invoked: []
+prerequisite_gate: passed | scaffolded | overridden | aborted
 eval_status: PASS | FAIL | REGRESSION | WARNING | SETUP_REQUIRED
 framework: {{framework_or_none}}
 examples_evaluated: N

@@ -55,6 +55,25 @@ grep -l "^- \[ \]" ai-docs/security-remediation-*.md ai-docs/dependency-remediat
 ```
 Count `- [ ]` vs `- [x]` lines per file to compute remediation completion rate.
 
+**Previous retrospective follow-up:**
+Find the most recent factory-retrospective report:
+```bash
+LAST_RETRO=$(ls ai-docs/factory-retrospective-*.md 2>/dev/null | sort -r | head -1)
+echo "Last retro: ${LAST_RETRO:-NONE}"
+```
+
+If a prior retrospective exists:
+1. Read it and extract all numbered recommendations (R1, R2, etc.) with their priority
+2. For each recommendation, check if it was implemented:
+   - If it references a CLAUDE.md rule: grep for the rule text in CLAUDE.md
+   - If it references a skill file change: check the skill file for the described change
+   - If it references a process change: check tasks/todo.md or tasks/lessons.md
+3. Compute `retro_implementation_rate = implemented / total_recommendations`
+4. List unimplemented HIGH priority recommendations as `RETRO_DEBT`
+5. Include this as a dedicated metric in Step 5 report: "Previous Retro Implementation Rate"
+
+This ensures the retrospective process itself is accountable — recommendations that are repeatedly ignored across retros are escalated in priority.
+
 **Fallback source — inferred artifacts (when no SEP logs exist):**
 
 ```bash
@@ -229,6 +248,17 @@ Present to the user:
 | Hotfixes without postmortem | N | 0 | 🟢 / 🔴 |
 | Runs without SEP log | N | 0 | 🟢 / 🔴 |
 | Aborted without reason | N | 0 | 🟢 / 🔴 |
+| Prev retro implementation rate | N% | > 70% | 🟢 / 🔴 |
+| Retro debt (unimpl HIGH items) | N | 0 | 🟢 / 🔴 |
+| Remediation completion rate | N% | > 50% | 🟢 / 🔴 |
+
+## Previous Retro Follow-up
+| # | Recommendation | Priority | Status |
+|---|---------------|----------|--------|
+| R1 | [title] | high/med/low | implemented / not implemented / partially |
+
+**Implementation rate:** N/M (X%)
+**Retro debt (unimplemented HIGH):** [list or "none"]
 
 ## Patterns Identified
 
