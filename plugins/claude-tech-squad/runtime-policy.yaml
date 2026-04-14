@@ -121,6 +121,10 @@ inline_health_check:
       condition: "total BLOCKING findings across completed teammates > 3"
       action: "emit [Health Warning] accumulating blockers — <N> BLOCKING findings across <M> teammates. Recommend pausing to resolve before spawning more teammates."
       severity: critical
+    - name: reviewer_silent_failure
+      condition: "reviewer teammate returned empty output, no result_contract, or stopped mid-turn after a Read tool call without producing Findings or verdict"
+      action: "emit [Health Warning] reviewer silent failure detected — do NOT re-spawn reviewer with the same prompt. Append to fallback prompt: 'The primary reviewer stopped mid-turn. You MUST produce ## Findings, ## Pre-existing Findings, a verdict line, result_contract, and verification_checklist before ending. Do not call Read and stop. Complete the full review in one turn.'"
+      severity: critical
   trace_line: "[Health Check] <teammate> | signals: <list_of_triggered_signals_or_ok>"
 
 entropy_management:
@@ -498,6 +502,15 @@ observability:
       - tokens_output
       - duration_ms
       - reliability_state
+    fallback_diagnostics:
+      fields:
+        - agent_duration_ms
+        - last_tool_before_failure
+      description: >
+        When a teammate fails and a fallback is invoked, record these additional fields
+        in the SEP log under the failed teammate's entry. agent_duration_ms captures how
+        long the primary ran before failing. last_tool_before_failure identifies the tool
+        call that preceded the silent exit (e.g. Read for mid-turn reviewer stops).
     trace_lines:
       - "[Preflight Start]"
       - "[Preflight Warning]"

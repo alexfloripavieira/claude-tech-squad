@@ -43,6 +43,17 @@ What do you want to build, fix, review, or audit?
 Describe in one sentence — I'll recommend the right skill and estimate the cost.
 ```
 
+**Deduplication guard:** Before proceeding, compute a `task_hash` by normalizing the task description (lowercase, strip punctuation, collapse whitespace) and comparing it against the `task_summary` field of the last 10 SEP logs in `ai-docs/.squad-log/` that have `skill: cost-estimate`. If a matching hash is found in a log written within the last 10 minutes, emit:
+
+```
+[Duplicate Detected] cost-estimate already ran for this task {{N}} minute(s) ago.
+Cached result: {{recommended_skill}} — {{complexity_tier}} — {{estimated_cost}}
+Run again? [Y/N]
+```
+
+If [N], return the cached recommendation without writing a new SEP log.
+If [Y] or no match found, continue to Step 2.
+
 ### Step 2 — Classify complexity
 
 Analyze the task description against these signal patterns:
@@ -118,6 +129,7 @@ architecture_style: n/a
 checkpoints: [task-analyzed, recommendation-produced]
 fallbacks_invoked: []
 task_summary: {{one_line}}
+task_hash: {{normalized_hash}}
 complexity_tier: {{tier}}
 recommended_skill: {{skill}}
 estimated_cost_usd: {{range}}

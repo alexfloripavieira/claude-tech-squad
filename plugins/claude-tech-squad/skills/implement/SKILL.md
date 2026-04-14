@@ -495,8 +495,14 @@ Agent(
 You are the Reviewer. Review for correctness, simplicity, maintainability,
 TDD compliance, lint compliance, and documentation compliance.
 Flag bugs, regressions, missing tests, and unnecessary complexity.
-Return: APPROVED or CHANGES REQUESTED with specific items.
-Do NOT chain to other agents.
+
+**Output contract — you MUST produce ALL of the following before ending your turn:**
+1. A section `## Findings` with in-scope issues (empty if none)
+2. A section `## Pre-existing Findings` for issues found in code NOT changed by this PR — classify each as Major or Minor
+3. A final verdict line: either `APPROVED` or `CHANGES REQUESTED: <item list>`
+4. A `result_contract` block and a `verification_checklist` block
+
+Do NOT stop mid-turn after reading files. Do NOT chain to other agents.
 """
 )
 ```
@@ -518,6 +524,34 @@ Options:
 - [S] Skip review and continue with explicit risk
 - [X] Abort the run
 ```
+
+### Step 5b — Pre-existing Findings Triage Gate
+
+After reviewer returns APPROVED (or after fallback reviewer completes), check whether the reviewer's `## Pre-existing Findings` section contains any **Major** items.
+
+**If there are Major pre-existing findings:**
+
+Emit: `[Gate] Pre-existing Findings | N Major issue(s) found in code outside this PR`
+
+Surface to user:
+
+```
+The reviewer flagged N Major pre-existing issue(s) not caused by this PR:
+
+{{list_of_major_pre_existing_findings}}
+
+Options:
+- [T] Ticket them — create Jira subtasks for each and continue
+- [S] Skip — acknowledge and continue without ticketing
+- [X] Abort — fix them before proceeding
+```
+
+If [T]: spawn `jira-confluence` (subagent_type: `jira-confluence-specialist`) to create one Jira subtask per Major finding. Record `pre_existing_findings_triaged: true` in SEP log.
+If [S]: record `pre_existing_findings_triaged: skipped` in SEP log.
+
+**If there are only Minor pre-existing findings or none:** auto-advance (no gate). Record `pre_existing_findings_triaged: none` in SEP log.
+
+Emit: `[Checkpoint Saved] implement | cursor=reviewer-approved`
 
 ### Step 6 — QA Teammate
 
@@ -1075,6 +1109,8 @@ teammate_reliability:
   jira-confluence: primary
   pm-uat: primary
 load_test_run: true | false | skipped
+pre_existing_findings_triaged: none | true | skipped
+deferred_items_ticketed: true | false | none
 teammates: [tdd-specialist, backend-dev?, frontend-dev?, reviewer, qa, techlead-audit, security-rev?, code-quality, docs-writer, jira-confluence, pm-uat]
 uat_result: APPROVED | REJECTED
 tokens_input: {{total_input_tokens_across_all_teammates}}

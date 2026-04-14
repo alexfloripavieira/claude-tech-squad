@@ -428,6 +428,23 @@ Emit: `[Phase Start] implementation`
 2. Spawn implementation batch in parallel (only relevant workstreams):
    - `backend-dev` (subagent_type: `{{backend_agent}}`), `frontend-dev` (subagent_type: `{{frontend_agent}}`), `platform-dev` (subagent_type: `platform-dev`)
 3. Spawn `reviewer` (subagent_type: `{{reviewer_agent}}`) — review implementation
+
+   Reviewer prompt must include the implementation diff and this output contract:
+
+   ```
+   You are the Reviewer. Review for correctness, simplicity, maintainability,
+   TDD compliance, lint compliance, and documentation compliance.
+   Flag bugs, regressions, missing tests, and unnecessary complexity.
+
+   **Output contract — you MUST produce ALL of the following before ending your turn:**
+   1. A section `## Findings` with in-scope issues (empty if none)
+   2. A section `## Pre-existing Findings` for issues found in code NOT changed by this PR — classify each as Major or Minor
+   3. A final verdict line: either `APPROVED` or `CHANGES REQUESTED: <item list>`
+   4. A `result_contract` block and a `verification_checklist` block
+
+   Do NOT stop mid-turn after reading files. Do NOT chain to other agents.
+   ```
+
    - If CHANGES REQUESTED: retry relevant impl agent(s) — **max 3 review cycles**
    - If the 3rd review still fails: consult `fallback_matrix.squad.reviewer` and run one fallback review pass before surfacing the gate
    - After fallback failure: emit `[Gate] Review Limit Reached` and surface to user: `[A]ccept as-is / [S]kip review / [X]Abort`
