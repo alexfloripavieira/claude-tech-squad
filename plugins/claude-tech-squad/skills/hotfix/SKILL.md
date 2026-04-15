@@ -62,6 +62,18 @@ Options:
 5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
 6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
 
+### Step 0 — Preflight
+
+**python3 plugins/claude-tech-squad/bin/squad-cli accelerated preflight** (preferred):
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli preflight --skill hotfix --policy plugins/claude-tech-squad/runtime-policy.yaml --project-root .
+```
+
+Returns JSON with `stack`, `routing` (resolves `{{impl_agent}}`, `{{reviewer_agent}}`), `lint_profile`, and `token_budget_max`. Use these values for agent routing in Steps 4-8.
+
+If `squad-cli` is not available: detect stack and resolve routing manually from signal files.
+
 ### Step 1 — Hotfix Intake Gate
 
 **Ticket Intake:** If the user provides a ticket ID (e.g., `/hotfix PROJ-789`), read the ticket first:
@@ -343,6 +355,14 @@ Ready to proceed? [Y] when each step is done.
 This is informational — the actual deploy is always a manual step. Do NOT attempt to deploy automatically.
 
 ### Step 12 — Write SEP log (SEP Contrato 1)
+
+**python3 plugins/claude-tech-squad/bin/squad-cli sep-log** (preferred — if run was initialized with `python3 plugins/claude-tech-squad/bin/squad-cli init`):
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli sep-log --run-id {{run_id}} --output-dir ai-docs/.squad-log --state-dir .squad-state
+```
+
+If `squad-cli` is not available or `init` was not called, write the SEP log manually:
 
 ```bash
 mkdir -p ai-docs/.squad-log

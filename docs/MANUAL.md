@@ -9,17 +9,18 @@
 
 1. [What the plugin is](#1-what-the-plugin-is)
 2. [Installation and activation](#2-installation-and-activation)
-3. [Teammate Mode — tmux pane per agent](#3-teammate-mode--tmux-pane-per-agent)
-4. [Available skills and when to use each](#4-available-skills-and-when-to-use-each)
-5. [Full flow for each skill](#5-full-flow-for-each-skill)
-6. [The 74 agents — roles and specialties](#6-the-74-agents--roles-and-specialties)
-7. [Pipeline architecture](#7-pipeline-architecture)
-8. [User gates](#8-user-gates)
-9. [Execution visibility](#9-execution-visibility)
-10. [Usage rules](#10-usage-rules)
-11. [Quick reference](#11-quick-reference)
-12. [Absolute Prohibitions — safety guardrails](#12-absolute-prohibitions--safety-guardrails)
-13. [Squad Execution Protocol (SEP) — artifacts and traceability](#13-squad-execution-protocol-sep--artifacts-and-traceability)
+3. [squad-cli — embedded orchestrator](#3-squad-cli--embedded-orchestrator)
+4. [Teammate Mode — tmux pane per agent](#4-teammate-mode--tmux-pane-per-agent)
+5. [Available skills and when to use each](#5-available-skills-and-when-to-use-each)
+6. [Full flow for each skill](#6-full-flow-for-each-skill)
+7. [The 74 agents — roles and specialties](#7-the-74-agents--roles-and-specialties)
+8. [Pipeline architecture](#8-pipeline-architecture)
+9. [User gates](#9-user-gates)
+10. [Execution visibility](#10-execution-visibility)
+11. [Usage rules](#11-usage-rules)
+12. [Quick reference](#12-quick-reference)
+13. [Absolute Prohibitions — safety guardrails](#13-absolute-prohibitions--safety-guardrails)
+14. [Squad Execution Protocol (SEP) — artifacts and traceability](#14-squad-execution-protocol-sep--artifacts-and-traceability)
 
 ---
 
@@ -69,7 +70,55 @@ To receive updates automatically, add to `~/.claude/settings.json`:
 
 ---
 
-## 3. Teammate Mode — tmux pane per agent
+## 3. squad-cli — embedded orchestrator
+
+The plugin includes `squad-cli` at `plugins/claude-tech-squad/bin/squad-cli` — a Python tool that handles deterministic orchestration tasks outside the LLM.
+
+### What it does
+
+Skills like `/squad`, `/implement`, `/discovery`, `/hotfix`, and `/bug-fix` call squad-cli automatically during execution to:
+
+| Task | Without squad-cli (LLM) | With squad-cli (Python) |
+|---|---|---|
+| Detect project stack and route to correct agents | LLM reads files, parses JSON, resolves table (~5K tokens) | Instant JSON response (<100ms) |
+| Health check after each teammate (6 signals) | LLM evaluates rules from prompt (~2K tokens each) | Deterministic if/else in Python |
+| Detect doom loops in retries | LLM compares outputs "in its head" (~2K tokens) | `difflib` comparison with 3 rules |
+| Track token budget and cost | LLM estimates (~2K tokens) | Real arithmetic from collected data |
+| Save/restore checkpoints for resume | LLM re-interprets Markdown (~3K tokens) | JSON state machine |
+| Generate SEP execution logs | LLM writes 60+ line YAML template (~5K tokens) | Template from real data |
+
+### Estimated savings
+
+- `/squad` (~20 teammates): ~$3-4.50 overhead reduced to ~$0.40-0.75 (80-85% reduction)
+- `/bug-fix` (~5 teammates): ~$1-1.50 reduced to ~$0.20-0.30
+
+### Supported stacks
+
+Django, React, Vue, TypeScript, JavaScript, Python, Go, Rust, Java, Ruby, PHP, .NET, Elixir. Detects signal files up to 3 subdirectory levels deep (monorepo support).
+
+### Requirements
+
+- Python 3.10+
+- PyYAML and Click (auto-installed on first run)
+
+### Dry-run mode
+
+Preview the full execution plan without spending any tokens:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli dry-run \
+  --skill squad \
+  --policy plugins/claude-tech-squad/runtime-policy.yaml \
+  --project-root .
+```
+
+### Without Python 3
+
+All skills work without squad-cli. The LLM falls back to executing the same logic from prompt instructions. No features are lost — only cost efficiency.
+
+---
+
+## 4. Teammate Mode — tmux pane per agent
 
 By default, agents run as inline subagents in the same Claude session. With teammate mode active, each specialist opens in its own tmux pane — one independent Claude Code instance per agent.
 
@@ -109,7 +158,7 @@ Without tmux mode, the same workflows run correctly as inline subagents — same
 
 ---
 
-## 4. Available skills and when to use each
+## 5. Available skills and when to use each
 
 | Skill | When to use |
 |---|---|
@@ -189,7 +238,7 @@ about to run terraform apply → /iac-review (before apply)
 
 ---
 
-## 5. Full flow for each skill
+## 6. Full flow for each skill
 
 ### /discovery
 
@@ -747,7 +796,7 @@ See [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md) for usage examples for ea
 
 ---
 
-## 6. The 74 agents — roles and specialties
+## 7. The 74 agents — roles and specialties
 
 ### Discovery & Planning
 
@@ -904,7 +953,7 @@ Python / TypeScript / JavaScript / Shell stack:
 
 ---
 
-## 7. Pipeline architecture
+## 8. Pipeline architecture
 
 ### Full diagram
 
@@ -969,7 +1018,7 @@ Python / TypeScript / JavaScript / Shell stack:
 
 ---
 
-## 8. User gates
+## 9. User gates
 
 | Gate | Skill | Who presents | What to decide |
 |---|---|---|---|
@@ -993,7 +1042,7 @@ The **Gate Bridge** is the only gate that does not block the pipeline — answer
 
 ---
 
-## 9. Execution visibility
+## 10. Execution visibility
 
 ### Inline mode (default)
 
@@ -1037,7 +1086,7 @@ These lines appear at the end of each skill that implements the Squad Execution 
 
 ---
 
-## 10. Usage rules
+## 11. Usage rules
 
 ### Which skill to use
 
@@ -1071,7 +1120,7 @@ Agents work autonomously between gates. There is no need to interact between one
 
 ---
 
-## 11. Quick reference
+## 12. Quick reference
 
 ### Skills by context
 
@@ -1146,7 +1195,7 @@ Dev community:     developer-relations → tech-writer → techlead
 
 ---
 
-## 12. Absolute Prohibitions — safety guardrails
+## 13. Absolute Prohibitions — safety guardrails
 
 All agents with execution authority carry an **Absolute Prohibitions** block in the pre-prompt. These restrictions cannot be overridden by incident urgency, deadline pressure, or verbal request.
 
@@ -1282,7 +1331,7 @@ The contract is read by all agents regardless of whether they operate as an inli
 
 ---
 
-## 13. Squad Execution Protocol (SEP) — artifacts and traceability
+## 14. Squad Execution Protocol (SEP) — artifacts and traceability
 
 The SEP is a set of six stack-agnostic contracts covering observability, continuity, and remediation across all squad workflows. It works both when Claude operates as an **inline subagent** and as a **teammate in a separate tmux pane** — the log persists on disk regardless of execution mode.
 

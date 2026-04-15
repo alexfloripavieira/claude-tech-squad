@@ -66,6 +66,18 @@ Options:
 5. **Parallel batch teammates**: [S] on one agent does not block the batch, but the missing output must be logged as a risk in the final report.
 6. **Do NOT advance to the next step** until every teammate in the current step has returned valid output, been explicitly skipped, or the run has been aborted.
 
+### Step 0 — Preflight
+
+**python3 plugins/claude-tech-squad/bin/squad-cli accelerated preflight** (preferred):
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli preflight --skill bug-fix --policy plugins/claude-tech-squad/runtime-policy.yaml --project-root .
+```
+
+Returns JSON with `stack`, `routing` (resolves `{{backend_agent}}`, `{{frontend_agent}}`, `{{reviewer_agent}}`, `{{qa_agent}}`), `lint_profile`, and `test_command`. Use these values for agent routing and test execution.
+
+If `squad-cli` is not available: detect stack and resolve routing manually.
+
 ### Step 1 — Bug Intake Gate
 
 **Ticket Intake:** If the user provides a ticket ID (e.g., `/bug-fix PROJ-456`), read the ticket first:
@@ -317,6 +329,14 @@ Output: APPROVED or CHANGES REQUESTED. If CHANGES REQUESTED, only list blocker-c
 If reviewer outputs CHANGES REQUESTED: apply ONLY the blocker findings. Do NOT apply LOW/NIT suggestions. Repeat Step 5–6 once more with the blocker fixes only.
 
 ### Step 6b — Write SEP log (SEP Contrato 1)
+
+**python3 plugins/claude-tech-squad/bin/squad-cli sep-log** (preferred — if run was initialized with `python3 plugins/claude-tech-squad/bin/squad-cli init`):
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli sep-log --run-id {{run_id}} --output-dir ai-docs/.squad-log --state-dir .squad-state
+```
+
+If `squad-cli` is not available or `init` was not called, write manually:
 
 ```bash
 mkdir -p ai-docs/.squad-log

@@ -26,6 +26,56 @@ For visible execution interpretation, see [EXECUTION-TRACE.md](../../docs/EXECUT
 - `/claude-tech-squad:discovery`
 - `/claude-tech-squad:implement`
 - `/claude-tech-squad:squad`
+- `/claude-tech-squad:hotfix`
+- `/claude-tech-squad:bug-fix`
+- `/claude-tech-squad:pr-review`
+- `/claude-tech-squad:refactor`
+- `/claude-tech-squad:security-audit`
+- `/claude-tech-squad:llm-eval`
+- `/claude-tech-squad:prompt-review`
+- `/claude-tech-squad:release`
+- `/claude-tech-squad:migration-plan`
+- `/claude-tech-squad:dependency-check`
+- `/claude-tech-squad:cloud-debug`
+- `/claude-tech-squad:iac-review`
+- `/claude-tech-squad:multi-service`
+- `/claude-tech-squad:onboarding`
+- `/claude-tech-squad:incident-postmortem`
+- `/claude-tech-squad:pre-commit-lint`
+- `/claude-tech-squad:factory-retrospective`
+- `/claude-tech-squad:cost-estimate`
+- `/claude-tech-squad:from-ticket`
+- `/claude-tech-squad:dashboard`
+
+## squad-cli — Embedded Orchestrator
+
+The plugin includes `squad-cli`, a Python tool that handles deterministic orchestration logic outside the LLM. This reduces token overhead by 80-85% on mechanical tasks like stack detection, health checks, cost tracking, and SEP log generation.
+
+**No installation required** — squad-cli ships inside the plugin at `bin/squad-cli`. It auto-installs its two dependencies (PyYAML, Click) on first run if missing. Requires Python 3.10+.
+
+### What squad-cli does
+
+| Command | What it replaces | Tokens saved |
+|---|---|---|
+| `preflight` | LLM reading YAML, grepping for AI imports, parsing package.json, resolving routing tables | ~5K/run |
+| `health` | LLM evaluating 6 health check signals after each teammate | ~2K/teammate |
+| `doom-check` | LLM comparing diffs to detect retry loops | ~2K/retry |
+| `checkpoint` | LLM reading/writing state from Markdown files | ~3K/resume |
+| `cost` | LLM estimating token counts and costs | ~2K/run |
+| `sep-log` | LLM generating 60+ line YAML frontmatter SEP logs | ~5K/run |
+| `dry-run` | Not possible before — shows execution plan without spending tokens | N/A |
+
+### Supported stacks
+
+squad-cli detects the project stack automatically and routes to the correct specialist agents:
+
+Django, React, Vue, TypeScript, JavaScript, Python, Go, Rust, Java, Ruby, PHP, .NET, Elixir
+
+Detection works in monorepos — scans up to 3 levels of subdirectories for signal files.
+
+### Fallback
+
+Every skill retains full manual fallback instructions. If Python3 is unavailable or squad-cli fails, the LLM executes the same logic from prompt instructions (at higher token cost).
 
 ## Principles
 
@@ -43,8 +93,9 @@ The plugin workflows emit explicit progress lines for phase changes, agent hando
 Expect output such as:
 
 - `[Phase Start] Build`
-- `[Agent Start] Backend Dev | claude-tech-squad:backend-dev | Implement backend slice`
-- `[Agent Done] Backend Dev | Status: completed | Output: endpoints and tests updated`
+- `[Teammate Spawned] Backend Dev | pane: backend-dev`
+- `[Health Check] reviewer | signals: ok`
+- `[Teammate Done] Backend Dev | Status: completed | Output: endpoints and tests updated`
 
 Final outputs also include an `Agent Execution Log`.
 

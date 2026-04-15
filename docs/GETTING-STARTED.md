@@ -31,13 +31,13 @@ Before installing, confirm the following:
 | Requirement | Required for | Note |
 |---|---|---|
 | **Claude Code** (any recent version) | All modes | Plugin system was introduced in Claude Code. No minimum version enforced — use the latest available. |
+| **Python 3.10+** | squad-cli (optional) | Enables the embedded orchestrator for faster preflight, health checks, and SEP log generation. The plugin works without it (falls back to LLM-driven logic at higher token cost). |
 | **tmux** | Teammate mode only | Inline mode (default) works without tmux. Teammate mode requires Claude Code to be started inside a tmux session. |
 | `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` | Teammate mode only | Set in `~/.claude/settings.json`. Not needed for inline mode. |
 | `CLAUDE_CODE_TEAMMATE_MODE=tmux` | Teammate mode only | Set in `~/.claude/settings.json`. Not needed for inline mode. |
-| **Python 3** | Validation scripts only | `scripts/dogfood-report.sh` uses `python3`. Not required to run squad commands. |
 | **bash** | Validation scripts only | All `scripts/` require bash. Not required to run squad commands. |
 
-> **Inline mode is the default and requires only Claude Code.** Teammate mode (separate tmux panes per specialist) adds tmux and two environment variables. Start with inline mode if you are new to the plugin.
+> **Inline mode is the default and requires only Claude Code.** Python 3 is recommended (enables squad-cli for 80-85% token savings on orchestration overhead). Teammate mode adds tmux and two environment variables. Start with inline mode if you are new to the plugin.
 
 **Estimated installation time:** < 5 minutes for inline mode, < 10 minutes including teammate mode setup.
 
@@ -154,6 +154,49 @@ If you run the commands without tmux mode, the workflows still work correctly �
 ### SEP logs in teammate mode
 
 When running in teammate mode, each specialist runs in its own Claude Code instance. The **Squad Execution Protocol (SEP)** ensures observability regardless of mode: every skill writes a structured log to `ai-docs/.squad-log/` before the pane exits. This means `/factory-retrospective` always has a persistent trace of what ran, even when there is no shared conversation history to inspect. See MANUAL.md section 13 for the full SEP reference.
+
+---
+
+## squad-cli — Embedded Orchestrator
+
+The plugin ships with `squad-cli`, a Python tool at `plugins/claude-tech-squad/bin/squad-cli` that handles deterministic tasks (stack detection, health checks, cost tracking, SEP logs) outside the LLM. This saves 80-85% of token overhead on orchestration.
+
+**No setup required.** squad-cli auto-installs its dependencies (PyYAML, Click) on first run. It requires Python 3.10+.
+
+### Preview a run before spending tokens
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli dry-run \
+  --skill squad \
+  --policy plugins/claude-tech-squad/runtime-policy.yaml \
+  --project-root .
+```
+
+This shows the full execution plan: phases, teammates, gates, routing, and budget — in under 2 seconds, zero tokens.
+
+### Supported stacks
+
+squad-cli detects the project stack automatically from signal files (manage.py, package.json, go.mod, Cargo.toml, pom.xml, Gemfile, composer.json, *.csproj, mix.exs, etc.) and resolves the correct specialist agents. Supports monorepos with nested signal files up to 3 levels deep.
+
+| Stack | Signal | Specialist routing |
+|---|---|---|
+| Django | manage.py + django in requirements | django-pm, tech-lead, django-backend, django-frontend, code-reviewer |
+| React | package.json with react | react-developer, qa-tester |
+| Vue | package.json with vue | vue-developer, qa-tester |
+| TypeScript | tsconfig.json | typescript-developer |
+| JavaScript | package.json (no framework) | javascript-developer |
+| Python | pyproject.toml / requirements.txt | python-developer |
+| Go | go.mod | backend-dev |
+| Rust | Cargo.toml | backend-dev |
+| Java | pom.xml / build.gradle | backend-dev |
+| Ruby | Gemfile | backend-dev |
+| PHP | composer.json | backend-dev |
+| .NET | *.csproj / *.sln | backend-dev |
+| Elixir | mix.exs | backend-dev |
+
+### Without Python 3
+
+All skills work without squad-cli. The LLM executes the same logic from prompt instructions at higher token cost. No features are lost — only cost efficiency.
 
 ---
 

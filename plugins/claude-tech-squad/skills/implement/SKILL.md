@@ -137,26 +137,29 @@ Options:
 
 ## Inline Health Check
 
-After every `[Teammate Done]`, run the health check defined in `inline_health_check` from `runtime-policy.yaml`. This costs zero extra tokens — it is orchestrator logic, not an agent call.
+After every `[Teammate Done]`, run the health check (6 signals: retry_detected, fallback_used, doom_loop_short_circuit, token_budget_pressure, low_confidence_chain, blocking_findings_accumulating).
 
-**After each teammate completes:**
+**python3 plugins/claude-tech-squad/bin/squad-cli health** (preferred — deterministic, saves ~2K tokens per teammate):
 
-1. Read the teammate's `result_contract` (status, confidence, findings) and execution metadata (retry_count, fallback_used, doom_loop, tokens consumed).
-2. Evaluate all 6 signals from `inline_health_check.signals`.
-3. Emit: `[Health Check] <name> | signals: <triggered_signals_or_ok>`
-4. If any signal triggered:
-   - **warning signals** (retry_detected, fallback_used, token_budget_pressure): prepend context to the next teammate's prompt so it can avoid the same problem.
-   - **critical signals** (doom_loop_short_circuit, low_confidence_chain, blocking_findings_accumulating): emit `[Health Warning] <description>` and surface to user if action is needed.
-
-**Context enrichment example** (prepended to next teammate's prompt):
-
-```
-## Health Context from Prior Teammates
-- tdd-specialist completed cleanly (0 retries, confidence=high)
-- token budget at 42% — on track
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli health \
+  --run-id {{feature_slug}} --teammate <name> \
+  --tokens-in <N> --tokens-out <N> \
+  --status <completed|failed|blocked> --confidence <high|medium|low> \
+  --retries <N> --findings-blocking <N> --duration-ms <N> \
+  --policy plugins/claude-tech-squad/runtime-policy.yaml \
+  --state-dir .squad-state
 ```
 
-This is especially critical in `/implement` where the pipeline is long (TDD → impl → review → QA → conformance → quality bench → docs → UAT). A problem detected early (e.g., at review) can be communicated to QA before it runs, reducing wasted cycles.
+Returns JSON with `signals_triggered`, `context_enrichment` (text to prepend to next teammate), `budget_percent`, `is_critical`. Use `context_enrichment` directly.
+
+If `squad-cli` is not available: evaluate the 6 signals manually from the teammate's `result_contract`.
+
+- Emit: `[Health Check] <name> | signals: <triggered_signals_or_ok>`
+- **warning signals**: prepend context enrichment to next teammate
+- **critical signals**: emit `[Health Warning]` and surface to user
+
+This is especially critical in `/implement` where the pipeline is long. A problem detected at review can be communicated to QA before it runs, reducing wasted cycles.
 
 ## Agent Result Contract (ARC)
 
@@ -209,130 +212,54 @@ If the runtime policy file is missing or unreadable, stop the run and surface `[
 
 ### Preflight Gate
 
-Before command detection and team creation, validate the run contract and emit explicit preflight lines.
+Emit `[Preflight Start] implement`
 
-Check and store:
-- `execution_mode` — `tmux` if teammate mode is available, otherwise `inline`
-- `resume_key` — blueprint path or provisional slug derived before formal `{{feature_slug}}` extraction
-- `{{architecture_style}}` — from the blueprint or defaulted to `existing-repo-pattern`
-- `{{lint_profile}}` — detected tool list or `none-detected`
-- `docs_lookup_mode` — `context7` when available, otherwise `repo-fallback`
-- `runtime_policy_version` — from `plugins/claude-tech-squad/runtime-policy.yaml`
+**python3 plugins/claude-tech-squad/bin/squad-cli accelerated preflight** (preferred — saves ~5K tokens, detects stack + commands + routing automatically):
 
-Preflight rules:
-- Emit `[Preflight Start] implement`
-- Read `plugins/claude-tech-squad/runtime-policy.yaml`
-- **Ticket Intake** — If the user's input matches a ticket ID pattern (`[A-Z]+-[0-9]+` for Jira, `#[0-9]+` for GitHub Issues, `LIN-[0-9]+` for Linear):
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli preflight --skill implement --policy plugins/claude-tech-squad/runtime-policy.yaml --project-root .
+```
+
+Returns JSON with `stack`, `ai_feature`, `routing` (backend_agent, frontend_agent, reviewer_agent, qa_agent), `lint_profile`, `token_budget_max`, `orphaned_discoveries`, `resume_from`, and `warnings`. The preflight also detects `test_command`, `build_command`, and `lint_command` from signal files (Makefile, package.json, pyproject.toml, go.mod, Cargo.toml, pom.xml, Gemfile, composer.json, *.csproj, etc.).
+
+Then initialize the run state:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli init --run-id {{feature_slug}} --skill implement --policy plugins/claude-tech-squad/runtime-policy.yaml --state-dir .squad-state
+```
+
+If `squad-cli` is not available, fall back to manual preflight: read `runtime-policy.yaml`, detect stack from signal files, resolve routing, detect commands, check orphans, check retro counter.
+
+**Ticket Intake** — If the user's input matches a ticket ID pattern (`[A-Z]+-[0-9]+` for Jira, `#[0-9]+` for GitHub Issues, `LIN-[0-9]+` for Linear):
   1. Read the ticket via the appropriate MCP tool
   2. Extract: title, description, acceptance criteria, priority, subtasks, labels, comments
-  3. Use the extracted content as the task context — if acceptance criteria exist in the ticket, use them as `{{acceptance_criteria}}`
+  3. Use the extracted content as the task context
   4. Emit: `[Ticket Read] {{source}} | {{ticket_id}} | type={{issue_type}} | priority={{priority}}`
   5. If MCP is unavailable, ask the user to paste the ticket content — do not block
-- **Chain validation** — Check `ai-docs/.squad-log/` for a discovery SEP log matching the blueprint's `feature_slug`. If no upstream discovery log exists, emit `[Preflight Warning] no discovery SEP log found for {{feature_slug}} — implementation has no traceable origin`. This does not block the run but is logged as a gap for `/factory-retrospective`.
-- **Orphan detection** — If `entropy_management.orphan_detection.check_at_preflight` is true in the runtime policy, scan for orphaned discoveries older than the configured threshold and emit `[Preflight Warning] {{count}} orphaned discovery(ies) found`
-- **Cost budget initialization** — Read `cost_guardrails.token_budget.implement_max_tokens` from the runtime policy and initialize the token counter for this run
-- If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
-- If `{{architecture_style}}` is missing from the blueprint, emit `[Preflight Warning] architecture_style missing — defaulting to existing-repo-pattern`
-- If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`
-- Inspect the latest `ai-docs/.squad-log/*-implement-*.md` for the same `resume_key` when resuming an interrupted run
-- If a prior partial implementation exists and inputs did not materially change, emit `[Resume From] implement | checkpoint=<highest_completed_checkpoint>`
-- Do not mark preflight as passed until command detection succeeds or the user resolves `[Gate] Commands Unknown`
-- Emit `[Preflight Passed] implement | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version> | stack=<detected_stack>`
+
+**Chain validation** — Check `ai-docs/.squad-log/` for a discovery SEP log matching `{{feature_slug}}`. If missing, emit `[Preflight Warning] no discovery SEP log found — implementation has no traceable origin`.
+
+If detected commands are empty, emit `[Gate] Commands Unknown` and ask the user. Block all agent spawns until confirmed. CLAUDE.md command overrides take priority.
+
+Emit `[Preflight Passed] implement | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version> | stack=<detected_stack>`
+
+Emit: `[Stack Detected] {{detected_stack}} | backend={{backend_agent}} | frontend={{frontend_agent}} | reviewer={{reviewer_agent}} | qa={{qa_agent}}`
 
 ### Checkpoint / Resume Rules
 
-Use `checkpoint_resume.implement` from `runtime-policy.yaml`.
+Checkpoints: `preflight-passed`, `commands-confirmed`, `blueprint-validated`, `tdd-ready`, `implementation-batch-complete`, `reviewer-approved`, `qa-pass`, `conformance-pass`, `quality-bench-cleared`, `docs-complete`, `uat-approved`.
 
-Save a checkpoint whenever one of these milestones is completed:
-- `preflight-passed`
-- `commands-confirmed`
-- `blueprint-validated`
-- `tdd-ready`
-- `implementation-batch-complete`
-- `reviewer-approved`
-- `qa-pass`
-- `conformance-pass`
-- `quality-bench-cleared`
-- `docs-complete`
-- `uat-approved`
+**python3 plugins/claude-tech-squad/bin/squad-cli checkpoint** (preferred):
 
-Checkpoint behavior:
-- Emit `[Checkpoint Saved] implement | cursor=<checkpoint>` whenever a checkpoint is reached
-- On resume, skip already-completed checkpoints unless inputs, acceptance criteria, or code under review changed materially
-- Record `checkpoint_cursor`, `completed_checkpoints`, `resume_from`, `fallback_invocations`, and `teammate_reliability` in the SEP log
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli checkpoint save --run-id {{feature_slug}} --cursor <checkpoint> --state-dir .squad-state
+```
+
+If `squad-cli` is not available: emit `[Checkpoint Saved] implement | cursor=<checkpoint>` and track state manually.
 
 ### Execution Budgets
 
-Values must match `retry_budgets` in `plugins/claude-tech-squad/runtime-policy.yaml`.
-
-- `review_cycles_max = 3`
-- `qa_cycles_max = 2`
-- `conformance_cycles_max = 2`
-- `quality_fix_cycles_max = 2`
-- `uat_cycles_max = 2`
-
-### Step 0 — Stack Command Detection (SEP Stack-Agnostic)
-
-Before any teammate is spawned, detect the project's real commands. Read the following files (whichever exist) and extract the canonical commands:
-
-| Signal file | test command | migrate command | lint command | build command |
-|---|---|---|---|---|
-| `Makefile` with `test:` target | `make test` | detect from targets | `make lint` | `make build` |
-| `package.json` scripts | `npm test` or `npm run test` | n/a | `npm run lint` | `npm run build` |
-| `pyproject.toml` with pytest | `pytest` | n/a | `ruff check .` | n/a |
-| `go.mod` | `go test ./...` | n/a | `golangci-lint run` | `go build ./...` |
-| `Cargo.toml` | `cargo test` | n/a | `cargo clippy --all-targets -- -D warnings` | `cargo build` |
-| `Gemfile` | `bundle exec rspec` | `bundle exec rails db:migrate` | `bundle exec rubocop` | n/a |
-| `composer.json` | `vendor/bin/phpunit` | `php artisan migrate` or `bin/console doctrine:migrations:migrate` | `vendor/bin/phpstan analyse` | n/a |
-| `*.csproj` / `*.sln` | `dotnet test` | `dotnet ef database update` | `dotnet format --verify-no-changes` | `dotnet build` |
-| `pom.xml` | `mvn test` | `mvn flyway:migrate` | `mvn checkstyle:check` | `mvn package` |
-| `build.gradle` | `./gradlew test` | n/a | `./gradlew lint` | `./gradlew build` |
-
-Store as `{{project_commands}}` and `{{lint_profile}}`, and inject them into every implementation agent prompt. No agent should ever infer commands — they always receive the detected commands.
-
-If no signal file is found or test target is absent: do NOT guess. Emit `[Gate] Commands Unknown` and ask the user:
-```
-Could not detect test/build commands. Please provide:
-- Test command: (e.g. make test, pytest, npm test)
-- Build command (if applicable):
-```
-Block all agent spawns until commands are confirmed.
-
-If a `CLAUDE.md` exists, read its commands block and use those values, which override all detected values above.
-
-### Step 0.5 — Stack Specialist Routing
-
-After command detection and before spawning any agent, detect the repository's technology stack and resolve the routing table for specialist agents.
-
-**Detection signals** (check in this order, multiple stacks may apply):
-
-| Signal | Detected stack |
-|---|---|
-| `manage.py` exists AND `django` in `requirements.txt` or `pyproject.toml` | `django` |
-| `package.json` contains `"react"` in dependencies | `react` |
-| `package.json` contains `"vue"` in dependencies | `vue` |
-| `tsconfig.json` exists OR `typescript` in `package.json` devDependencies | `typescript` |
-| `package.json` exists AND no react/vue/typescript detected | `javascript` |
-| `pyproject.toml` or `requirements.txt` exists AND no `manage.py` | `python` |
-| `*.sh` files in root OR `Makefile` with automation targets | `shell` |
-| None of the above | `generic` |
-
-**Routing table** — resolve these variables before Step 1:
-
-| Variable | `django` | `react` | `vue` | `typescript` | `javascript` | `python` | `generic` |
-|---|---|---|---|---|---|---|---|
-| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
-| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
-| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
-| `{{qa_agent}}` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa` | `qa` |
-
-If multiple stacks apply (e.g. Django + React), resolve independently per workstream:
-- Backend workstream → `django-backend`
-- Frontend workstream → `react-developer`
-- Review → `code-reviewer` (Django wins for review when Django is present)
-- QA → `qa-tester` (any web stack triggers Playwright-based QA)
-
-Emit: `[Stack Detected] {{detected_stack}} | backend={{backend_agent}} | frontend={{frontend_agent}} | reviewer={{reviewer_agent}} | qa={{qa_agent}}`
+Values must match `retry_budgets` in `plugins/claude-tech-squad/runtime-policy.yaml`: `review_cycles_max = 3`, `qa_cycles_max = 2`, `conformance_cycles_max = 2`, `quality_fix_cycles_max = 2`, `uat_cycles_max = 2`.
 
 ### Step 1 — Validate Blueprint
 
@@ -1073,101 +1000,31 @@ Options:
 
 Implementation is complete when user approves UAT or chooses [S].
 
-### Step 10b — Run Cost Summary
+### Step 10b — Run Cost Summary and SEP Log
 
-Before writing the SEP log, emit the cost summary:
+**python3 plugins/claude-tech-squad/bin/squad-cli cost + sep-log** (preferred — uses real token counts collected during the run):
 
+```bash
+# Cost summary
+python3 plugins/claude-tech-squad/bin/squad-cli cost --run-id {{feature_slug}} --policy plugins/claude-tech-squad/runtime-policy.yaml --state-dir .squad-state
+
+# Generate SEP log
+python3 plugins/claude-tech-squad/bin/squad-cli sep-log --run-id {{feature_slug}} --output-dir ai-docs/.squad-log --state-dir .squad-state
+```
+
+Emit the cost summary:
 ```
 [Run Summary] /implement | teammates: {{N}} | tokens: {{total_input}}K in / {{total_output}}K out | est. cost: ~${{usd}} | duration: {{elapsed}}
 ```
 
-Sum tokens across all teammates. Estimate cost at input × $15/M + output × $75/M. Duration from `[Preflight Start]` to now.
-
-### Step 11 — Write Execution Log (SEP Contrato 1)
-
-After UAT gate resolves, write the structured execution log.
-
-```bash
-mkdir -p ai-docs/.squad-log
-```
-
 **Retro counter increment:**
-After writing the SEP log, increment the retrospective counter:
 ```bash
 COUNTER_FILE="ai-docs/.squad-log/.retro-counter"
 CURRENT=$(cat "$COUNTER_FILE" 2>/dev/null || echo "0")
 echo "$((CURRENT + 1))" > "$COUNTER_FILE"
 ```
-If the counter reaches the threshold defined in `entropy_management.factory_retrospective_auto_trigger.trigger_after_runs`, emit:
-`[Entropy Check] {{count}} runs since last retrospective — recommend running /factory-retrospective`
 
-Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md`:
-
-```markdown
----
-run_id: {{run_id}}
-parent_run_id: {{discovery_run_id_if_known | null}}
-skill: implement
-timestamp: {{ISO8601}}
-status: completed | failed
-final_status: completed
-execution_mode: inline
-architecture_style: {{architecture_style}}
-checkpoints: [preflight-passed, commands-confirmed, blueprint-validated, tdd-ready, implementation-batch-complete, reviewer-approved, qa-pass, conformance-pass, quality-bench-cleared, docs-complete, uat-approved]
-fallbacks_invoked: []
-runtime_policy_version: {{runtime_policy_version}}
-feature_slug: {{feature_slug}}
-blueprint_source: {{blueprint_path}}
-blueprint_completeness: complete | forced | warning
-checkpoint_cursor: uat-approved
-completed_checkpoints: [preflight-passed, commands-confirmed, blueprint-validated, tdd-ready, implementation-batch-complete, reviewer-approved, qa-pass, conformance-pass, quality-bench-cleared, docs-complete, uat-approved]
-resume_from: {{resume_checkpoint | none}}
-gates_cleared: [tdd, review, qa, conformance, coverage, uat]
-gates_blocked: []
-retry_count: {{total_reviewer_and_qa_retries}}
-fallback_invocations: []
-teammate_reliability:
-  tdd-specialist: primary
-  implementation-batch: primary
-  reviewer: primary
-  qa: primary
-  techlead-audit: primary
-  quality-bench: primary
-  docs-writer: primary
-  jira-confluence: primary
-  pm-uat: primary
-load_test_run: true | false | skipped
-pre_existing_findings_triaged: none | true | skipped
-deferred_items_ticketed: true | false | none
-teammates: [tdd-specialist, backend-dev?, frontend-dev?, reviewer, qa, techlead-audit, security-rev?, code-quality, docs-writer, jira-confluence, pm-uat]
-uat_result: APPROVED | REJECTED
-tokens_input: {{total_input_tokens_across_all_teammates}}
-tokens_output: {{total_output_tokens_across_all_teammates}}
-estimated_cost_usd: {{estimated_total_cost}}
-total_duration_ms: {{wall_clock_duration_from_preflight_to_sep_log_write}}
-doom_loops_detected: {{count_or_0}}
-auto_advanced_gates: {{list_of_auto_advanced_gate_names_or_empty}}
-teammate_token_breakdown:
-  tdd-specialist: {tokens_in: N, tokens_out: N, duration_ms: N}
-  backend-dev: {tokens_in: N, tokens_out: N, duration_ms: N}
-  frontend-dev: {tokens_in: N, tokens_out: N, duration_ms: N}
-  reviewer: {tokens_in: N, tokens_out: N, duration_ms: N}
-  qa: {tokens_in: N, tokens_out: N, duration_ms: N}
-  techlead-audit: {tokens_in: N, tokens_out: N, duration_ms: N}
-  quality-bench: {tokens_in: N, tokens_out: N, duration_ms: N}
-  docs-writer: {tokens_in: N, tokens_out: N, duration_ms: N}
-  pm-uat: {tokens_in: N, tokens_out: N, duration_ms: N}
----
-
-## Output Digest
-{{one_paragraph_summary_of_what_was_implemented}}
-
-## Completion Blocks
-{{aggregated_completion_blocks_from_all_implementation_agents}}
-
-## Findings Gerados
-{{list_of_findings_from_quality_bench_if_any}}
-```
+If `squad-cli` is not available: sum tokens manually, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md` with full YAML frontmatter.
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 

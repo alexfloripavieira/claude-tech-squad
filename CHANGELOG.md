@@ -1,10 +1,35 @@
 # Changelog
 
-## [5.48.0] - 2026-04-15 — Automated feature release
+## [5.48.0] - 2026-04-15 — squad-cli: embedded Python orchestrator
 
 ### Added
 
 - Add blueprint completeness gate to /implement skill
+- **squad-cli v0.1.0** — embedded Python tool that executes deterministic orchestration logic outside the LLM, reducing token overhead by 80-85% per run
+  - `preflight` — stack detection (Django, React, Vue, TS, JS, Python, Go, Rust, Java, Ruby, PHP, .NET, Elixir), routing resolution, orphan detection, retro counter, resume check
+  - `health` — 6 deterministic health check signals after each teammate (retry_detected, fallback_used, doom_loop_short_circuit, token_budget_pressure, low_confidence_chain, blocking_findings_accumulating)
+  - `doom-check` — diff-based doom loop detection using 3 rules (same_error, oscillating_fix, growing_diff)
+  - `checkpoint` — JSON state machine for save/load/resume (replaces LLM re-interpretation of Markdown)
+  - `cost` — real token counting per teammate with budget tracking
+  - `sep-log` — generates SEP log from collected run state (no more LLM-estimated values)
+  - `dry-run` — shows full execution plan (phases, teammates, gates, budget) without spending tokens
+  - `memory` — per-run task memory with automatic compaction
+  - `init` — initializes run state for a new skill execution
+- Automatic subdir scanning (up to 3 levels) for monorepo support — detects manage.py, package.json, go.mod, etc. in nested directories
+- AI feature detection expanded: 25+ patterns across 10 file extensions (py, ts, js, go, rs, java, rb, php, ex, cs)
+- Lint profile detection for 25+ tools (ruff, eslint, prettier, biome, golangci-lint, clippy, rubocop, phpstan, credo, etc.)
+
+### Changed
+
+- `/squad`, `/implement`, `/discovery`, `/hotfix`, `/bug-fix` SKILL.md files updated to call `python3 plugins/claude-tech-squad/bin/squad-cli` for preflight, health, checkpoint, cost, and SEP log
+- All skills retain full manual fallback — plugin works without squad-cli if Python3 is unavailable
+- Stack detection expanded from 7 stacks (django, react, vue, typescript, javascript, python, generic) to 13 (added go, rust, java, ruby, php, dotnet, elixir)
+
+### Technical
+
+- 73 unit tests covering all squad-cli modules
+- Zero external dependencies beyond Python3 stdlib + PyYAML + Click (auto-installed on first run)
+- Embedded at `plugins/claude-tech-squad/bin/squad-cli` — no separate installation required
 ## [5.47.0] - 2026-04-14 — Automated feature release
 
 ### Added

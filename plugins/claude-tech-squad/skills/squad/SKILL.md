@@ -138,16 +138,27 @@ Options:
 
 ## Inline Health Check
 
-After every `[Teammate Done]`, run the health check defined in `inline_health_check` from `runtime-policy.yaml`. This costs zero extra tokens — it is orchestrator logic, not an agent call.
+After every `[Teammate Done]`, run the health check. This evaluates 6 signals: retry_detected, fallback_used, doom_loop_short_circuit, token_budget_pressure, low_confidence_chain, blocking_findings_accumulating.
 
-**After each teammate completes:**
+**python3 plugins/claude-tech-squad/bin/squad-cli health** (preferred — deterministic, saves ~2K tokens per teammate):
 
-1. Read the teammate's `result_contract` (status, confidence, findings) and execution metadata (retry_count, fallback_used, doom_loop, tokens consumed).
-2. Evaluate all 6 signals from `inline_health_check.signals`.
-3. Emit: `[Health Check] <name> | signals: <triggered_signals_or_ok>`
-4. If any signal triggered:
-   - **warning signals** (retry_detected, fallback_used, token_budget_pressure): prepend context to the next teammate's prompt so it can avoid the same problem.
-   - **critical signals** (doom_loop_short_circuit, low_confidence_chain, blocking_findings_accumulating): emit `[Health Warning] <description>` and surface to user if action is needed.
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli health \
+  --run-id {{feature_slug}} --teammate <name> \
+  --tokens-in <N> --tokens-out <N> \
+  --status <completed|failed|blocked> --confidence <high|medium|low> \
+  --retries <N> --findings-blocking <N> --duration-ms <N> \
+  --policy plugins/claude-tech-squad/runtime-policy.yaml \
+  --state-dir .squad-state
+```
+
+The returned JSON contains `signals_triggered`, `context_enrichment` (text to prepend to the next teammate's prompt), `budget_percent`, and `is_critical`. Use the `context_enrichment` text directly.
+
+If `squad-cli` is not available: evaluate the 6 signals manually from the teammate's `result_contract` and execution metadata.
+
+- Emit: `[Health Check] <name> | signals: <triggered_signals_or_ok>`
+- **warning signals**: prepend context enrichment to next teammate's prompt
+- **critical signals**: emit `[Health Warning]` and surface to user if action is needed
 
 **Cross-phase health:** In `/squad`, health signals from the discovery phase are carried into the implementation phase. If discovery had retries or low confidence, the implementation phase starts with that context already enriched.
 
@@ -204,48 +215,52 @@ If the runtime policy file is missing or unreadable, stop the run and surface `[
 
 Before repository recon and team creation, validate the run contract and emit explicit preflight lines.
 
-Check and store:
-- `execution_mode` — `tmux` if teammate mode is available, otherwise `inline`
-- `resume_key` — provisional lowercase kebab-case derived from the user request before formal `{{feature_slug}}` extraction
-- `{{architecture_style}}` — explicit or defaulted to `existing-repo-pattern`
-- `{{lint_profile}}` — detected tool list or `none-detected`
-- `docs_lookup_mode` — `context7` when available, otherwise `repo-fallback`
-- `runtime_policy_version` — from `plugins/claude-tech-squad/runtime-policy.yaml`
+Emit `[Preflight Start] squad`
 
-Preflight rules:
-- Emit `[Preflight Start] squad`
-- Read `plugins/claude-tech-squad/runtime-policy.yaml`
-- **Ticket Intake** — If the user's input matches a ticket ID pattern (`[A-Z]+-[0-9]+` for Jira, `#[0-9]+` for GitHub Issues, `LIN-[0-9]+` for Linear):
+**python3 plugins/claude-tech-squad/bin/squad-cli accelerated preflight** (preferred — saves ~5K tokens):
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli preflight --skill squad --policy plugins/claude-tech-squad/runtime-policy.yaml --project-root .
+```
+
+This returns a JSON object with all preflight data: `stack`, `ai_feature`, `routing`, `lint_profile`, `docs_lookup_mode`, `policy_version`, `token_budget_max`, `orphaned_discoveries`, `retro_counter`, `resume_from`, and `warnings`. Use the returned values to set all `{{variables}}` for the run.
+
+Then initialize the run state for health tracking and checkpoints:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli init --run-id {{feature_slug}} --skill squad --policy plugins/claude-tech-squad/runtime-policy.yaml --state-dir .squad-state
+```
+
+If `squad-cli` is not available, fall back to manual preflight: read `runtime-policy.yaml`, detect stack from signal files (manage.py, package.json, go.mod, Cargo.toml, etc.), resolve the routing table, check orphaned discoveries in `ai-docs/.squad-log/`, and read the retro counter.
+
+**Ticket Intake** — If the user's input matches a ticket ID pattern (`[A-Z]+-[0-9]+` for Jira, `#[0-9]+` for GitHub Issues, `LIN-[0-9]+` for Linear):
   1. Read the ticket via the appropriate MCP tool
   2. Extract: title, description, acceptance criteria, priority, subtasks, labels, comments
   3. For Epics: also read child stories via JQL `parent = {{ticket_id}}`
   4. Use the extracted content as the `{{user_request}}` for the entire pipeline
   5. Emit: `[Ticket Read] {{source}} | {{ticket_id}} | type={{issue_type}} | priority={{priority}}`
   6. If MCP is unavailable, ask the user to paste the ticket content — do not block
-- **Cost budget initialization** — Read `cost_guardrails.token_budget.squad_max_tokens` from the runtime policy and initialize the token counter for this run
-- **Orphan detection** — If `entropy_management.orphan_detection.check_at_preflight` is true, scan for orphaned discoveries older than the configured threshold and emit `[Preflight Warning] {{count}} orphaned discovery(ies) found`
-- **Retro counter check** — Read `entropy_management.factory_retrospective_auto_trigger.counter_file` and check if the counter has reached the threshold. If so, suggest running `/factory-retrospective` before proceeding
-- If teammate mode is unavailable, emit `[Preflight Warning] teammate mode unavailable — continuing inline`
-- If `{{architecture_style}}` had to be defaulted, emit `[Preflight Warning] architecture_style ambiguous — defaulting to existing-repo-pattern`
-- If Context7 is unavailable, do **not** block; emit `[Preflight Warning] Context7 unavailable — using repository evidence and explicit assumptions`
-- Inspect the latest `ai-docs/.squad-log/*-squad-*.md` for the same `resume_key` when resuming an interrupted run
-- If a prior partial squad run exists and inputs did not materially change, emit `[Resume From] squad | checkpoint=<highest_completed_checkpoint>`
+
+Emit all warnings from the preflight JSON output, then:
 - Emit `[Preflight Passed] squad | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version>`
 
 ### Checkpoint / Resume Rules
 
-Use `checkpoint_resume.squad` from `runtime-policy.yaml`.
+Save a checkpoint whenever one of these milestones is completed: `preflight-passed`, `discovery-confirmed`, `implementation-complete`, `release-signed-off`.
 
-Save a checkpoint whenever one of these milestones is completed:
-- `preflight-passed`
-- `discovery-confirmed`
-- `implementation-complete`
-- `release-signed-off`
+**python3 plugins/claude-tech-squad/bin/squad-cli checkpoint** (preferred):
 
-Checkpoint behavior:
-- Emit `[Checkpoint Saved] squad | cursor=<checkpoint>` whenever a checkpoint is reached
-- On resume, skip already-completed phase boundaries unless scope, code, or release assumptions changed materially
-- Record `checkpoint_cursor`, `completed_checkpoints`, `resume_from`, `fallback_invocations`, and `teammate_reliability` in the SEP log
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli checkpoint save --run-id {{feature_slug}} --cursor <checkpoint> --state-dir .squad-state
+```
+
+To check for a resumable prior run:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli checkpoint resume --skill squad --state-dir .squad-state
+```
+
+If `squad-cli` is not available: emit `[Checkpoint Saved] squad | cursor=<checkpoint>` and track state manually. On resume, inspect the latest `ai-docs/.squad-log/*-squad-*.md` for the same feature slug.
 
 ### Escape Hatch — Skip Forward
 
@@ -275,60 +290,20 @@ At any gate during `/squad`, the user can jump forward to a later phase. This pr
 
 ### Step 1 — Repository Recon
 
-Read the following files to understand the project:
-- README.md, CLAUDE.md, package.json, pyproject.toml, requirements.txt
-- List the main directories and identify the tech stack
-- Note any existing architecture patterns, conventions, or constraints
-- Derive `{{architecture_style}}` for this feature (`existing-repo-pattern` by default unless the repo or user explicitly selects another style)
-- Derive `{{lint_profile}}` from the repository's actual lint/format/static-analysis tools
+Read CLAUDE.md and README.md to understand project conventions and constraints. Note any existing architecture patterns.
 
-**LLM/AI detection (automatic):**
+**Stack, AI, and routing detection** — all resolved by `python3 plugins/claude-tech-squad/bin/squad-cli preflight` in the Preflight Gate. The returned JSON contains `stack`, `ai_feature`, `routing` (with `pm_agent`, `techlead_agent`, `backend_agent`, `frontend_agent`, `reviewer_agent`, `qa_agent`), and `lint_profile`. Use these values directly.
 
-```bash
-# Detect AI/LLM usage in the project
-grep -rl "openai\|anthropic\|langchain\|llamaindex\|llama_index\|cohere\|huggingface\|transformers\|openai\|chromadb\|pinecone\|weaviate\|pgvector\|faiss\|qdrant" \
-  --include="*.py" --include="*.ts" --include="*.js" --include="*.json" \
-  --exclude-dir=node_modules --exclude-dir=.venv . 2>/dev/null | head -20
+If `squad-cli` was not available and preflight was done manually, detect the stack from signal files:
+- `manage.py` + django in requirements = `django`
+- `package.json` with react/vue/next/nuxt = `react`/`vue`
+- `tsconfig.json` or typescript in devDeps = `typescript`
+- `package.json` alone = `javascript`
+- `go.mod` = `go`, `Cargo.toml` = `rust`, `pom.xml`/`build.gradle` = `java`, `Gemfile` = `ruby`, `composer.json` = `php`, `*.csproj` = `dotnet`, `mix.exs` = `elixir`
+- `pyproject.toml`/`requirements.txt` without manage.py = `python`
+- Scan source files for AI library imports (openai, anthropic, langchain, pgvector, etc.) to set `ai_feature`
 
-# Detect prompt files
-find . -name "*.prompt" -o -name "*system_prompt*" -o -path "*/prompts/*" 2>/dev/null | grep -v node_modules | head -10
-
-# Detect RAG patterns
-grep -rl "embedding\|vector_store\|similarity_search\|retriev" \
-  --include="*.py" --include="*.ts" --include="*.js" \
-  --exclude-dir=node_modules --exclude-dir=.venv . 2>/dev/null | head -10
-
-# Detect agent/tool use patterns
-grep -rl "tool_call\|function_call\|agent_executor\|AgentExecutor\|tool_use" \
-  --include="*.py" --include="*.ts" --include="*.js" \
-  --exclude-dir=node_modules --exclude-dir=.venv . 2>/dev/null | head -10
-```
-
-Default: `ai_feature: false`. If any of the above grep commands returns results, set `ai_feature: true` and activate the **LLM-enhanced bench** in Phase 1 and Phase 2. Emit: `[AI Detected] LLM/AI features found — activating AI specialist bench`
-If grep returns no results and detection is ambiguous: emit `[Gate] AI Detection Ambiguous` and ask user: 'Does this task involve LLM/AI features? [Y]es / [N]o'
-
-**Stack Specialist Detection** (run alongside LLM detection):
-
-| Signal | Detected stack |
-|---|---|
-| `manage.py` + `django` in requirements | `django` |
-| `package.json` contains `"react"` | `react` |
-| `package.json` contains `"vue"` | `vue` |
-| `tsconfig.json` or `typescript` in devDependencies | `typescript` |
-| `package.json` with no react/vue/typescript | `javascript` |
-| `pyproject.toml`/`requirements.txt` without `manage.py` | `python` |
-| None of the above | `generic` |
-
-Resolve and store routing variables before team creation:
-
-| Variable | `django` | `react` | `vue` | `typescript` | `javascript` | `python` | `generic` |
-|---|---|---|---|---|---|---|---|
-| `{{pm_agent}}` | `django-pm` | `pm` | `pm` | `pm` | `pm` | `pm` | `pm` |
-| `{{techlead_agent}}` | `tech-lead` | `techlead` | `techlead` | `techlead` | `techlead` | `techlead` | `techlead` |
-| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
-| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
-| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
-| `{{qa_agent}}` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa` | `qa` |
+If `ai_feature: true`: activate the **LLM-enhanced bench** in Phase 1 and Phase 2. Emit: `[AI Detected] LLM/AI features found — activating AI specialist bench`
 
 Emit: `[Stack Detected] {{detected_stack}} | pm={{pm_agent}} | techlead={{techlead_agent}} | backend={{backend_agent}} | frontend={{frontend_agent}} | reviewer={{reviewer_agent}} | qa={{qa_agent}}`
 
@@ -565,89 +540,26 @@ Emit: `[Phase Done] release | SRE sign-off received`
 
 ## Step 4 — Write Execution Log (SEP Runtime Resilience)
 
-### Run Cost Summary
+### Run Cost Summary and SEP Log
 
-Before writing the SEP log, emit the cost summary:
+**python3 plugins/claude-tech-squad/bin/squad-cli cost + sep-log** (preferred — uses real token counts collected during the run):
 
+```bash
+# Get cost summary
+python3 plugins/claude-tech-squad/bin/squad-cli cost --run-id {{feature_slug}} --policy plugins/claude-tech-squad/runtime-policy.yaml --state-dir .squad-state
+
+# Generate SEP log from collected state
+python3 plugins/claude-tech-squad/bin/squad-cli sep-log --run-id {{feature_slug}} --output-dir ai-docs/.squad-log --state-dir .squad-state
+```
+
+The `cost` command returns `tokens_in`, `tokens_out`, `estimated_cost_usd`, `budget_percent`, and `per_teammate` breakdown. Emit:
 ```
 [Run Summary] /squad | teammates: {{N}} | tokens: {{total_input}}K in / {{total_output}}K out | est. cost: ~${{usd}} | duration: {{elapsed}}
 ```
 
-Sum tokens across all teammates in both discovery and implementation phases. Estimate cost at input × $15/M + output × $75/M. Duration from `[Preflight Start]` to now.
+The `sep-log` command generates the complete SEP log file with YAML frontmatter from the state collected during the run (all teammate data, checkpoints, health signals, fallbacks, doom loops).
 
-### Write SEP Log
-
-After release phase finishes, write the structured squad execution log.
-
-```bash
-mkdir -p ai-docs/.squad-log
-```
-
-Write to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-squad-{{run_id}}.md`:
-
-```markdown
----
-run_id: {{run_id}}
-parent_run_id: null
-skill: squad
-timestamp: {{ISO8601}}
-status: completed | failed | partial
-final_status: completed
-execution_mode: inline
-architecture_style: {{architecture_style}}
-checkpoints: [preflight-passed, discovery-confirmed, implementation-complete, release-signed-off]
-fallbacks_invoked: []
-runtime_policy_version: {{runtime_policy_version}}
-feature_slug: {{feature_slug}}
-checkpoint_cursor: release-signed-off
-completed_checkpoints: [preflight-passed, discovery-confirmed, implementation-complete, release-signed-off]
-resume_from: {{resume_checkpoint | none}}
-gates_cleared: [1, 2, 3, 4, 5, 6]
-gates_blocked: []
-retry_count: {{total_runtime_retries}}
-fallback_invocations: []
-teammates:
-  - pm
-  - business-analyst
-  - po
-  - planner
-  - architect
-  - techlead
-  - specialist-bench
-  - quality-baseline
-  - design-principles
-  - test-planner
-  - tdd-specialist
-  - implementation-batch
-  - reviewer
-  - qa
-  - techlead-audit
-  - quality-bench
-  - docs-writer
-  - jira-confluence
-  - pm-uat
-  - release
-  - sre
-teammate_reliability:
-  discovery: primary
-  implementation: primary
-  release: primary
-uat_result: APPROVED | REJECTED
-release_result: GO | NO-GO
-tokens_input: {{total_input_tokens}}
-tokens_output: {{total_output_tokens}}
-estimated_cost_usd: {{estimated_cost}}
-total_duration_ms: {{wall_clock_duration}}
-doom_loops_detected: {{count_or_0}}
-auto_advanced_gates: {{list_of_auto_advanced_gate_names_or_empty}}
----
-
-## Output Digest
-{{one_paragraph_summary_of_end_to_end_delivery}}
-
-## Findings Gerados
-{{blocking_and_warning_findings_if_any}}
-```
+If `squad-cli` is not available: sum tokens manually across all teammates, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-squad-{{run_id}}.md` with full YAML frontmatter (run_id, skill, timestamp, status, checkpoints, teammates, tokens, cost, etc.).
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
