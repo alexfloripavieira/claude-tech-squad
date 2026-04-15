@@ -346,7 +346,34 @@ Extract and store the following variables from the blueprint before spawning any
 - `{{architecture}}` — architecture decisions from discovery (if present)
 - `{{architecture_style}}` — explicit architecture style selected during discovery (if present). If missing, default to `existing-repo-pattern`
 
-These variables are used by docs-writer, jira-confluence, Reviewer, Conformance Audit, and the SEP log. If any are not found in the blueprint, derive `feature_slug` from the task description, default `architecture_style` to `existing-repo-pattern`, and leave others as "see blueprint".
+**Blueprint Completeness Gate (blocking):**
+
+After extraction, check which critical fields are missing or empty:
+
+| Field | Severity | Impact if missing |
+|-------|----------|-------------------|
+| `{{acceptance_criteria}}` | BLOCKING | Reviewer and QA cannot validate; UAT will fail |
+| `{{architecture}}` | BLOCKING | Implementation agents lack structural guidance; high rework risk |
+| `{{test_plan}}` | WARNING | TDD specialist can derive tests from acceptance criteria, but quality degrades |
+| `{{feature_slug}}` | WARNING | Derivable from task description; only affects traceability |
+
+If ANY BLOCKING field is missing or empty:
+
+```
+[Gate] Blueprint Incomplete | Missing: {{comma_separated_missing_fields}}
+
+The discovery document is missing critical fields required for implementation.
+Without these, downstream agents will produce low-quality output or fail.
+
+Options:
+- [D] Run /discovery first to produce a complete blueprint
+- [P] Provide the missing fields now (paste acceptance criteria / architecture)
+- [F] Force continue — implementation quality WILL be degraded (logged as risk)
+```
+
+Do NOT proceed past this gate until the user responds. If the user selects [F], log `blueprint_completeness: forced` in the SEP log and prepend a warning to every downstream agent prompt.
+
+If only WARNING fields are missing, emit `[Preflight Warning] blueprint incomplete — missing: {{fields}}` and continue. Derive `feature_slug` from the task description and default `architecture_style` to `existing-repo-pattern`.
 
 ### Step 2 — Create Implementation Team
 
@@ -1091,6 +1118,7 @@ fallbacks_invoked: []
 runtime_policy_version: {{runtime_policy_version}}
 feature_slug: {{feature_slug}}
 blueprint_source: {{blueprint_path}}
+blueprint_completeness: complete | forced | warning
 checkpoint_cursor: uat-approved
 completed_checkpoints: [preflight-passed, commands-confirmed, blueprint-validated, tdd-ready, implementation-batch-complete, reviewer-approved, qa-pass, conformance-pass, quality-bench-cleared, docs-complete, uat-approved]
 resume_from: {{resume_checkpoint | none}}
