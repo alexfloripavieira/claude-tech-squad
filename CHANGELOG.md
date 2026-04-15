@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.48.0] - 2026-04-15 — Automated feature release
+
+### Added
+
+- Add blueprint completeness gate to /implement skill
 ## [5.47.0] - 2026-04-14 — Automated feature release
 
 ### Added
