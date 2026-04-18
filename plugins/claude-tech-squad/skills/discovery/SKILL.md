@@ -866,6 +866,7 @@ fallbacks_invoked: []
 retry_count: {{N}}
 tokens_input: {{actual_or_null}}  # required — actual measurement or null; 0 placeholder forbidden
 tokens_output: {{actual_or_null}} # required — actual measurement or null; 0 placeholder forbidden
+teammate_token_breakdown: {}      # required — map {teammate_name: {tokens_in, tokens_out, cost_usd}}
 estimated_cost_usd: {{usd}}
 total_duration_ms: {{ms}}
 implement_triggered: true | false
