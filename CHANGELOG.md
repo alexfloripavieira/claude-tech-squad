@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.49.0] - 2026-04-18 — Automated feature release
+
+### Added
+
+- Apply 2026-04-18 factory retrospective recommendations (#20)
+- Add squad-cli embedded orchestrator (v5.48.0)
 ## [5.48.0] - 2026-04-15 — squad-cli: embedded Python orchestrator
 
 ### Added
