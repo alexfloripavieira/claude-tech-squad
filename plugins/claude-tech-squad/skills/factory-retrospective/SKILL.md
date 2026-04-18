@@ -406,9 +406,18 @@ Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 After writing the SEP log, perform these automated entropy checks:
 
 **9a. Reset retrospective counter:**
+
+The `.retro-counter` file at `ai-docs/.squad-log/.retro-counter` is a small plain-text file containing a single integer — the number of SEP-log-writing skill runs since the last retrospective. It is managed by:
+
+- `/implement`, `/squad`, `/hotfix`, `/bug-fix`, etc. — increment by 1 at end of run
+- `runtime-policy.yaml` `entropy_management.factory_retrospective_auto_trigger` — reads the value and prompts `/factory-retrospective` after threshold (default 5)
+- This step (9a) — **resets to 0** at the end of every retrospective
+
 ```bash
 echo "0" > ai-docs/.squad-log/.retro-counter
 ```
+
+The file is gitignored; only `.gitkeep` is tracked. If the file is missing, treat it as `0` and create it with `0`. If it contains a non-integer, reset to `0` and emit `[Entropy] counter corrupted — reset to 0`.
 
 **9b. Stale artifact detection:**
 Scan `ai-docs/` for files older than 30 days that have no corresponding SEP log entry:

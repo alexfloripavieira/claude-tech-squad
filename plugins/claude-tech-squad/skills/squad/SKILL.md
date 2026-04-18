@@ -559,7 +559,31 @@ The `cost` command returns `tokens_in`, `tokens_out`, `estimated_cost_usd`, `bud
 
 The `sep-log` command generates the complete SEP log file with YAML frontmatter from the state collected during the run (all teammate data, checkpoints, health signals, fallbacks, doom loops).
 
-If `squad-cli` is not available: sum tokens manually across all teammates, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-squad-{{run_id}}.md` with full YAML frontmatter (run_id, skill, timestamp, status, checkpoints, teammates, tokens, cost, etc.).
+If `squad-cli` is not available: sum tokens manually across all teammates, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-squad-{{run_id}}.md` with full YAML frontmatter.
+
+**Required frontmatter fields (squad):**
+
+```yaml
+---
+run_id: {{run_id}}
+skill: squad
+timestamp: {{ISO8601}}
+last_updated_at: {{ISO8601}}       # required — refresh on every edit
+final_status: completed | in_flight | aborted
+execution_mode: teammates
+architecture_style: {{style}}
+checkpoints: [preflight-passed, discovery-complete, implement-complete, quality-complete, release-prepared]
+teammates_spawned: {{N}}
+fallbacks_invoked: []
+retry_count: {{N}}
+tokens_input: {{actual_or_null}}   # required — actual measurement or null; 0 placeholder forbidden
+tokens_output: {{actual_or_null}}  # required — actual measurement or null; 0 placeholder forbidden
+estimated_cost_usd: {{usd}}
+total_duration_ms: {{ms}}
+escape_hatch_used: false
+skipped_phases: []
+---
+```
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 

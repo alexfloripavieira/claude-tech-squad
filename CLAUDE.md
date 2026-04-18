@@ -160,6 +160,27 @@ Every PR must declare its change class in the PR template. The class determines 
 
 ---
 
+## Inline execution policy (when skills may run without teammates)
+
+Not every skill invocation requires a full TeamCreate + Agent spawn cycle. The rule:
+
+| Skill | Inline allowed? | Rationale |
+|---|---|---|
+| `/claude-tech-squad:bug-fix` | **Yes, when scope is 1–2 files** | Cost-optimized for small, well-scoped defects. The skill still writes a SEP log and runs tests. |
+| `/claude-tech-squad:hotfix` | **Yes** | Emergency path — speed matters, skill still enforces its own gates. |
+| `/claude-tech-squad:implement` | **No — MUST spawn teammates** | Progressive disclosure, reviewer/QA/conformance/UAT gates depend on separate teammate contexts. |
+| `/claude-tech-squad:squad` | **No — MUST spawn teammates** | Full pipeline; multi-lens review is the entire value. |
+| `/claude-tech-squad:discovery` | **No — MUST spawn teammates** | Specialist bench is the point. |
+| `/claude-tech-squad:refactor` | **No — MUST spawn teammates** | Characterization tests + reviewer gate. |
+| `/claude-tech-squad:security-audit` | Inline | Runs scanners + one reviewer agent; no multi-gate pipeline. |
+| `/claude-tech-squad:factory-retrospective` | Inline | Reads logs, no parallel specialist work. |
+
+When in doubt: if the skill SKILL.md contains `TeamCreate` + multiple `Agent(...)` spawns in its execution block, it MUST use teammates. Inline bypass is forbidden except for the explicit whitelist above. Added 2026-04-18 after the retrospective documented silent inline bypass in `/implement` runs.
+
+## .retro-counter file
+
+`ai-docs/.squad-log/.retro-counter` is a plain-text file holding a single integer — runs-since-last-retrospective. Incremented by SEP-log-writing skills. Read by `runtime-policy.yaml` (`entropy_management.factory_retrospective_auto_trigger`) to auto-suggest `/factory-retrospective` after threshold (default 5). Reset to `0` in Step 9a of `/factory-retrospective`. Gitignored; only `.gitkeep` tracked. If missing or corrupt, treat as `0`.
+
 ## Files that must NOT be edited manually
 
 The release pipeline generates these automatically on merge to `main`. Editing them by hand causes version drift that will fail `validate.sh`:

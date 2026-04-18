@@ -604,6 +604,16 @@ Wait for all specialist teammates to complete.
 
 ### Step 10 — Quality Baseline Batch (Parallel)
 
+**Auth-sensitive HARD gate (MANDATORY):** if the feature touches any of:
+
+- authentication flows (login, logout, session lifecycle)
+- magic-link / one-time-token issuance or consumption
+- OAuth / SSO integrations (Google, Microsoft, SAML, OIDC)
+- password reset, account recovery, impersonation
+- session token storage, refresh, revocation
+
+then `security-reviewer` is a **HARD gate** — it CANNOT be skipped-with-risk and CANNOT be auto-advanced. The run must wait for security-reviewer output with status=APPROVED or BLOCKED. Record `auth_touching_feature: true` and `security_reviewer_gate: hard` in the SEP frontmatter. Added 2026-04-18 after the retrospective flagged magic-link and session-auth as recurring orphaned discoveries with skipped security review.
+
 Spawn quality reviewers in parallel (only relevant ones):
 
 ```
@@ -838,7 +848,33 @@ Emit:
 [Run Summary] /discovery | teammates: {{N}} | tokens: {{total_input}}K in / {{total_output}}K out | est. cost: ~${{usd}} | duration: {{elapsed}}
 ```
 
-If `squad-cli` is not available: sum tokens manually, estimate cost, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-discovery-{{run_id}}.md` with full YAML frontmatter (run_id, skill, timestamp, status, checkpoints, teammates, tokens, cost, etc.). The SEP log MUST use YAML frontmatter between `---` delimiters — `/dashboard` and `/factory-retrospective` parse these fields programmatically.
+If `squad-cli` is not available: sum tokens manually, estimate cost, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-discovery-{{run_id}}.md` with full YAML frontmatter. The SEP log MUST use YAML frontmatter between `---` delimiters — `/dashboard` and `/factory-retrospective` parse these fields programmatically.
+
+**Required frontmatter fields for discovery SEP logs:**
+
+```yaml
+---
+run_id: {{run_id}}
+skill: discovery
+timestamp: {{ISO8601}}
+last_updated_at: {{ISO8601}}      # required — refreshed whenever the log is edited
+final_status: completed | in_flight | aborted
+execution_mode: teammates | inline
+architecture_style: {{style}}
+checkpoints: [preflight-passed, gate-1-approved, ...]
+fallbacks_invoked: []
+retry_count: {{N}}
+tokens_input: {{actual_or_null}}  # required — actual measurement or null; 0 placeholder forbidden
+tokens_output: {{actual_or_null}} # required — actual measurement or null; 0 placeholder forbidden
+teammate_token_breakdown: {}      # required — map {teammate_name: {tokens_in, tokens_out, cost_usd}}
+estimated_cost_usd: {{usd}}
+total_duration_ms: {{ms}}
+implement_triggered: true | false
+implement_deferred_reason: {{required_when_implement_triggered_false}}  # MUST be non-empty when implement_triggered=false
+auth_touching_feature: true | false
+security_reviewer_gate: hard | soft | n/a
+---
+```
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
@@ -860,6 +896,7 @@ If the user answers **S**:
 
 If the user answers **N**:
 - Leave `implement_triggered: false` in the log
+- **REQUIRED:** populate `implement_deferred_reason` in the SEP frontmatter. This field is mandatory whenever `implement_triggered: false`. Empty string or missing field means the SEP log is structurally incomplete and `/factory-retrospective` will flag it as an orphaned discovery with unknown cause. Collect the reason from the user (e.g. "waiting on design review", "deprioritized", "blocked by FF-262") — do NOT leave blank.
 - Write a pending-implement tracker file so the blueprint is not lost:
   ```
   Write to tasks/pending-implement-{{feature_slug}}.md:
