@@ -17,6 +17,27 @@ failure_handling:
       R: retry once more with the same prompt
       S: skip and continue with explicit risk logging
       X: abort the run
+  compact_prompt_fallback:
+    enabled: true
+    description: >
+      When a teammate fails silently (empty output, no result_contract, stopped mid-turn),
+      do NOT re-spawn with the same prompt. Instead, spawn a retry variant with a compacted
+      prompt that strips non-essential context (full repo dumps, full upstream outputs) and
+      keeps only digests plus the user intent. This was introduced after the 2026-04-18
+      factory retrospective found PO silent failures in 3 of 5 discoveries caused by context
+      saturation.
+    triggers:
+      - silent failure (empty output, no result_contract)
+      - stopped mid-turn after a Read tool call
+      - prompt size > 30000 tokens AND teammate returned confidence=low
+    naming_convention:
+      primary_retry: "<agent>-retry"
+      fallback_variant: "<agent>-v2"
+    compaction_rules:
+      - replace full upstream outputs with their ARC digests (<= 500 tokens each)
+      - drop repository context beyond the feature scope
+      - keep: user intent, constraints, result_contract requirement, verification_checklist requirement
+    emit_on_invoke: "[Compact Retry] {{agent}} | variant={{retry_name}} | reason={{trigger}}"
 
 cost_guardrails:
   token_budget:
@@ -27,11 +48,26 @@ cost_guardrails:
     default_max_tokens: 1500000
   cost_tracking:
     track_per_teammate: true
+    required: true
     fields:
       - tokens_input
       - tokens_output
       - estimated_cost_usd
       - duration_ms
+    field_policy:
+      tokens_input:
+        required: true
+        null_allowed: true
+        zero_placeholder_allowed: false
+      tokens_output:
+        required: true
+        null_allowed: true
+        zero_placeholder_allowed: false
+    rationale: >
+      2026-04-18 retrospective found only 11% of SEP logs had usable cost data
+      (red KPI). Zero-placeholders were indistinguishable from unmeasured runs.
+      null is acceptable (measurement unavailable); 0 is NOT acceptable as a
+      fill-in — skills must record actual measurement or null.
   circuit_breaker:
     enabled: true
     warn_at_percent: 75
@@ -479,11 +515,30 @@ reliability_metrics:
     - unresolved
 
 observability:
+  stale_in_flight:
+    enabled: true
+    stale_after_hours: 48
+    description: >
+      A SEP log with status=in_flight and last_updated_at older than
+      stale_after_hours is flagged as `stale-in-flight`. Added after the
+      2026-04-18 retrospective observed orphaned in-flight runs with no
+      freshness signal. /dashboard and /factory-retrospective MUST surface
+      these.
+    on_detection: "emit [Entropy] stale-in-flight: {{run_id}} | last_updated_at={{ts}} | age_hours={{age}}"
+  prompt_length_warning:
+    enabled: true
+    threshold_tokens: 40000
+    description: >
+      When the prompt assembled for a teammate exceeds the threshold, the
+      orchestrator MUST emit a warning. This complements compact_prompt_fallback
+      by catching pressure BEFORE the teammate starts, not after it fails.
+    emit: "[Prompt Length Warning] {{agent}} | prompt_tokens={{tokens}} | threshold={{threshold}} — consider compact-prompt spawn"
   sep_log_schema:
     required_fields:
       - run_id
       - skill
       - timestamp
+      - last_updated_at
       - final_status
       - execution_mode
       - architecture_style

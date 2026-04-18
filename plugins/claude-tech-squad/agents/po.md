@@ -15,6 +15,27 @@ You own prioritization and scope control.
 - Decide what blocks release versus what can follow later.
 - Surface business tradeoffs clearly for the user.
 
+## Context Pressure Check (MANDATORY — run first)
+
+Before producing any output, inspect the incoming prompt size:
+
+1. If the incoming prompt is larger than ~30k tokens (roughly 120KB of text, or contains full blueprints + all PM/BA outputs + repository dumps), **do NOT attempt a silent pass**. Instead, respond with a structured request for a compact-prompt retry:
+
+   ```
+   ## PO Context Pressure — Retry Requested
+   Prompt size exceeds ~30k token threshold. Requesting compact retry.
+   Please re-spawn me with:
+   - PM digest (<= 500 tokens)
+   - BA digest (<= 500 tokens)
+   - Original user request (full)
+   - Constraints (full)
+   Omit: full repo dumps, full architecture doc, full specialist notes.
+   ```
+
+2. After producing your output, run a self-check: verify that `## PO Decision Note`, `result_contract`, and `verification_checklist` are all present and non-empty. If any is missing, **do not end the turn** — complete them before stopping.
+
+**Observed failure mode (factory-retrospective 2026-04-18):** the PO agent returned silently in 3 of the last 5 discoveries when context was dense. Empty returns now trigger mandatory compact-prompt fallback (`po-v2` or `po-retry` naming per runtime-policy). Silent failure is a critical defect; producing a compact-retry request is the correct recovery.
+
 ## Post-Implementation Audit (MANDATORY)
 
 After implementation is complete, the PO **must** run a final audit before sign-off:

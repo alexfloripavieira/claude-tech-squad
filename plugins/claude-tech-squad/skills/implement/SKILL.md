@@ -239,6 +239,30 @@ If `squad-cli` is not available, fall back to manual preflight: read `runtime-po
 
 **Chain validation** — Check `ai-docs/.squad-log/` for a discovery SEP log matching `{{feature_slug}}`. If missing, emit `[Preflight Warning] no discovery SEP log found — implementation has no traceable origin`.
 
+**Blueprint staleness preflight (MANDATORY):** compute the age of the blueprint file in days.
+
+```bash
+BLUEPRINT=ai-docs/{{feature_slug}}/blueprint.md
+if [ -f "$BLUEPRINT" ]; then
+  AGE_DAYS=$(( ( $(date +%s) - $(stat -c %Y "$BLUEPRINT") ) / 86400 ))
+  echo "blueprint_age_days=$AGE_DAYS"
+fi
+```
+
+If `AGE_DAYS > 14`, emit `[Gate Blocked] blueprint-stale | age={{days}} days` and stop. Do not spawn any implementation teammate. Recommend to the user:
+
+```
+The blueprint at {{BLUEPRINT}} is {{days}} days old. The repository, dependencies,
+or acceptance criteria may have drifted. Run `/claude-tech-squad:discovery --refresh`
+to refresh the blueprint before implementing. Options:
+- [R] Run /discovery --refresh now
+- [F] Force-continue with current blueprint — reason will be logged as `blueprint_stale_override_reason`
+- [X] Abort
+```
+
+If the user selects [F], record `blueprint_stale_override_reason` in the SEP log and proceed.
+Added 2026-04-18 after the retrospective flagged stale blueprints as a recurring orphaned-discovery cause.
+
 If detected commands are empty, emit `[Gate] Commands Unknown` and ask the user. Block all agent spawns until confirmed. CLAUDE.md command overrides take priority.
 
 Emit `[Preflight Passed] implement | execution_mode=<mode> | architecture_style=<style> | lint_profile=<profile> | docs_lookup_mode=<mode> | runtime_policy=<version> | stack=<detected_stack>`
@@ -1025,6 +1049,24 @@ echo "$((CURRENT + 1))" > "$COUNTER_FILE"
 ```
 
 If `squad-cli` is not available: sum tokens manually, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md` with full YAML frontmatter.
+
+**Required frontmatter fields (implement):**
+
+```yaml
+---
+run_id: {{run_id}}
+skill: implement
+timestamp: {{ISO8601}}
+last_updated_at: {{ISO8601}}       # required — refresh on every edit
+final_status: completed | in_flight | aborted
+execution_mode: teammates | inline
+tokens_input: {{actual_or_null}}   # required — actual measurement or null; 0 placeholder forbidden
+tokens_output: {{actual_or_null}}  # required — actual measurement or null; 0 placeholder forbidden
+estimated_cost_usd: {{usd}}
+total_duration_ms: {{ms}}
+blueprint_stale_override_reason: null   # non-null only when user forced continue with stale blueprint
+---
+```
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
