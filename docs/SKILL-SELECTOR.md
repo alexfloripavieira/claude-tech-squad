@@ -80,8 +80,9 @@ flowchart TD
 | Skill | When to use | When NOT to use | Escalate to |
 |---|---|---|---|
 | `/onboarding` | First use in a repo — creates `ai-docs/`, `CLAUDE.md`, security baseline | Repo already configured | n/a |
-| `/discovery` | Feature still needs shaping — produces a full blueprint with requirements, architecture, and test plan | Blueprint already approved | `/implement` |
-| `/implement` | Approved blueprint, ready to build — TDD-first, review, QA, docs, release | No blueprint in conversation | `/discovery` |
+| `/discovery` | Feature still needs shaping — produces a PRD + blueprint with requirements, architecture, and test plan | Blueprint already approved | `/inception` or `/implement` |
+| `/inception` | Have a PRD, need a TechSpec — technical refinement: architecture, risks, quality gates, effort estimate | No PRD yet, or TechSpec already approved | `/implement` |
+| `/implement` | Approved PRD + TechSpec, ready to build — generates tasks + work-item map, then TDD-first, review, QA, docs, release | No PRD/TechSpec in `ai-docs/prd-<slug>/` | `/discovery` then `/inception` |
 | `/squad` | Full end-to-end pipeline: discovery + implementation + release in one session | Implementing from existing blueprint only | `/implement` |
 | `/bug-fix` | Isolated bug (1–2 files), non-emergency — writes a failing test to prove the bug before fixing it | Production is down — use `/hotfix` | `/hotfix` |
 | `/hotfix` | Production is broken now — minimal patch, `hotfix/` branch, PR and deploy checklist | Planned maintenance or non-urgent bug | `/incident-postmortem` after resolving |
@@ -109,7 +110,8 @@ flowchart TD
 |---|---|
 | "First time here" | `/onboarding` |
 | "Production is down" | `/hotfix` or `/cloud-debug` |
-| "I have a feature idea" | `/discovery` → `/implement` |
+| "I have a feature idea" | `/discovery` → `/inception` → `/implement` |
+| "Have a PRD, need a TechSpec" | `/inception` |
 | "I want everything at once" | `/squad` |
 | "Found a bug" | `/bug-fix` (non-urgent) or `/hotfix` (emergency) |
 | "PR open for review" | `/pr-review` |

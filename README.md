@@ -462,6 +462,49 @@ Every skill writes a **Squad Execution Protocol (SEP) log** to `ai-docs/.squad-l
 
 Use `/dashboard` for instant health check or `/factory-retrospective` for deep analysis with improvement recommendations.
 
+### Inline visual reporting
+
+Every orchestrator skill prints a compact **teammate card** inline after each specialist completes and a final **pipeline board** at the end of the run — both rendered in the terminal, no browser needed.
+
+Per-teammate card (after each agent):
+
+```
+┌─ prd-author ─────────────────────────── ✓ done ─┐
+│  tokens in:  12.4k   out:   3.1k   total: 15.5k │
+│  cost:  $0.0483     duration: 18.2s             │
+│  confidence: high   gaps: 0   artifacts: 1      │
+└──────────────────────────────────────────────────┘
+```
+
+Final pipeline board (before SEP log):
+
+```
+╔═══ SQUAD PIPELINE REPORT ═════════════════════════════════════╗
+║  skill: squad        scenario: feature-x     duration: 4m 12s ║
+╠════════════════════════════════════════════════════════════════╣
+║  teammate            status    tokens    cost     gaps        ║
+║  prd-author          ✓ done    15.5k    $0.048   0            ║
+║  inception-author    ✓ done    22.1k    $0.067   1 (WARN)     ║
+║  ...                                                           ║
+║  TOTAL                         139.1k   $0.422   3            ║
+║  budget:  $2.00     used: 21.1%     ████░░░░░░░░░░░░░░        ║
+║  checkpoints: 4/4   gates: 3/3 passed   retries: 0            ║
+╚════════════════════════════════════════════════════════════════╝
+```
+
+Configurable in `runtime-policy.yaml`:
+
+```yaml
+observability:
+  teammate_cards:
+    enabled: true
+    format: ascii        # ascii | compact | silent
+  pipeline_board:
+    enabled: true
+```
+
+Renderer failures are non-fatal — the pipeline never fails because of a visual output problem.
+
 ### Trace lines
 
 All skills emit standardized trace lines during execution:

@@ -345,6 +345,45 @@ Orchestrator skills (those that spawn teammates) must write a live status file t
 - On `[SEP Log Written]`, set phase to "completed" — the dashboard shows the final state
 - The dev opens the dashboard with: `bash scripts/open-dashboard.sh`
 
+### 11. Visual Reporting Contract (for orchestrator skills)
+
+Orchestrator skills (`discovery`, `inception`, `implement`, `squad`, `bug-fix`, `hotfix`) must surface per-teammate metrics inline and a final board at the end of the run. This complements the browser-based live dashboard for operators who run the pipeline from a terminal.
+
+**Required behavior:**
+
+1. **After every teammate returns**, pipe the `result_contract.metrics` JSON through `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline in the orchestrator output. Respect `observability.teammate_cards.format` in `runtime-policy.yaml` (`ascii` | `compact` | `silent`).
+
+   Example card:
+
+   ```
+   ┌─ prd-author ─────────────────────────── ✓ done ─┐
+   │  tokens in:   12.4k   out:   3.1k   total: 15.5k │
+   │  cost:  $0.0483     duration: 18.2s              │
+   │  confidence: high   gaps: 0   artifacts: 1       │
+   └──────────────────────────────────────────────────┘
+   ```
+
+2. **Before writing the SEP log**, assemble a pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe it through `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+
+   The board shows per-teammate totals, budget bar, checkpoint/gate summary, artifacts, and SEP log path.
+
+3. **Renderer failures are non-fatal.** If either script exits non-zero, log a WARNING entry in the SEP log (`renderer_warning: <script>: <stderr>`) and continue. Never fail the pipeline because the visual output had a problem.
+
+**Configuration (runtime-policy.yaml):**
+
+```yaml
+observability:
+  teammate_cards:
+    enabled: true
+    format: ascii        # ascii | compact | silent
+  pipeline_board:
+    enabled: true
+    include_budget_bar: true
+    include_artifacts: true
+```
+
+`validate.sh` enforces a `## Visual Reporting Contract` section in every orchestrator SKILL.md and verifies both render scripts exist and are executable.
+
 ---
 
 ## Teammate output validation (Reasoning Sandwich enforcement)
