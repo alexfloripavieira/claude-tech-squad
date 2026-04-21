@@ -195,6 +195,12 @@ Validation rules:
 - `confidence_after_verification` must match `confidence` in `result_contract`
 - Missing `result_contract` OR missing `verification_checklist` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
 
+## Visual Reporting Contract
+
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
+
 ## Runtime Resilience Contract
 
 Load `plugins/claude-tech-squad/runtime-policy.yaml` before command detection or team creation. This file is the source of truth for:
@@ -333,6 +339,36 @@ Call `TeamCreate` (fetch schema via ToolSearch if needed):
 - `description`: "Implementation run for: {{feature_or_task_one_line}}"
 
 Emit: `[Team Created] implement`
+
+### Step 2b — Delivery Docs: Tasks + Work Items (Phase 0)
+
+Before spawning TDD Specialist:
+
+1. Verify `ai-docs/prd-{{feature_slug}}/prd.md` and `ai-docs/prd-{{feature_slug}}/techspec.md` exist. If either is missing, block with:
+   ```
+   [Gate] Delivery Docs Missing | Run /claude-tech-squad:discovery and /claude-tech-squad:inception first | Waiting for user input
+   ```
+2. If `ai-docs/prd-{{feature_slug}}/tasks.md` exists and validates against `templates/tasks-template.md`, reuse. Else spawn `tasks-planner`:
+   ```
+   Agent(
+     team_name = "implement",
+     name = "tasks-planner",
+     subagent_type = "claude-tech-squad:tasks-planner",
+     prompt = <digest including slug, prd path, techspec path>
+   )
+   ```
+3. After tasks are produced, spawn `work-item-mapper`:
+   ```
+   Agent(
+     team_name = "implement",
+     name = "work-item-mapper",
+     subagent_type = "claude-tech-squad:work-item-mapper",
+     prompt = <digest + taxonomy context from runtime-policy.yaml>
+   )
+   ```
+4. If `delivery_gates.enabled: true` and any BLOCKING finding is returned, open a user gate.
+5. Pipe both teammates' `metrics` JSON through `render-teammate-card.sh` per the Visual Reporting Contract.
+6. Record checkpoints: `tasks-produced`, `work-items-produced`. Emit `[Checkpoint Saved] implement | cursor=<checkpoint>`.
 
 ### Step 3 — TDD Specialist Teammate (Failing Tests First)
 
