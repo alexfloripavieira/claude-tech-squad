@@ -271,7 +271,7 @@ Emit: `[Stack Detected] {{detected_stack}} | backend={{backend_agent}} | fronten
 
 ### Checkpoint / Resume Rules
 
-Checkpoints: `preflight-passed`, `commands-confirmed`, `blueprint-validated`, `tdd-ready`, `implementation-batch-complete`, `reviewer-approved`, `qa-pass`, `conformance-pass`, `quality-bench-cleared`, `docs-complete`, `uat-approved`.
+Checkpoints: `preflight-passed`, `commands-confirmed`, `blueprint-validated`, `tdd-ready`, `implementation-batch-complete`, `reviewer-approved`, `qa-pass`, `conformance-pass`, `quality-bench-cleared`, `coderabbit-clean`, `docs-complete`, `uat-approved`.
 
 **python3 plugins/claude-tech-squad/bin/squad-cli checkpoint** (preferred):
 
@@ -828,6 +828,57 @@ Return the updated implementation with all blocking issues resolved.
 - Surface to user: "Non-blocking issues found — [A]ccept and advance / [F]ix before advancing"
 - If [A]: advance immediately
 - If [F]: spawn impl agents for the warnings, re-run relevant bench agents, then advance
+
+### Step 7c — CodeRabbit Final Review Gate
+
+**Purpose:** deterministic second-lens review (tool-based, non-LLM) to catch issues the LLM reviewer and bench may have missed. Runs **after** quality bench is clean, **before** docs.
+
+**Execution (shell, not an agent):**
+
+```
+bash plugins/claude-tech-squad/bin/coderabbit_gate.sh
+```
+
+Capture the exit code:
+- **`0`**: emit `[Gate] CodeRabbit Final Review | clean or skipped` → advance to Step 8
+- **`2`**: findings detected → enter remediation cycle below
+- **`1`**: unexpected error (network/auth) → emit `[Gate Error] CodeRabbit Final Review | <reason>` and surface to user: `[R]etry / [S]kip gate (document as risk) / [X]Abort`
+
+**Remediation cycle (exit 2):**
+
+1. Capture the CodeRabbit output (stdout of the gate script) into `{{coderabbit_findings}}`
+2. Re-spawn the `reviewer` teammate with the findings as input:
+
+```
+Agent(
+  team_name = <team>,
+  name = "reviewer-coderabbit",
+  subagent_type = "claude-tech-squad:{{reviewer_agent}}",
+  prompt = """
+## CodeRabbit Final Review — Remediation Pass
+
+The CodeRabbit deterministic gate detected issues after quality bench passed.
+Review each finding, validate it against the current code, and apply only necessary fixes.
+Do NOT refactor unrelated code. Do NOT introduce new behavior.
+
+### CodeRabbit Findings (full)
+{{coderabbit_findings}}
+
+### Acceptance Criteria (full)
+{{acceptance_criteria}}
+
+Return updated files and a brief per-finding disposition (fixed / false-positive-ignored-because-<reason>).
+"""
+)
+```
+
+3. After reviewer returns, re-run the gate script
+4. Repeat — **max 2 remediation cycles**
+5. If findings persist after 2 cycles:
+   - Emit: `[Gate] CodeRabbit Final Review Unresolved | findings remain after 2 cycles`
+   - Surface to user: `[A]ccept with known issues (document as tech debt in SEP log) / [X]Abort`
+
+**Checkpoint:** on clean pass, emit `[Checkpoint Saved] implement | cursor=coderabbit-clean`
 
 ### Step 8 — Docs Writer Teammate
 

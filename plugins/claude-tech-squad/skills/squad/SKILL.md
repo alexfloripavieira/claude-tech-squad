@@ -442,6 +442,15 @@ Emit: `[Phase Start] implementation`
    - If a bench agent fails structurally: consult `fallback_matrix.squad.<agent-name>` before surfacing the failure gate
    - If blocking persists after 2 cycles: emit `[Gate] Quality Bench Unresolved` → surface `[A]ccept with known issues / [X]Abort`
    - If only WARNINGS: surface summary → `[A]ccept and advance / [F]ix before advancing`
+6b. **CodeRabbit Final Review Gate** (deterministic, tool-based — complementar ao LLM reviewer):
+   - Run `bash plugins/claude-tech-squad/bin/coderabbit_gate.sh` and capture exit code
+   - Exit `0`: emit `[Gate] CodeRabbit Final Review | clean or skipped` → advance to Step 7
+   - Exit `2` (findings detected):
+     - Re-spawn `reviewer` (subagent_type: `{{reviewer_agent}}`) with the CodeRabbit output as `{{coderabbit_findings}}` and instruction: "Resolva cada finding, aplique apenas o minimo necessario, retorne disposicao por finding (fixed / false-positive-ignored-because-<reason>)."
+     - Re-run the gate script after reviewer finishes
+     - Repeat — **max 2 remediation cycles**
+     - If findings persist after 2 cycles: emit `[Gate] CodeRabbit Final Review Unresolved` → surface `[A]ccept with known issues (document as tech debt in SEP log) / [X]Abort`
+   - Exit `1` (CLI error/auth): emit `[Gate Error] CodeRabbit Final Review | <reason>` → surface `[R]etry / [S]kip gate (document as risk) / [X]Abort`
 7. Spawn `docs-writer`
 8. Spawn `jira-confluence` (subagent_type: `jira-confluence-specialist`)
 9. Spawn `pm-uat` (subagent_type: `pm`) → **Gate 6: UAT Approval**
