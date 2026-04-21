@@ -22,6 +22,8 @@
 - [ ] Result contract evidence present
 - [ ] Retry / fallback behavior explained
 - [ ] Gates visible and sensible
+- [ ] Delivery docs present and valid (prd.md, techspec.md, tasks.md, work-items.md)
+- [ ] Teammate cards and final pipeline board rendered in terminal output
 
 ## Evidence
 

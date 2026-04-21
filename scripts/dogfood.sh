@@ -89,4 +89,17 @@ grep -q '\[tool\.mypy\]' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture miss
 grep -q 'anthropic' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture missing anthropic dependency"
 grep -q 'ai-engineer\|llm-eval-specialist' "$LLM_RAG/CLAUDE.md" || fail "llm-rag fixture missing AI specialist instruction"
 
+# ── Integration-mode assertions for delivery docs + visual reporting ───────
+# Only run when INTEGRATION=1 (after a real golden run has populated .expected/)
+if [ "${INTEGRATION:-0}" = "1" ]; then
+  EXPECTED_ROOT="$FIXTURES_DIR/layered-monolith/.expected"
+  for f in prd.md techspec.md tasks.md work-items.md; do
+    require_file "$EXPECTED_ROOT/ai-docs/prd-layered-monolith/$f"
+  done
+  TERMINAL_OUT="$EXPECTED_ROOT/terminal-out.txt"
+  require_file "$TERMINAL_OUT"
+  grep -q "TOTAL" "$TERMINAL_OUT" || fail "terminal-out missing pipeline board TOTAL row"
+  grep -q "prd-author" "$TERMINAL_OUT" || fail "terminal-out missing prd-author card"
+fi
+
 echo "claude-tech-squad dogfood fixtures passed"
