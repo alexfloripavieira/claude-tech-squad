@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.50.0] - 2026-04-21 — Automated feature release
+
+### Added
+
+- Add CodeRabbit final review gate to /implement and /squad (#21)
 ## [5.49.0] - 2026-04-18 — Automated feature release
 
 ### Added
