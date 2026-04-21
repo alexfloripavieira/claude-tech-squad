@@ -196,6 +196,12 @@ Validation rules:
 - `confidence_after_verification` must match `confidence` in `result_contract`
 - Missing `result_contract` OR missing `verification_checklist` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
 
+## Visual Reporting Contract
+
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
+
 ## Runtime Resilience Contract
 
 Load `plugins/claude-tech-squad/runtime-policy.yaml` before repository recon or team creation. This file is the source of truth for:
@@ -314,6 +320,44 @@ Call `TeamCreate` (fetch schema via ToolSearch if needed):
 - `description`: "Full squad run for: {{user_request_one_line}}"
 
 Emit: `[Team Created] squad`
+
+---
+
+### PHASE 0: DELIVERY DOCS
+
+Squad runs the full delivery docs chain inline. Each step reuses existing artifacts when valid.
+
+Emit: `[Phase Start] delivery-docs`
+
+1. **PRD** → `ai-docs/prd-{{feature_slug}}/prd.md`
+   - Reuse if the file exists and validates against `templates/prd-template.md`.
+   - Otherwise spawn `prd-author` via `Agent(team_name="squad", name="prd-author", subagent_type="claude-tech-squad:prd-author", prompt=<digest>)`.
+   - Checkpoint: `prd-produced`.
+
+2. **TechSpec** → `ai-docs/prd-{{feature_slug}}/techspec.md`
+   - Reuse if the file exists and validates against `templates/techspec-template.md`.
+   - Otherwise spawn `inception-author` via `Agent(team_name="squad", name="inception-author", subagent_type="claude-tech-squad:inception-author", prompt=<digest>)`.
+   - Checkpoint: `techspec-produced`.
+
+3. **Tasks** → `ai-docs/prd-{{feature_slug}}/tasks.md` + `<num>_task.md`
+   - Reuse if all task files exist and validate against `templates/tasks-template.md` + `templates/task-template.md`.
+   - Otherwise spawn `tasks-planner`.
+   - Checkpoint: `tasks-produced`.
+
+4. **Work items** → `ai-docs/prd-{{feature_slug}}/work-items.md`
+   - Spawn `work-item-mapper`.
+   - Checkpoint: `work-items-produced`.
+
+Between each step:
+
+- Pipe `result_contract.metrics` to `render-teammate-card.sh` per the Visual Reporting Contract.
+- If any agent returns `confidence: low` with `gaps_count > 0`, open a user gate before continuing:
+  ```
+  [Gate] Delivery Docs Confidence Low | step: <step> | gaps: <gap_list> | Waiting for user input
+  ```
+- If `delivery_gates.enabled: true` and `work-item-mapper` reports a BLOCKING finding, stop the pipeline and open a user gate.
+
+Emit: `[Phase Done] delivery-docs`
 
 ---
 
