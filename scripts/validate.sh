@@ -70,6 +70,7 @@ REQUIRED_SKILLS=(
   implement
   squad
   bug-fix
+  inception
   security-audit
   migration-plan
   cloud-debug
@@ -161,6 +162,10 @@ REQUIRED_AGENTS=(
   tech-lead
   typescript-developer
   vue-developer
+  prd-author
+  inception-author
+  tasks-planner
+  work-item-mapper
 )
 
 for agent in "${REQUIRED_AGENTS[@]}"; do
@@ -231,9 +236,41 @@ for skill in discovery implement squad; do
   fi
 done
 
-for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:' '^checkpoint_resume:' '^reliability_metrics:'; do
+# ── Visual Reporting Contract in orchestrator skills ─────────────────────────
+for skill in discovery implement squad inception bug-fix hotfix; do
+  skill_file="$SKILLS_DIR/$skill/SKILL.md"
+  if [ ! -f "$skill_file" ]; then
+    continue
+  fi
+  if ! grep -q "^## Visual Reporting Contract$" "$skill_file"; then
+    echo "Skill missing Visual Reporting Contract section: $skill"
+    exit 1
+  fi
+done
+
+# ── Render scripts present and executable ────────────────────────────────────
+for script in render-teammate-card.sh render-pipeline-board.sh; do
+  path="$PLUGIN_DIR/scripts/$script"
+  if [ ! -f "$path" ]; then
+    echo "Missing render script: $script"
+    exit 1
+  fi
+  if [ ! -x "$path" ]; then
+    echo "Render script not executable: $script"
+    exit 1
+  fi
+done
+
+for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:' '^checkpoint_resume:' '^reliability_metrics:' '^work_item_taxonomy:' '^delivery_gates:'; do
   if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
     echo "runtime-policy.yaml missing required key matching: $key"
+    exit 1
+  fi
+done
+
+for key in '^  teammate_cards:' '^  pipeline_board:'; do
+  if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
+    echo "runtime-policy.yaml observability missing key: $key"
     exit 1
   fi
 done

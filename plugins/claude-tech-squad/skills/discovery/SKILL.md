@@ -187,6 +187,14 @@ If the runtime policy file is missing or unreadable, stop the run and surface `[
 
 ---
 
+## Visual Reporting Contract
+
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline in the orchestrator output. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log (Step 13c), assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
+
+---
+
 ## Execution
 
 ### Preflight Gate
@@ -282,6 +290,32 @@ Store the confirmed scope as `{{confirmed_scope}}` and pass it to PM as context.
 If no ambiguity is detected, skip this gate silently — do not ask unnecessary questions.
 
 Emit (if triggered): `[Gate] Scope Confirmation | Waiting for user input`
+
+### Step 2c — PRD Author (Delivery Docs — Phase 0)
+
+Before spawning PM (Step 3), produce or reuse the PRD:
+
+1. Check if `ai-docs/prd-{{feature_slug}}/prd.md` exists and validates against `templates/prd-template.md`. If yes, emit:
+   ```
+   [Teammate Done] prd-author | Output: reused ai-docs/prd-{{feature_slug}}/prd.md
+   ```
+   and proceed to Step 3.
+2. Otherwise spawn `prd-author` as a teammate:
+   ```
+   Agent(
+     team_name = "discovery",
+     name = "prd-author",
+     subagent_type = "claude-tech-squad:prd-author",
+     prompt = <orchestrator context digest + feature slug + feature description>
+   )
+   ```
+3. Wait for completion. Validate the Result Contract `metrics` block is present.
+4. If `confidence: low` and `gaps_count > 0`, open a user gate before continuing:
+   ```
+   [Gate] PRD Confidence Low | gaps: <gap_list> | Waiting for user input
+   ```
+5. Pipe the `metrics` JSON to `render-teammate-card.sh` per the Visual Reporting Contract.
+6. Record checkpoint: `prd-produced`. Emit `[Checkpoint Saved] discovery | cursor=prd-produced`.
 
 ### Step 3 — PM Teammate (Gate 1)
 

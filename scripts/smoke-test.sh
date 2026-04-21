@@ -228,4 +228,31 @@ for trace_line in 'Cost Warning' 'Doom Loop' 'Auto-Advanced' 'Entropy Check' 'SE
   }
 done
 
+# ── Delivery docs agents ───────────────────────────────────────────────────
+for a in prd-author inception-author tasks-planner work-item-mapper; do
+  test -f "$PLUGIN_DIR/agents/$a.md" || {
+    echo "Smoke test failed: missing agent $a"
+    exit 1
+  }
+done
+
+# ── Inception skill present ────────────────────────────────────────────────
+test -f "$PLUGIN_DIR/skills/inception/SKILL.md" || {
+  echo "Smoke test failed: missing inception skill"
+  exit 1
+}
+
+# ── Render scripts executable ──────────────────────────────────────────────
+for s in render-teammate-card.sh render-pipeline-board.sh; do
+  path="$PLUGIN_DIR/scripts/$s"
+  test -f "$path" || { echo "Smoke test failed: missing $s"; exit 1; }
+  test -x "$path" || { echo "Smoke test failed: $s not executable"; exit 1; }
+done
+
+# ── Render byte-diff tests ─────────────────────────────────────────────────
+bash "$ROOT/scripts/test-render.sh" > /dev/null || {
+  echo "Smoke test failed: render byte-diff tests failed"
+  exit 1
+}
+
 echo "claude-tech-squad smoke test passed"

@@ -49,6 +49,7 @@ Not sure which skill to run? Answer these four questions:
 | Is **production broken right now**? | → `/hotfix` (known location) or `/cloud-debug` (need to investigate) |
 | Do you have an **open PR** to review? | → `/pr-review` |
 | Do you want to **build a feature** end-to-end? | → `/squad` (full pipeline) or `/discovery` (blueprint only) then `/implement` |
+| Need **only a TechSpec** from an existing PRD? | → `/inception` (technical refinement: architecture, risks, gates, estimate) |
 
 For less common situations — refactor, security audit, migration, LLM eval, multi-service — see [SKILL-SELECTOR.md](docs/SKILL-SELECTOR.md).
 
@@ -205,7 +206,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 /claude-tech-squad:prompt-review # before merging any prompt file change
 ```
 
-## Specialist Roster (74 agents)
+## Specialist Roster (78 agents)
 
 ### Discovery & Planning
 - PM
@@ -214,6 +215,12 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 - Planner
 - Architect
 - Tech Lead
+
+### Delivery Docs
+- PRD Author *(generates PRD from orchestrator context, PT-BR content, strict template compliance)*
+- Inception Author *(generates TechSpec with viability, risks, gates, effort estimate)*
+- Tasks Planner *(decomposes PRD+TechSpec into sequenced tasks with test subtasks)*
+- Work Item Mapper *(maps delivery artifacts to configured vendor-neutral taxonomy; classifies defect vs bug)*
 
 ### Architecture Specialists
 - Backend Architect
