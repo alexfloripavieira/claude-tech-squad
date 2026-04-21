@@ -1,0 +1,22 @@
+{
+  "skill": "squad",
+  "scenario": "feature-x",
+  "duration_ms": 252000,
+  "budget_usd": 2.00,
+  "teammates": [
+    {"name": "prd-author",       "status": "done", "tokens_total": 15500, "cost_usd": 0.048, "gaps_count": 0, "severity": null},
+    {"name": "inception-author", "status": "done", "tokens_total": 22100, "cost_usd": 0.067, "gaps_count": 1, "severity": "WARN"},
+    {"name": "tasks-planner",    "status": "done", "tokens_total": 18300, "cost_usd": 0.055, "gaps_count": 0, "severity": null},
+    {"name": "work-item-mapper", "status": "done", "tokens_total":  9200, "cost_usd": 0.028, "gaps_count": 0, "severity": null},
+    {"name": "backend-dev",      "status": "done", "tokens_total": 41700, "cost_usd": 0.126, "gaps_count": 0, "severity": null},
+    {"name": "reviewer",         "status": "done", "tokens_total": 12800, "cost_usd": 0.039, "gaps_count": 2, "severity": "INFO"},
+    {"name": "qa",               "status": "done", "tokens_total": 19500, "cost_usd": 0.059, "gaps_count": 0, "severity": null}
+  ],
+  "checkpoints_passed": 4,
+  "checkpoints_total": 4,
+  "gates_passed": 3,
+  "gates_total": 3,
+  "retries": 0,
+  "artifacts": ["prd.md", "techspec.md", "tasks.md", "work-items.md"],
+  "sep_log_path": "ai-docs/.squad-log/squad-20260421-1432.md"
+}
