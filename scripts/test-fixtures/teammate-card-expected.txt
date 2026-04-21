@@ -1,0 +1,5 @@
+┌─ prd-author ─────────────────────────── ✓ done ─┐
+│  tokens in:  12.4k   out:   3.1k   total: 15.5k │
+│  cost:  $0.0483     duration: 18.2s               │
+│  confidence: high   gaps: 0   artifacts: 1     │
+└──────────────────────────────────────────────────┘

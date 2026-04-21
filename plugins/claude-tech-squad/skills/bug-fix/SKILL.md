@@ -328,6 +328,29 @@ Output: APPROVED or CHANGES REQUESTED. If CHANGES REQUESTED, only list blocker-c
 
 If reviewer outputs CHANGES REQUESTED: apply ONLY the blocker findings. Do NOT apply LOW/NIT suggestions. Repeat Step 5–6 once more with the blocker fixes only.
 
+### Step 6a — Post-Fix Classification (Work Item Mapping)
+
+After the fix is produced and reviewed, but before writing the SEP log:
+
+1. Spawn `work-item-mapper` with the bug report + fix summary as input:
+   ```
+   Agent(
+     team_name = "bug-fix",
+     name = "work-item-mapper",
+     subagent_type = "claude-tech-squad:work-item-mapper",
+     prompt = <bug report + root cause + fix summary + taxonomy context>
+   )
+   ```
+2. Expect a Result Contract with defect-vs-bug classification per `runtime-policy.yaml` `work_item_taxonomy.defect_classification`. If ambiguous, the mapper returns `needs_input` — open a user gate.
+3. Pipe the mapper's `metrics` JSON through `render-teammate-card.sh` per the Visual Reporting Contract.
+4. Record the classification in the SEP log under `delivery_docs.work_items`.
+
+## Visual Reporting Contract
+
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
+
 ### Step 6b — Write SEP log (SEP Contrato 1)
 
 **python3 plugins/claude-tech-squad/bin/squad-cli sep-log** (preferred — if run was initialized with `python3 plugins/claude-tech-squad/bin/squad-cli init`):

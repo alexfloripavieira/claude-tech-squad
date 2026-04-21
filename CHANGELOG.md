@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.51.0] - 2026-04-21 — Automated feature release
+
+### Added
+
+- Delivery docs pipeline, inception skill, visual reporting (#22)
 ## [5.50.0] - 2026-04-21 — Automated feature release
 
 ### Added
