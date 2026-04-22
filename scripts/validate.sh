@@ -44,6 +44,7 @@ test -f "$ROOT/scripts/release.sh"
 test -f "$ROOT/scripts/smoke-test.sh"
 test -f "$ROOT/scripts/dogfood.sh"
 test -f "$ROOT/scripts/dogfood-report.sh"
+test -f "$ROOT/scripts/test-sdk.sh"
 test -f "$ROOT/scripts/start-golden-run.sh"
 test -f "$ROOT/scripts/prepare-release-metadata.sh"
 test -f "$ROOT/scripts/verify-release.sh"
@@ -304,6 +305,28 @@ test -f "$PLUGIN_DIR/bin/squad_cli/sdk.py" || {
   exit 1
 }
 
+test -f "$PLUGIN_DIR/bin/squad_cli/ticket_sources/jira.py" || {
+  echo "squad-cli missing Jira ticket source adapter"
+  exit 1
+}
+
+test -f "$PLUGIN_DIR/bin/squad_cli/ticket_sources/linear.py" || {
+  echo "squad-cli missing Linear ticket source adapter"
+  exit 1
+}
+
+test -f "$PLUGIN_DIR/bin/squad_cli/ticket_sources/github.py" || {
+  echo "squad-cli missing GitHub ticket source adapter"
+  exit 1
+}
+
+for example in sdk_ticket_plan.py sdk_dashboard_report.py sdk_onboarding_plan.py; do
+  test -f "$ROOT/examples/$example" || {
+    echo "Missing SDK example: $example"
+    exit 1
+  }
+done
+
 grep -q 'dashboard' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
   echo "squad-cli missing dashboard command"
   exit 1
@@ -316,6 +339,16 @@ grep -q 'ticket-plan' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
 
 grep -q 'sdk-smoke' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
   echo "squad-cli missing sdk-smoke command"
+  exit 1
+}
+
+grep -q 'ticket_plan_from_context' "$PLUGIN_DIR/bin/squad_cli/sdk.py" || {
+  echo "SDK missing ticket_plan_from_context"
+  exit 1
+}
+
+grep -q 'to_json' "$PLUGIN_DIR/bin/squad_cli/sdk.py" || {
+  echo "SDK missing deterministic JSON helper"
   exit 1
 }
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 import re
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
@@ -53,6 +54,9 @@ class DashboardReport:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True)
 
 
 def build_dashboard_report(log_dir: Path, limit: int = 30) -> DashboardReport:

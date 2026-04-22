@@ -23,6 +23,9 @@ class OnboardingPlan:
     def to_dict(self) -> dict:
         return asdict(self)
 
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True)
+
 
 def load_onboarding_catalog(path: Path) -> dict:
     with path.open() as fh:

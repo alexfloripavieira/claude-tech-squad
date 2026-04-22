@@ -317,16 +317,46 @@ def dashboard_cmd(
 @click.argument("ticket", required=False, default="")
 @click.option("--ticket-json", default=None, type=click.Path(exists=True))
 @click.option("--text-file", default=None, type=click.Path(exists=True))
-def ticket_plan_cmd(ticket: str, ticket_json: str | None, text_file: str | None):
-    from squad_cli.ticket import build_ticket_plan, load_ticket_context
+@click.option("--write-sep-log/--no-write-sep-log", default=False)
+@click.option("--log-dir", default="ai-docs/.squad-log", type=click.Path())
+def ticket_plan_cmd(
+    ticket: str,
+    ticket_json: str | None,
+    text_file: str | None,
+    write_sep_log: bool,
+    log_dir: str,
+):
+    from squad_cli.ticket import (
+        build_ticket_plans,
+        load_ticket_contexts,
+        write_from_ticket_sep_log,
+    )
 
-    context = load_ticket_context(
+    contexts = load_ticket_contexts(
         ticket,
         Path(ticket_json) if ticket_json else None,
         Path(text_file) if text_file else None,
     )
-    plan = build_ticket_plan(context)
-    _output(plan.to_dict())
+    plans = build_ticket_plans(contexts)
+    sep_logs = []
+    if write_sep_log:
+        sep_logs = [str(write_from_ticket_sep_log(plan, Path(log_dir))) for plan in plans]
+
+    if len(plans) == 1:
+        output = plans[0].to_dict()
+        if sep_logs:
+            output["sep_log"] = sep_logs[0]
+        _output(output)
+        return
+
+    _output(
+        {
+            "status": "planned",
+            "count": len(plans),
+            "plans": [plan.to_dict() for plan in plans],
+            "sep_logs": sep_logs,
+        }
+    )
 
 
 @main.command("sdk-smoke")
@@ -343,6 +373,7 @@ def sdk_smoke_cmd(project_root: str, plugin_root: str):
     onboarding = client.onboarding_plan()
     dashboard = client.dashboard_report(limit=5)
     ticket = client.ticket_plan("PROJ-123")
+    from_context = client.ticket_plan_from_context(ticket.extracted_context)
     _output(
         {
             "status": "ok",
@@ -350,6 +381,7 @@ def sdk_smoke_cmd(project_root: str, plugin_root: str):
             "dashboard_logs_analyzed": dashboard.logs_analyzed,
             "ticket_source": ticket.source,
             "ticket_recommended_skill": ticket.recommended_skill,
+            "ticket_context_skill": from_context.recommended_skill,
         }
     )
 

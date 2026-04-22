@@ -24,9 +24,10 @@ The local helper command can preview routing without calling external MCP tools:
 ```bash
 python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan PROJ-123
 python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan LIN-123 --ticket-json ticket.json
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan --ticket-json tickets.json --write-sep-log
 ```
 
-This helper is intentionally vendor-neutral. It normalizes Jira, Linear, GitHub Issue, JQL, and pasted ticket context into the same launch context used by downstream skills.
+This helper is intentionally vendor-neutral. It uses local source adapters for Jira, Linear, GitHub Issue, JQL, and pasted ticket context, then normalizes each item into the same launch context used by downstream skills. The adapters accept captured MCP/API JSON, but the helper itself does not call external APIs.
 
 ## Supported Sources
 
@@ -39,6 +40,8 @@ This helper is intentionally vendor-neutral. It normalizes Jira, Linear, GitHub 
 | **Pasted text** | `/from-ticket` then paste the ticket content | No MCP needed |
 
 If the MCP tool for the source is unavailable, ask the user to paste the ticket content as fallback.
+
+For batch/JQL flows, return one plan per ticket. Group the result by recommended skill before asking whether to launch work.
 
 ## Execution
 
@@ -235,3 +238,5 @@ Read {{ticket_id}} ({{issue_type}}, {{priority}}), classified as {{tier}}, recom
 ```
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
+
+The local helper can write this planning SEP log directly with `--write-sep-log`. Post-execution ticket comments, status transitions, and external API mutations still require explicit user confirmation.

@@ -113,6 +113,26 @@ assert plan["complexity_tier"] == "medium", plan
 assert "Ticket Context - LIN-123" in plan["launch_context"], plan
 PY
 
+TICKET_BATCH="$TMP_GOLDEN_DIR/ticket-batch.json"
+printf '%s\n' \
+  '[' \
+  '  {"source": "github", "repository": "acme/web", "number": 42, "title": "Fix checkout error", "labels": [{"name": "bug"}], "priority": "High"},' \
+  '  {"source": "jira", "key": "OPS-7", "fields": {"summary": "Audit Terraform state", "issuetype": {"name": "Task"}, "priority": {"name": "Medium"}, "labels": ["infra"]}}' \
+  ']' \
+  > "$TICKET_BATCH"
+BATCH_PLAN="$TMP_GOLDEN_DIR/ticket-batch-plan.json"
+python3 "$PLUGIN_DIR/bin/squad-cli" ticket-plan --ticket-json "$TICKET_BATCH" --write-sep-log --log-dir "$TMP_GOLDEN_DIR/from-ticket-logs" > "$BATCH_PLAN"
+python3 - "$BATCH_PLAN" <<'PY'
+import json
+import sys
+
+result = json.load(open(sys.argv[1]))
+assert result["count"] == 2, result
+assert result["plans"][0]["source"] == "github", result
+assert result["plans"][1]["recommended_skill"] == "iac-review", result
+assert len(result["sep_logs"]) == 2, result
+PY
+
 SDK_SMOKE="$TMP_GOLDEN_DIR/sdk-smoke.json"
 python3 "$PLUGIN_DIR/bin/squad-cli" sdk-smoke \
   --project-root "$ROOT/fixtures/dogfooding/llm-rag" \
@@ -125,7 +145,10 @@ result = json.load(open(sys.argv[1]))
 assert result["status"] == "ok", result
 assert result["onboarding_stack"] == "python", result
 assert result["ticket_source"] == "jira", result
+assert result["ticket_context_skill"] == result["ticket_recommended_skill"], result
 PY
+
+bash "$ROOT/scripts/test-sdk.sh" >/dev/null
 
 GOLDEN_RUNS_DIR="$TMP_GOLDEN_DIR" bash "$ROOT/scripts/start-golden-run.sh" layered-monolith smoke-test >/dev/null
 

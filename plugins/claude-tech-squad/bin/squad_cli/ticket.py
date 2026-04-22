@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, asdict, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 
 JIRA_RE = re.compile(r"\b[A-Z][A-Z0-9]+-[0-9]+\b")
@@ -29,6 +31,9 @@ class TicketContext:
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True)
+
 
 @dataclass
 class TicketPlan:
@@ -47,6 +52,9 @@ class TicketPlan:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True)
 
 
 def detect_ticket_source(raw: str) -> dict[str, str]:
@@ -82,28 +90,18 @@ def load_ticket_context(
     ticket_json: Path | None = None,
     text_file: Path | None = None,
 ) -> TicketContext:
-    if ticket_json:
-        data = json.loads(ticket_json.read_text())
-        return _context_from_mapping(data, raw)
+    contexts = load_ticket_contexts(raw, ticket_json, text_file)
+    return contexts[0]
 
-    text = text_file.read_text() if text_file else raw
-    detected = detect_ticket_source(raw or text)
-    title = _extract_prefixed(text, "Title") or _first_nonempty_line(text)
-    issue_type = _extract_prefixed(text, "Type") or _infer_issue_type(text, [])
-    priority = _extract_prefixed(text, "Priority") or _infer_priority(text)
-    labels = _extract_list(text, "Labels")
 
-    return TicketContext(
-        source=detected["source"],
-        ticket_id=detected["ticket_id"],
-        title=title,
-        description=text.strip(),
-        issue_type=issue_type,
-        priority=priority,
-        acceptance_criteria=_extract_acceptance_criteria(text),
-        subtasks=_extract_list(text, "Subtasks"),
-        labels=labels,
-    )
+def load_ticket_contexts(
+    raw: str,
+    ticket_json: Path | None = None,
+    text_file: Path | None = None,
+) -> list[TicketContext]:
+    from squad_cli.ticket_sources import load_contexts
+
+    return load_contexts(raw, ticket_json, text_file)
 
 
 def build_ticket_plan(context: TicketContext) -> TicketPlan:
@@ -128,6 +126,55 @@ def build_ticket_plan(context: TicketContext) -> TicketPlan:
         extracted_context=context.to_dict(),
         launch_context=render_launch_context(context),
     )
+
+
+def build_ticket_plans(contexts: list[TicketContext]) -> list[TicketPlan]:
+    return [build_ticket_plan(context) for context in contexts]
+
+
+def write_from_ticket_sep_log(
+    plan: TicketPlan,
+    log_dir: Path,
+    skill_launched: str = "",
+    ticket_updated: bool = False,
+    fallback_used: bool = False,
+) -> Path:
+    log_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now(timezone.utc).isoformat()
+    safe_ticket = re.sub(r"[^A-Za-z0-9_.-]+", "-", plan.ticket_id).strip("-") or "pasted"
+    run_id = f"from-ticket-{uuid4().hex[:8]}"
+    path = log_dir / f"{timestamp[:19].replace(':', '-')}-from-ticket-{safe_ticket}.md"
+    fallback_values = ["ticket-source-unavailable"] if fallback_used else []
+    body = "\n".join(
+        [
+            "---",
+            f"run_id: {run_id}",
+            "skill: from-ticket",
+            f"timestamp: {timestamp}",
+            "status: completed",
+            "final_status: completed",
+            "execution_mode: inline",
+            f"ticket_source: {plan.source}",
+            f"ticket_id: {plan.ticket_id}",
+            f"recommended_skill: {plan.recommended_skill}",
+            f"skill_launched: {skill_launched or 'none'}",
+            f"ticket_updated: {str(ticket_updated).lower()}",
+            f"fallback_used: {str(fallback_used).lower()}",
+            f"fallbacks_invoked: {fallback_values}",
+            "checkpoints: [ticket-context-loaded, ticket-plan-built]",
+            "gates_blocked: []",
+            "---",
+            "",
+            "## Output Digest",
+            f"Planned `{plan.ticket_id}` from `{plan.source}` for `/{plan.recommended_skill}`.",
+            "",
+            "## Launch Context",
+            plan.launch_context,
+            "",
+        ]
+    )
+    path.write_text(body)
+    return path
 
 
 def render_launch_context(context: TicketContext) -> str:
@@ -280,6 +327,7 @@ def _normalize_priority(value: str) -> str:
         "p0": "Critical",
         "critical": "Critical",
         "highest": "Critical",
+        "urgent": "High",
         "p1": "High",
         "high": "High",
         "p2": "Medium",
