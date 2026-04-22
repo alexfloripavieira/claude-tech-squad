@@ -1,7 +1,7 @@
 {
   "name": "claude-tech-squad",
   "description": "A complete software delivery squad for Claude Code \u2014 74 specialist agents and 23 skills covering the full delivery pipeline. Stack-aware routing automatically selects the right specialist for Django, React, Vue, TypeScript, JavaScript, Python, Go, Rust, Java, Ruby, PHP, .NET, and Elixir projects. Includes squad-cli (embedded Python orchestrator) for deterministic preflight, health checks, doom loop detection, checkpoints, cost tracking, and SEP log generation \u2014 reducing token overhead by 80-85%. Includes a dedicated LLM/AI bench that activates automatically when AI code is detected. Skills: /discovery, /implement, /squad, /hotfix, /pr-review, /refactor, /security-audit, /llm-eval, /prompt-review, /release, /migration-plan, /dependency-check, /cloud-debug, /iac-review, /multi-service, /onboarding, /bug-fix, /incident-postmortem, /pre-commit-lint, /factory-retrospective, /cost-estimate, /from-ticket, /dashboard.",
-  "version": "5.56.0",
+  "version": "5.56.1",
   "author": {
     "name": "alexfloripavieira"
   }

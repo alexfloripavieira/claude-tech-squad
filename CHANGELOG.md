@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.56.1] - 2026-04-22 — Automated maintenance release
+
+### Changed
+
+- Implement feature X to enhance user experience and optimize performance
 ## [5.56.0] - 2026-04-22 — Automated feature release
 
 ### Added
