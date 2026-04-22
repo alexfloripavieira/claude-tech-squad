@@ -78,6 +78,23 @@ Emit these lines for every teammate action:
 - `[Gate] <gate-name> | Waiting for user input`
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
 - `[Phase Done] <phase-name> | Outcome: <summary>`
+- `[Token Usage] run=<run_id> | used=<N>k | threshold=100k`
+- `[Context Advisory] run=<run_id> | recommend=finish-current-gate-then-rollover`
+- `[Gate] Context Rollover Required | run=<run_id> | used=<N>k | options=[R|D|F]`
+- `[Rollover Accepted] run=<run_id> | handoff=<artifact-path>`
+- `[Rollover Declined] run=<run_id> | reason=<user-text>`
+
+## Context Rollover Gate
+
+Between every `[Phase Done]` and the next `[Phase Start]`, inspect cumulative token usage for the run. Emit `[Token Usage]` every phase boundary.
+
+- If `used >= 100k`: emit `[Context Advisory]`. The run continues, but the advisory signals that the next phase should be the last before a rollover.
+- If `used >= 140k`: emit `[Gate] Context Rollover Required` and halt. The operator must choose:
+  - `R` — Rollover now. Spawn `context-summarizer` as a teammate, then halt for `/clear` plus `/resume-from-rollover <run_id>`.
+  - `D` — Defer one phase. Proceed only with the next phase; force rollover immediately after.
+  - `F` — Force continue. Emit `[Rollover Declined]` with the operator reason. Degradation risk is accepted and logged.
+
+Threshold constants and the summarizer agent are declared in `runtime-policy.yaml` under `context_management`. Checks fire only at phase boundaries, never mid-phase. Rationale and alternatives: `docs/architecture/0001-context-rollover.md`.
 
 ## Progressive Disclosure — Context Digest Protocol
 

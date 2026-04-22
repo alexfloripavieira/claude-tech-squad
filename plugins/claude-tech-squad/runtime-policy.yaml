@@ -663,3 +663,40 @@ delivery_gates:
     - id: qa_required_for_stories
       severity: INFO
       description: Stories should include a QA step in the flow
+
+# ── Context rollover management (ADR 0001) ──────────────────────────────────
+context_management:
+  enabled: true
+  advisory_threshold_tokens: 100000
+  hard_rollover_threshold_tokens: 140000
+  summarizer_agent: context-summarizer
+  summarizer_model_class: chat
+  summarizer_model_preference:
+    - claude-haiku-4-5
+    - groq/llama-3.3-70b-versatile
+    - gpt-4o-mini
+  rollover_gate_options:
+    R: rollover-now
+    D: defer-one-phase
+    F: force-continue-with-risk
+  check_only_at_phase_boundaries: true
+  artifacts:
+    brief_path_template: ai-docs/.squad-log/rollover-<run_id>-brief.md
+    state_path_template: ai-docs/.squad-log/rollover-<run_id>.json
+    schema_version: "1.0"
+  applies_to_skills:
+    - squad
+    - implement
+    - hotfix
+    - refactor
+    - multi-service
+  operator_skills:
+    proactive: rollover
+    resume: resume-from-rollover
+  cost_budget_usd_per_rollover: 0.10
+  description: >
+    Long-running skills must check cumulative token usage between phase
+    boundaries. At 100k soft, emit [Context Advisory]. At 140k hard, emit
+    [Gate] Context Rollover Required and halt for operator choice. See
+    docs/architecture/0001-context-rollover.md for the decision record and
+    alternatives considered.

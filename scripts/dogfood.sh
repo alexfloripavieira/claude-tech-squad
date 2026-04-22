@@ -22,7 +22,7 @@ require_dir() {
 python3 -m json.tool "$MANIFEST" >/dev/null
 
 SCENARIO_COUNT=$(python3 -c "import json; d=json.load(open('$MANIFEST')); print(len(d['scenarios']))")
-[ "$SCENARIO_COUNT" = "4" ] || fail "expected 4 scenarios in manifest, found $SCENARIO_COUNT"
+[ "$SCENARIO_COUNT" = "5" ] || fail "expected 5 scenarios in manifest, found $SCENARIO_COUNT"
 
 if [ "${1:-}" = "--print-prompts" ]; then
   python3 -c "import json; d=json.load(open('$MANIFEST')); [print(f\"[{s['id']}]\\n{s['prompt']}\\n\") for s in d['scenarios']]"

@@ -64,6 +64,23 @@ Emit these lines for every teammate action:
 - `[Checkpoint Saved] <workflow-name> | cursor=<checkpoint>`
 - `[Gate] <gate-name> | Waiting for user input`
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
+- `[Token Usage] run=<run_id> | used=<N>k | threshold=100k`
+- `[Context Advisory] run=<run_id> | recommend=finish-current-gate-then-rollover`
+- `[Gate] Context Rollover Required | run=<run_id> | used=<N>k | options=[R|D|F]`
+- `[Rollover Accepted] run=<run_id> | handoff=<artifact-path>`
+- `[Rollover Declined] run=<run_id> | reason=<user-text>`
+
+## Context Rollover Gate
+
+Between every teammate completion and the next teammate spawn, inspect cumulative token usage. Emit `[Token Usage]` at each phase boundary.
+
+- If `used >= 100k`: emit `[Context Advisory]`. Continue, but plan the next teammate as the last before rollover.
+- If `used >= 140k`: emit `[Gate] Context Rollover Required` and halt for operator choice `[R|D|F]`:
+  - `R` — Rollover now. Spawn `context-summarizer` as a teammate; then halt for `/clear` + `/resume-from-rollover <run_id>`.
+  - `D` — Defer one phase. Proceed one more teammate only, then force rollover.
+  - `F` — Force continue. Emit `[Rollover Declined]` with operator reason. Degradation risk accepted and logged.
+
+Thresholds and summarizer agent declared in `runtime-policy.yaml` under `context_management`. Checks only at boundaries, never mid-teammate. Rationale: `docs/architecture/0001-context-rollover.md`.
 
 ---
 
