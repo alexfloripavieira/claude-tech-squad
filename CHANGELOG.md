@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.56.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Harden ticket source adapters
+- Freeze MVP contracts
+
+### Fixed
+
+- Avoid required pyyaml for dashboard parsing
 ## [5.55.0] - 2026-04-22 — Automated feature release
 
 ### Added
