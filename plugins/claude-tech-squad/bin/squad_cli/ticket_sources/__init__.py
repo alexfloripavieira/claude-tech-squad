@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from squad_cli.ticket import TicketContext, detect_ticket_source
+from squad_cli.ticket_sources.base import (
+    TicketFetchResult,
+    TicketSourceClient,
+    fetch_with_fallback,
+)
 from squad_cli.ticket_sources.github import GitHubIssueAdapter
 from squad_cli.ticket_sources.jira import JiraAdapter
 from squad_cli.ticket_sources.linear import LinearAdapter
@@ -43,3 +49,16 @@ def _adapter_for_source(source: str):
     if source == "github":
         return GitHubIssueAdapter()
     return PastedTicketAdapter()
+
+
+def fetch_context_with_fallback(
+    client: TicketSourceClient,
+    identifier: str,
+    fallback_payload: dict[str, Any] | None = None,
+) -> TicketFetchResult:
+    return fetch_with_fallback(
+        client=client,
+        identifier=identifier,
+        fallback_client=PastedTicketAdapter(),
+        fallback_payload=fallback_payload,
+    )

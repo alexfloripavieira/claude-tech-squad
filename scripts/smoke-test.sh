@@ -11,6 +11,7 @@ bash "$ROOT/scripts/validate.sh"
 bash "$ROOT/scripts/dogfood.sh"
 bash "$ROOT/scripts/dogfood-report.sh" --schema-only
 python3 "$ROOT/scripts/validate-console-contracts.py"
+python3 "$ROOT/scripts/test-ticket-sources.py"
 
 TMP_GOLDEN_DIR="$(mktemp -d)"
 TMP_DIST_DIR="$(mktemp -d)"

@@ -51,6 +51,18 @@ Required fields:
 
 List fields contain strings after adapter normalization.
 
+## TicketSourceClient
+
+Source: `plugins/claude-tech-squad/bin/squad_cli/ticket_sources/base.py`
+
+External integrations must implement this interface instead of letting the Console frontend call vendor APIs directly:
+
+- `source`: stable source slug such as `github`, `jira`, or `linear`.
+- `fetch_ticket(identifier)`: returns the raw source payload and may raise `TicketSourceError`.
+- `to_context(payload)`: normalizes the raw payload to `TicketContext`.
+
+When `fetch_ticket` fails because credentials, tools, or connectivity are unavailable, API code should call `fetch_context_with_fallback(...)`. The fallback result preserves the error text, marks `fallback_used`, and continues with a pasted or captured JSON payload normalized through the same `TicketContext` contract.
+
 ## TicketPlan
 
 Schema: `schemas/ticket-plan.schema.json`

@@ -25,6 +25,8 @@ ai-docs/dogfood-runs/*
 !ai-docs/dogfood-runs/llm-rag/**
 !ai-docs/dogfood-runs/rollover-midimplement/
 !ai-docs/dogfood-runs/rollover-midimplement/**
+!ai-docs/dogfood-runs/from-ticket-fallback/
+!ai-docs/dogfood-runs/from-ticket-fallback/**
 __pycache__/
 .pytest_cache/
 dist/

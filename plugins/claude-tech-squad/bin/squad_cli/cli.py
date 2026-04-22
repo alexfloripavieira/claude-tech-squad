@@ -318,12 +318,14 @@ def dashboard_cmd(
 @click.option("--ticket-json", default=None, type=click.Path(exists=True))
 @click.option("--text-file", default=None, type=click.Path(exists=True))
 @click.option("--write-sep-log/--no-write-sep-log", default=False)
+@click.option("--fallback-used/--no-fallback-used", default=False)
 @click.option("--log-dir", default="ai-docs/.squad-log", type=click.Path())
 def ticket_plan_cmd(
     ticket: str,
     ticket_json: str | None,
     text_file: str | None,
     write_sep_log: bool,
+    fallback_used: bool,
     log_dir: str,
 ):
     from squad_cli.ticket import (
@@ -340,10 +342,14 @@ def ticket_plan_cmd(
     plans = build_ticket_plans(contexts)
     sep_logs = []
     if write_sep_log:
-        sep_logs = [str(write_from_ticket_sep_log(plan, Path(log_dir))) for plan in plans]
+        sep_logs = [
+            str(write_from_ticket_sep_log(plan, Path(log_dir), fallback_used=fallback_used))
+            for plan in plans
+        ]
 
     if len(plans) == 1:
         output = plans[0].to_dict()
+        output["fallback_used"] = fallback_used
         if sep_logs:
             output["sep_log"] = sep_logs[0]
         _output(output)
@@ -353,6 +359,7 @@ def ticket_plan_cmd(
         {
             "status": "planned",
             "count": len(plans),
+            "fallback_used": fallback_used,
             "plans": [plan.to_dict() for plan in plans],
             "sep_logs": sep_logs,
         }

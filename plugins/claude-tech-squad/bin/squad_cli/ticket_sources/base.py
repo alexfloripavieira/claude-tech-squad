@@ -1,13 +1,50 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Protocol
 
 from squad_cli.ticket import TicketContext, detect_ticket_source
 
 
+class TicketSourceError(RuntimeError):
+    """Raised when a ticket source cannot fetch or normalize a ticket."""
+
+
+class TicketSourceClient(Protocol):
+    source: str
+
+    def fetch_ticket(self, identifier: str) -> dict[str, Any]:
+        """Fetch a raw ticket payload from an external source."""
+
+    def to_context(self, payload: dict[str, Any]) -> TicketContext:
+        """Normalize a raw source payload into a TicketContext."""
+
+
+@dataclass
+class TicketFetchResult:
+    context: TicketContext
+    source: str
+    fallback_used: bool = False
+    error: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "context": self.context.to_dict(),
+            "source": self.source,
+            "fallback_used": self.fallback_used,
+            "error": self.error,
+        }
+
+
 class TicketSourceAdapter:
     source = "pasted"
+
+    def fetch_ticket(self, identifier: str) -> dict[str, Any]:
+        raise TicketSourceError(f"{self.source} fetch is not configured for {identifier}")
+
+    def to_context(self, payload: dict[str, Any]) -> TicketContext:
+        return self.from_mapping(payload, str(payload.get("ticket_id") or ""))
 
     def from_mapping(self, data: dict[str, Any], raw: str) -> TicketContext:
         detected = detect_ticket_source(str(data.get("ticket_id") or raw))
@@ -41,6 +78,41 @@ class TicketSourceAdapter:
                 labels=labels,
             )
         ]
+
+
+def fetch_with_fallback(
+    client: TicketSourceClient,
+    identifier: str,
+    fallback_client: TicketSourceClient,
+    fallback_payload: dict[str, Any] | None = None,
+) -> TicketFetchResult:
+    try:
+        payload = client.fetch_ticket(identifier)
+        return TicketFetchResult(
+            context=client.to_context(payload),
+            source=client.source,
+        )
+    except Exception as exc:
+        if fallback_payload is None:
+            fallback_payload = {
+                "source": "pasted",
+                "ticket_id": identifier or "pasted",
+                "title": identifier or "External ticket unavailable",
+                "description": (
+                    f"External source `{client.source}` was unavailable. "
+                    "Paste the ticket body or provide captured JSON to continue."
+                ),
+                "issue_type": "Task",
+                "priority": "Medium",
+                "labels": ["fallback", client.source],
+                "comments": [str(exc)],
+            }
+        return TicketFetchResult(
+            context=fallback_client.to_context(fallback_payload),
+            source=fallback_client.source,
+            fallback_used=True,
+            error=str(exc),
+        )
 
 
 def _extract_prefixed(text: str, key: str) -> str:

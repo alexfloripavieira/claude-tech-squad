@@ -320,6 +320,21 @@ test -f "$PLUGIN_DIR/bin/squad_cli/ticket_sources/github.py" || {
   exit 1
 }
 
+grep -q 'class TicketSourceClient' "$PLUGIN_DIR/bin/squad_cli/ticket_sources/base.py" || {
+  echo "ticket source base missing TicketSourceClient interface"
+  exit 1
+}
+
+grep -q 'fetch_context_with_fallback' "$PLUGIN_DIR/bin/squad_cli/ticket_sources/__init__.py" || {
+  echo "ticket sources missing formal fallback helper"
+  exit 1
+}
+
+test -f "$ROOT/scripts/test-ticket-sources.py" || {
+  echo "Missing ticket source unit tests"
+  exit 1
+}
+
 for example in sdk_ticket_plan.py sdk_dashboard_report.py sdk_onboarding_plan.py; do
   test -f "$ROOT/examples/$example" || {
     echo "Missing SDK example: $example"

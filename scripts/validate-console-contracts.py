@@ -56,6 +56,16 @@ def main() -> int:
         validate(contexts[0].to_dict(), schemas["ticket-context.schema.json"], schemas, path.name)
         validate(build_ticket_plan(contexts[0]).to_dict(), schemas["ticket-plan.schema.json"], schemas, path.name)
 
+    sandbox_paths = sorted((FIXTURE_DIR / "sandbox").glob("*.json"))
+    if len(sandbox_paths) < 3:
+        raise SchemaError("fixtures/tickets/sandbox must contain GitHub, Jira, and Linear payloads")
+    for path in sandbox_paths:
+        contexts = load_ticket_contexts("", ticket_json=path)
+        if len(contexts) != 1:
+            raise SchemaError(f"{path.name}: expected one context, got {len(contexts)}")
+        validate(contexts[0].to_dict(), schemas["ticket-context.schema.json"], schemas, path.name)
+        validate(build_ticket_plan(contexts[0]).to_dict(), schemas["ticket-plan.schema.json"], schemas, path.name)
+
     batch_contexts = load_ticket_contexts("", ticket_json=FIXTURE_DIR / "batch.json")
     if len(batch_contexts) < 2:
         raise SchemaError("batch.json must contain at least two tickets")

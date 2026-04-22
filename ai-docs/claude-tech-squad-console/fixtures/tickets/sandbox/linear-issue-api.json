@@ -1,0 +1,25 @@
+{
+  "source": "linear",
+  "identifier": "SAN-77",
+  "title": "Sandbox: expose eval fallback metric",
+  "description": "A sandbox Linear GraphQL-style payload for adapter normalization. No customer or production data is present.",
+  "type": "Story",
+  "priority": 2,
+  "labels": {
+    "nodes": [
+      { "id": "label-1", "name": "llm" },
+      { "id": "label-2", "name": "observability" }
+    ]
+  },
+  "children": [
+    { "identifier": "SAN-78", "title": "Add fallback metric field" },
+    { "identifier": "SAN-79", "title": "Surface metric in dashboard report" }
+  ],
+  "comments": [
+    "Sandbox discussion: keep metric names aligned with SEP log fields."
+  ],
+  "acceptance_criteria": [
+    "Fallback count is exposed in the dashboard payload",
+    "Metric naming matches existing SEP log terminology"
+  ]
+}

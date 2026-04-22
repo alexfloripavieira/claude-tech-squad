@@ -8,12 +8,12 @@
   - [X] 1.3 Adicionar validacao de schema ao smoke test.
   - [X] 1.4 Definir politica de compatibilidade dos contratos SDK/API.
 
-- [ ] 2.0 Fortalecer Fase 4 para integracoes futuras
-  - [ ] 2.1 Adicionar testes unitarios para adapters locais.
-  - [ ] 2.2 Definir interface `TicketSourceClient`.
-  - [ ] 2.3 Implementar fallback formal quando fonte externa falhar.
-  - [ ] 2.4 Adicionar payloads anonimizados reais ou sandbox para fixtures.
-  - [ ] 2.5 Preparar golden run de fallback sem credenciais.
+- [X] 2.0 Fortalecer Fase 4 para integracoes futuras
+  - [X] 2.1 Adicionar testes unitarios para adapters locais.
+  - [X] 2.2 Definir interface `TicketSourceClient`.
+  - [X] 2.3 Implementar fallback formal quando fonte externa falhar.
+  - [X] 2.4 Adicionar payloads anonimizados reais ou sandbox para fixtures.
+  - [X] 2.5 Preparar golden run de fallback sem credenciais.
 
 - [ ] 3.0 Fortalecer Fase 5 como base da API
   - [ ] 3.1 Expandir `scripts/test-sdk.sh` ou criar suite Python formal.

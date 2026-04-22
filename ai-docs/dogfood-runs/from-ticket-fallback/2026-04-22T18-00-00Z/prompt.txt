@@ -1,0 +1,9 @@
+Prepare a fallback-only golden run for `/claude-tech-squad:from-ticket` when GitHub/Jira/Linear credentials or MCP tools are unavailable.
+
+Constraints:
+- Do not call live external systems.
+- Start from `sandbox/api#314` as the requested external ticket.
+- Simulate the external source returning an authentication/configuration failure.
+- Continue through pasted/captured JSON fallback using `ai-docs/claude-tech-squad-console/fixtures/tickets/sandbox/github-issue-api.json`.
+- Produce a ticket plan and SEP log that records `fallback_used: true` and `fallbacks_invoked: [ticket-source-unavailable]`.
+- Verify the plan still routes through SDK/CLI rules rather than frontend logic.
