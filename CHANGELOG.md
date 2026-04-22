@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.53.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Add onboarding dashboard ticket sdk and live evidence
 ## [5.52.0] - 2026-04-22 — Automated feature release
 
 ### Added
