@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.52.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Add context rollover gate with /rollover and /resume
+
+### Changed
+
+- Add ADR 0001 and operator guide for context rollover
+- Merge branch 'main' of github.com:alexfloripavieira/claude-tech-squad
+- Add implementation plan for delivery docs, inception and visual reporting
+- Add design spec for delivery docs, inception skill and visual reporting
 ## [5.51.0] - 2026-04-21 — Automated feature release
 
 ### Added
