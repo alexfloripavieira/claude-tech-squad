@@ -24,6 +24,8 @@ See [ENGINEERING-OPERATING-SYSTEM.md](docs/ENGINEERING-OPERATING-SYSTEM.md) for 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) for contribution and vulnerability-handling rules.
 See [RELEASING.md](docs/RELEASING.md) for the official GitHub Actions publish path from `main`, including automatic semver, changelog, manifest, and manual updates.
 See [HOW-TO-CHANGE-AND-PUBLISH.md](docs/HOW-TO-CHANGE-AND-PUBLISH.md) for the operator checklist when changing the plugin and shipping a new version.
+See [SDK.md](docs/SDK.md) for the Python SDK facade over deterministic helper contracts.
+See [Claude Tech Squad Console PRD](ai-docs/claude-tech-squad-console/PRD.md) for the planned future frontend and observability console.
 Run `bash scripts/dogfood.sh` to validate the local dogfooding pack and `bash scripts/dogfood.sh --print-prompts` to print the fixture prompts.
 Run `bash scripts/dogfood-report.sh --schema-only` to validate the golden-run contract and `bash scripts/dogfood-report.sh` when real runs are available under `ai-docs/dogfood-runs/`.
 Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a real golden-run capture.
@@ -32,10 +34,11 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 
 - one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
-- 74 specialist agents for software delivery (each with Reasoning Sandwich: plan → execute → verify)
-- 21 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
+- 79 specialist agents for software delivery (each with Reasoning Sandwich: plan → execute → verify)
+- 26 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
 - one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml` (retry, fallback, cost, doom loop, auto-advance, entropy, tool allowlists, observability)
-- one live pipeline dashboard: `plugins/claude-tech-squad/dashboard/live.html`
+- deterministic dashboard snapshots from SEP logs: `ai-docs/dashboard-snapshot.md` and `ai-docs/dashboard.html`
+- a lightweight Python SDK for onboarding, dashboard, and ticket planning contracts
 - runtime PreToolUse hooks: `plugins/claude-tech-squad/hooks/pre-tool-guard.sh`
 - one local dogfooding pack plus golden-run contract
 
@@ -123,7 +126,10 @@ python3 plugins/claude-tech-squad/bin/squad-cli dashboard
 ```bash
 python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan PROJ-123
 python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan LIN-123 --ticket-json ticket.json
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan --ticket-json tickets.json --write-sep-log
 ```
+
+The helper supports local source adapters for Jira, Linear, GitHub Issue, and pasted ticket content. It accepts captured MCP/API JSON and batch JSON, but it does not call external APIs by itself.
 
 For programmatic use, import the lightweight Python SDK:
 
@@ -132,8 +138,11 @@ from squad_cli.sdk import create_client
 
 client = create_client(project_root=".", plugin_root="plugins/claude-tech-squad")
 plan = client.ticket_plan("PROJ-123")
+plan_from_context = client.ticket_plan_from_context(plan.extracted_context)
 report = client.dashboard_report()
 ```
+
+SDK results expose `.to_dict()` and deterministic `.to_json()`. SDK-specific errors include `TicketSourceError`, `CatalogError`, and `ReportParseError`.
 
 > **Long runs without context degradation.** The plugin now includes a context rollover gate.
 > Between phase boundaries, long-running skills (`/squad`, `/implement`) emit `[Context Advisory]` at

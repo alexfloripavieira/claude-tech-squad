@@ -10,6 +10,13 @@
 ### Added
 
 - Add onboarding dashboard ticket sdk and live evidence
+- Evolve ticket planning with local Jira, Linear, GitHub, pasted-text adapters, batch JSON support, and optional `/from-ticket` planning SEP logs
+- Stabilize SDK API v1 with deterministic `.to_json()`, SDK-specific errors, executable examples, and `ticket_plan_from_context`
+- Add future Console and Observability PRD, Tech Spec, and task plan
+
+### Changed
+
+- Include SDK examples in the release bundle and validate them with `scripts/test-sdk.sh`
 ## [5.52.0] - 2026-04-22 — Automated feature release
 
 ### Added

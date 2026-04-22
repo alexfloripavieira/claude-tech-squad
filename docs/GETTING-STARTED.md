@@ -254,7 +254,10 @@ Use when work starts from Jira, Linear, GitHub Issues, JQL, or pasted ticket tex
 ```bash
 python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan PROJ-123
 python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan LIN-123 --ticket-json ticket.json
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan --ticket-json tickets.json --write-sep-log
 ```
+
+The helper uses local source adapters for Jira, Linear, GitHub Issue, and pasted ticket content. It can consume captured MCP/API JSON and batch JSON, but it does not call external APIs directly.
 
 Python callers can use the SDK facade:
 
@@ -263,7 +266,10 @@ from squad_cli.sdk import create_client
 
 client = create_client(project_root=".", plugin_root="plugins/claude-tech-squad")
 plan = client.ticket_plan("PROJ-123")
+plan_from_context = client.ticket_plan_from_context(plan.extracted_context)
 ```
+
+See `docs/SDK.md` for SDK API versioning, `.to_json()`, examples, and SDK-specific errors.
 
 ### `/claude-tech-squad:incident-postmortem`
 

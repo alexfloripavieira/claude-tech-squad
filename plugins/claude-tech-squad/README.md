@@ -46,6 +46,8 @@ For visible execution interpretation, see [EXECUTION-TRACE.md](../../docs/EXECUT
 - `/claude-tech-squad:cost-estimate`
 - `/claude-tech-squad:from-ticket`
 - `/claude-tech-squad:dashboard`
+- `/claude-tech-squad:rollover`
+- `/claude-tech-squad:resume-from-rollover`
 
 ## squad-cli — Embedded Orchestrator
 
@@ -64,6 +66,19 @@ The plugin includes `squad-cli`, a Python tool that handles deterministic orches
 | `cost` | LLM estimating token counts and costs | ~2K/run |
 | `sep-log` | LLM generating 60+ line YAML frontmatter SEP logs | ~5K/run |
 | `dry-run` | Not possible before — shows execution plan without spending tokens | N/A |
+| `onboarding-plan` | LLM selecting onboarding profile and CLAUDE.md template | ~3K/repo |
+| `dashboard` | LLM aggregating SEP logs into health reports | ~5K/report |
+| `ticket-plan` | LLM normalizing tickets and selecting skill routes | ~4K/ticket |
+| `sdk-smoke` | Manual SDK verification | N/A |
+
+`ticket-plan` supports Jira, Linear, GitHub Issue, JQL/pasted text, captured JSON, batch JSON, and optional planning SEP logs:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan PROJ-123
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan --ticket-json tickets.json --write-sep-log
+```
+
+The Python SDK exposes the same deterministic contracts for scripts and future UI/API layers. It does not launch agents or call external ticket APIs by itself.
 
 ### Supported stacks
 
