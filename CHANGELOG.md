@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.55.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Adicionar visão do produto e roadmap para Claude Tech Squad
 ## [5.54.1] - 2026-04-22 — Automated maintenance release
 
 ### Changed
