@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.54.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Evolve ticket planning sdk and console docs
 ## [5.53.0] - 2026-04-22 — Automated feature release
 
 ### Added
