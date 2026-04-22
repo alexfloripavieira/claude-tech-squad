@@ -1,0 +1,44 @@
+scenario_id: hexagonal-billing
+workflow: discovery-implement
+fixture_path: fixtures/dogfooding/hexagonal-billing
+execution_mode: inline
+timestamp: 2026-04-22T16:16:45Z
+operator: alex
+score: pass
+final_status: completed
+architecture_style: hexagonal
+retry_count: 4
+fallbacks_invoked: []
+checkpoints:
+  - discovery-preflight-passed
+  - gate-1-approved
+  - gate-2-approved
+  - gate-3-approved
+  - gate-4-approved
+  - specialist-bench-complete
+  - quality-baseline-complete
+  - blueprint-confirmed
+  - implement-preflight-passed
+  - implementation-batch-complete
+  - reviewer-approved
+  - qa-pass
+  - conformance-pass
+  - uat-approved
+expected_agents_present:
+  - hexagonal-architect
+  - backend-architect
+  - integration-engineer
+  - security-reviewer
+  - observability-engineer
+  - compliance-reviewer
+forbidden_agents_absent:
+  - invalid-debugger-agent
+auth_touching_feature: false
+security_reviewer_gate: soft
+tokens_input: not_tracked
+tokens_output: not_tracked
+estimated_cost_usd: not_tracked
+total_duration_ms: 1280
+discovery_sep_log: ai-docs/.squad-log/2026-04-22T16-16-45-discovery-hexagonal-billing-golden.md
+implement_sep_log: ai-docs/.squad-log/2026-04-22T16-26-35-implement-hexagonal-billing-impl.md
+notes: "Fase 1 live golden run normalized into timestamped artifact layout. Discovery demonstrated teammate orchestration with retries; implement ran inline by operator instruction to keep the fixture bounded."

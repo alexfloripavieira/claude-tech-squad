@@ -100,7 +100,47 @@ For less common situations — refactor, security audit, migration, LLM eval, mu
 /claude-tech-squad:onboarding         # bootstrap any new repo for squad usage
 /claude-tech-squad:factory-retrospective # analyze executions and improve the process
 /claude-tech-squad:dashboard             # instant pipeline health: success rates, blocked gates, pending post-mortems
+
+# Session management — long runs without degradation
+/claude-tech-squad:rollover              # consolidate run state before /clear; produces brief + JSON handoff
+/claude-tech-squad:resume-from-rollover  # resume a run from its handoff in a fresh session
 ```
+
+`/onboarding` uses a versioned catalog (`plugins/claude-tech-squad/skills/onboarding/catalog.json`) and reusable `CLAUDE.md` templates under `templates/claude-md/`. Preview the selected profile with:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli onboarding-plan --project-root .
+```
+
+`/dashboard` has a mechanical aggregator that writes both Markdown and HTML snapshots from SEP logs:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli dashboard
+```
+
+`/from-ticket` also has a deterministic planning helper for Jira, Linear, GitHub Issues, JQL, or pasted ticket text:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan PROJ-123
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan LIN-123 --ticket-json ticket.json
+```
+
+For programmatic use, import the lightweight Python SDK:
+
+```python
+from squad_cli.sdk import create_client
+
+client = create_client(project_root=".", plugin_root="plugins/claude-tech-squad")
+plan = client.ticket_plan("PROJ-123")
+report = client.dashboard_report()
+```
+
+> **Long runs without context degradation.** The plugin now includes a context rollover gate.
+> Between phase boundaries, long-running skills (`/squad`, `/implement`) emit `[Context Advisory]` at
+> 100k cumulative tokens and `[Gate] Context Rollover Required` at 140k. Rollover produces a handoff
+> brief plus a structured JSON that `/resume-from-rollover` reads after `/clear`, so you never lose
+> decisions, invariants, or pending work to a saturated context window.
+> See `docs/CONTEXT-ROLLOVER.md` and `docs/architecture/0001-context-rollover.md`.
 
 > **Work directly from tickets.** Every execution skill accepts a ticket ID directly:
 > ```

@@ -60,7 +60,7 @@ while IFS= read -r scenario_id; do
   scenario_dir="$RUNS_DIR/$scenario_id"
   [ -d "$scenario_dir" ] || fail "missing run directory for scenario: ai-docs/dogfood-runs/$scenario_id"
 
-  latest_run="$(find "$scenario_dir" -mindepth 1 -maxdepth 1 -type d | sort | tail -1)"
+  latest_run="$(find "$scenario_dir" -mindepth 1 -maxdepth 1 -type d -name '20*T*Z' | sort | tail -1)"
   [ -n "$latest_run" ] || fail "no run folders found for scenario: $scenario_id"
 
   ARTIFACTS=$(python3 -c "import json; d=json.load(open('$MANIFEST')); s=next(x for x in d['scenarios'] if x['id']=='$scenario_id'); [print(a) for a in s['artifact_contract']]")

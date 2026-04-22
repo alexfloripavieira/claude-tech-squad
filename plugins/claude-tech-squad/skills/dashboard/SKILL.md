@@ -1,6 +1,6 @@
 ---
 name: dashboard
-description: Instant pipeline health dashboard. Reads SEP logs from ai-docs/.squad-log/, aggregates run status per skill, flags hotfixes without a post-mortem, and saves a snapshot to ai-docs/dashboard-snapshot.md. No agents spawned — zero latency. Trigger with "dashboard", "status da esteira", "pipeline health", "resumo de execuções", "squad status".
+description: Instant pipeline health dashboard. Reads SEP logs from ai-docs/.squad-log/, aggregates run status per skill, flags hotfixes without a post-mortem, and saves Markdown plus HTML snapshots. No agents spawned — zero latency. Trigger with "dashboard", "status da esteira", "pipeline health", "resumo de execuções", "squad status".
 user-invocable: true
 ---
 
@@ -20,6 +20,17 @@ No agent may, under any circumstances:
 If any operation requires one of these actions, STOP and surface the decision to the user before proceeding.
 
 Reads the last 30 SEP logs and produces a structured health summary of the squad pipeline. No agents are spawned — this is a zero-latency status check, not an AI analysis. For deep pattern analysis and improvement recommendations, use `/factory-retrospective`.
+
+Preferred mechanical path:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli dashboard \
+  --log-dir ai-docs/.squad-log \
+  --output-md ai-docs/dashboard-snapshot.md \
+  --output-html ai-docs/dashboard.html
+```
+
+If `squad-cli` is unavailable, execute the manual steps below.
 
 ## When to Use
 
@@ -130,7 +141,7 @@ Emit the dashboard as a fenced markdown block:
 - Snapshot saved: ai-docs/dashboard-snapshot.md
 ```
 
-### Step 6 — Save dashboard snapshot
+### Step 6 — Save dashboard snapshot and HTML report
 
 ```bash
 mkdir -p ai-docs
@@ -138,7 +149,10 @@ mkdir -p ai-docs
 
 Write the dashboard output to `ai-docs/dashboard-snapshot.md`, overwriting any previous snapshot. Include the timestamp at the top.
 
+Also write `ai-docs/dashboard.html`, overwriting any previous generated dashboard HTML. The HTML report must be static and self-contained: no external network assets, no JavaScript dependency, and no assumption that live SEP logs exist.
+
 Emit: `[Dashboard Snapshot] ai-docs/dashboard-snapshot.md`
+Emit: `[Dashboard HTML] ai-docs/dashboard.html`
 
 ### Step 7 — Write SEP log (SEP Contrato 1)
 
@@ -157,7 +171,7 @@ status: completed
 final_status: completed
 execution_mode: inline
 architecture_style: n/a
-checkpoints: [logs-read, aggregation-complete, snapshot-written]
+checkpoints: [logs-read, aggregation-complete, snapshot-written, html-written]
 fallbacks_invoked: []
 logs_analyzed: N
 skills_covered: N

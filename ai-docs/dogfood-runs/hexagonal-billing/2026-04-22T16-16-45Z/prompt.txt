@@ -1,0 +1,5 @@
+/claude-tech-squad:discovery
+Design a new billing integration using Hexagonal Architecture with explicit port contracts, outbound adapters, TDD-first delivery, and visible execution lines.
+
+/claude-tech-squad:implement
+Use the approved blueprint and keep the feature in explicit Hexagonal Architecture. Show preflight lines and require structured result contracts from all specialists.

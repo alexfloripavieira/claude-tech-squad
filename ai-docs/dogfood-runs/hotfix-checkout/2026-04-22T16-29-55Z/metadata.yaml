@@ -1,0 +1,52 @@
+scenario_id: hotfix-checkout
+workflow: hotfix
+fixture_path: fixtures/dogfooding/hotfix-checkout
+execution_mode: inline
+run_id: 2026-04-22T16-29-55Z
+parent_run_id: null
+timestamp: 2026-04-22T16:29:55Z
+operator: alex.vieira@a1.com.vc
+phase: fase-1-live
+stack_detected: python
+impl_agent: python-developer
+reviewer_agent: reviewer
+test_command: "PYTHONPATH=src pytest tests/"
+lint_command: "ruff check ."
+build_command: "python -m compileall src"
+base_branch: main
+hotfix_branch: hotfix/checkout-coupon-null-guard
+architecture_style: n/a
+checkpoints:
+  - diagnosis-confirmed
+gates:
+  diagnosis_confirm: approved
+  deploy_checklist: approved
+  postmortem_prompt: defer-with-ticket
+teammates_spawned:
+  - techlead
+  - python-developer
+  - reviewer
+  - security-reviewer
+  - work-item-mapper
+retries: 0
+fallbacks_invoked: []
+test_result: pass
+test_count_passed: 1
+test_count_failed: 0
+lint_result: clean
+security_checked: true
+security_verdict: clear
+reviewer_verdict: approved
+work_item_classification: bug
+severity: sev-2
+postmortem_recommended: true
+postmortem_scheduled: false
+pr_url: null
+deploy_status: pending-operator
+score: pass
+final_status: completed
+tokens_input: not_tracked
+tokens_output: not_tracked
+estimated_cost_usd: not_tracked
+total_duration_ms: not_tracked
+notes: "Fase 1 live golden run. Inline execution mode — no tmux/teammate runtime active. Fixture code already carries the null guard; run exercises skill contract + gate discipline and emits real trace/final/metadata/scorecard/SEP artifacts."
