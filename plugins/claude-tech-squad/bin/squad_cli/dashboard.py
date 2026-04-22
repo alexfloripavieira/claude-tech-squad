@@ -8,7 +8,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-import yaml
+try:
+    import yaml
+except ModuleNotFoundError:
+    yaml = None
 
 
 @dataclass
@@ -334,20 +337,37 @@ def _summarize_skill(skill: str, runs: list[SepRun]) -> SkillSummary:
 
 
 def _parse_frontmatter(text: str) -> dict:
-    try:
-        parsed = yaml.safe_load(text)
-        if isinstance(parsed, dict):
-            return parsed
-    except yaml.YAMLError:
-        pass
+    if yaml is not None:
+        try:
+            parsed = yaml.safe_load(text)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            pass
 
     data = {}
     for line in text.splitlines():
         if ":" not in line or line.startswith(" "):
             continue
         key, value = line.split(":", 1)
-        data[key.strip()] = value.strip()
+        data[key.strip()] = _parse_frontmatter_value(value.strip())
     return data
+
+
+def _parse_frontmatter_value(value: str):
+    if value in {"[]", ""}:
+        return []
+    if value.startswith("[") and value.endswith("]"):
+        inner = value[1:-1].strip()
+        if not inner:
+            return []
+        return [item.strip().strip("'\"") for item in inner.split(",") if item.strip()]
+    lowered = value.lower()
+    if lowered == "true":
+        return True
+    if lowered == "false":
+        return False
+    return value
 
 
 def _write_dashboard_sep_log(report: DashboardReport, sep_log_dir: Path) -> Path:
