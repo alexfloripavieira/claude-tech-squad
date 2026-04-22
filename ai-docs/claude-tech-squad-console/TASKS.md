@@ -2,11 +2,11 @@
 
 ## Tarefas
 
-- [ ] 1.0 Congelar contratos e schemas
-  - [ ] 1.1 Documentar `TicketContext`, `TicketPlan`, `DashboardReport`, `SepRun` e eventos.
-  - [ ] 1.2 Criar fixtures JSON para Jira, Linear, GitHub, pasted e batch.
-  - [ ] 1.3 Adicionar validacao de schema ao smoke test.
-  - [ ] 1.4 Definir politica de compatibilidade dos contratos SDK/API.
+- [X] 1.0 Congelar contratos e schemas
+  - [X] 1.1 Documentar `TicketContext`, `TicketPlan`, `DashboardReport`, `SepRun` e eventos.
+  - [X] 1.2 Criar fixtures JSON para Jira, Linear, GitHub, pasted e batch.
+  - [X] 1.3 Adicionar validacao de schema ao smoke test.
+  - [X] 1.4 Definir politica de compatibilidade dos contratos SDK/API.
 
 - [ ] 2.0 Fortalecer Fase 4 para integracoes futuras
   - [ ] 2.1 Adicionar testes unitarios para adapters locais.

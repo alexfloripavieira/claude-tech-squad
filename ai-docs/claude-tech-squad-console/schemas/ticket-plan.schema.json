@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://claude-tech-squad.local/schemas/ticket-plan.schema.json",
+  "title": "TicketPlan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source",
+    "ticket_id",
+    "issue_type",
+    "priority",
+    "complexity_tier",
+    "recommended_skill",
+    "estimated_agents",
+    "estimated_tokens",
+    "estimated_cost_usd",
+    "alternatives",
+    "extracted_context",
+    "launch_context"
+  ],
+  "properties": {
+    "source": { "type": "string", "minLength": 1 },
+    "ticket_id": { "type": "string", "minLength": 1 },
+    "issue_type": { "type": "string", "minLength": 1 },
+    "priority": { "type": "string", "minLength": 1 },
+    "complexity_tier": { "type": "string", "enum": ["small", "medium", "large"] },
+    "recommended_skill": { "type": "string", "minLength": 1 },
+    "estimated_agents": { "type": "integer", "minimum": 0 },
+    "estimated_tokens": { "type": "integer", "minimum": 0 },
+    "estimated_cost_usd": { "type": "number", "minimum": 0 },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["skill", "when"],
+        "properties": {
+          "skill": { "type": "string", "minLength": 1 },
+          "when": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "extracted_context": { "$ref": "ticket-context.schema.json" },
+    "launch_context": { "type": "string", "minLength": 1 }
+  }
+}

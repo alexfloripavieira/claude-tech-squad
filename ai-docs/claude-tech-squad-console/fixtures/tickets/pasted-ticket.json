@@ -1,0 +1,20 @@
+{
+  "source": "pasted",
+  "ticket_id": "pasted",
+  "title": "Refactor billing retry policy",
+  "description": "Type: Improvement\nPriority: Medium\nLabels: refactor, billing\n\nRetry handling in billing workers is duplicated across providers.\n\nAcceptance Criteria:\n- Shared retry policy is extracted\n- Existing provider behavior remains compatible",
+  "issue_type": "Improvement",
+  "priority": "Medium",
+  "labels": ["refactor", "billing"],
+  "acceptance_criteria": [
+    "Shared retry policy is extracted",
+    "Existing provider behavior remains compatible"
+  ],
+  "subtasks": [
+    "Locate duplicated retry logic",
+    "Extract shared policy object"
+  ],
+  "comments": [
+    "Keep provider-specific retry limits configurable."
+  ]
+}

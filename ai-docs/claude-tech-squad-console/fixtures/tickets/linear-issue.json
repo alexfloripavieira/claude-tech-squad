@@ -1,0 +1,26 @@
+{
+  "source": "linear",
+  "identifier": "LIN-123",
+  "title": "Add prompt telemetry",
+  "description": "Capture prompt version, model, and eval outcome for LLM requests.",
+  "type": "Story",
+  "priorityLabel": "High",
+  "labels": {
+    "nodes": [
+      { "name": "llm" },
+      { "name": "observability" }
+    ]
+  },
+  "children": [
+    { "title": "Add schema fields" },
+    { "title": "Expose dashboard metric" },
+    { "title": "Document rollout" }
+  ],
+  "acceptance_criteria": [
+    "Prompt version is attached to each request",
+    "Eval outcome is queryable from dashboard"
+  ],
+  "comments": [
+    "Coordinate with eval owners before changing field names."
+  ]
+}

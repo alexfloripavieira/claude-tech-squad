@@ -1,0 +1,20 @@
+{
+  "source": "github",
+  "repository": "acme/checkout",
+  "number": 42,
+  "title": "Fix checkout 500 after coupon removal",
+  "body": "Removing a coupon during checkout can leave the order total in an invalid state and returns HTTP 500.",
+  "issue_type": "Bug",
+  "priority": "High",
+  "labels": [
+    { "name": "bug" },
+    { "name": "checkout" }
+  ],
+  "acceptance_criteria": [
+    "Removing the final coupon does not return HTTP 500",
+    "Order totals are recalculated before payment authorization"
+  ],
+  "comments": [
+    { "body": "Observed in production on the latest release candidate." }
+  ]
+}

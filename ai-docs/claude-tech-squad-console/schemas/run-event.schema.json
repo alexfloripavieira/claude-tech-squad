@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://claude-tech-squad.local/schemas/run-event.schema.json",
+  "title": "RunEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_type", "payload", "created_at"],
+  "properties": {
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "ticket.plan.created",
+        "ticket.plan.failed",
+        "ticket.fetch.started",
+        "ticket.fetch.failed",
+        "run.indexed",
+        "run.completed",
+        "run.failed",
+        "fallback.invoked",
+        "external_update.previewed",
+        "external_update.confirmed",
+        "external_update.failed"
+      ]
+    },
+    "run_id": { "type": "string" },
+    "ticket_id": { "type": "string" },
+    "ticket_source": { "type": "string" },
+    "payload": { "type": "object" },
+    "created_at": { "type": "string", "minLength": 1 }
+  }
+}
