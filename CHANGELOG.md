@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.54.1] - 2026-04-22 — Automated maintenance release
+
+### Changed
+
+- Update ticket sdk and console documentation
 ## [5.54.0] - 2026-04-22 — Automated feature release
 
 ### Added
