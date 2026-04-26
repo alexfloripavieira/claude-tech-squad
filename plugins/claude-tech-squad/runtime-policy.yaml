@@ -452,6 +452,22 @@ fallback_matrix:
     llm-cost-analyst:
       - claude-tech-squad:cost-optimizer
       - claude-tech-squad:ai-engineer
+  tech-debt-audit:
+    tech-debt-analyst:
+      - claude-tech-squad:code-quality
+      - claude-tech-squad:reviewer
+    code-quality:
+      - claude-tech-squad:reviewer
+    design-principles-specialist:
+      - claude-tech-squad:architect
+      - claude-tech-squad:techlead
+    dba:
+      - claude-tech-squad:data-architect
+    performance-engineer:
+      - claude-tech-squad:backend-architect
+    security-reviewer:
+      - claude-tech-squad:compliance-reviewer
+      - claude-tech-squad:security-engineer
 
 checkpoint_resume:
   write_to_sep_log: true

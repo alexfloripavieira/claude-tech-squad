@@ -158,6 +158,7 @@ REQUIRED_AGENTS=(
   qa-tester
   react-developer
   shell-developer
+  tech-debt-analyst
   tech-lead
   typescript-developer
   vue-developer
