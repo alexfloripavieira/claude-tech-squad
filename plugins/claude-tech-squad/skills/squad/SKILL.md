@@ -547,6 +547,21 @@ Emit: `[Phase Done] release | SRE sign-off received`
 
 ---
 
+## Step 3 — Team Cleanup (before SEP log)
+
+Clean up the team created at Step 2 before writing the SEP log so cleanup status can be recorded:
+
+```
+TeamDelete(name="squad")
+```
+
+Capture outcome into `{{team_cleanup_status}}` (`success` or `failed: <reason>`). On failure, do not halt — emit a warning and continue:
+
+- On success: emit `[Team Deleted] squad | cleanup complete`
+- On failure: emit `[Team Cleanup Warning] squad | <reason>`
+
+---
+
 ## Step 4 — Write Execution Log (SEP Runtime Resilience)
 
 ### Run Cost Summary and SEP Log
@@ -591,22 +606,11 @@ estimated_cost_usd: {{usd}}
 total_duration_ms: {{ms}}
 escape_hatch_used: false
 skipped_phases: []
+team_cleanup_status: {{team_cleanup_status}}
 ---
 ```
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
-
-### Team Cleanup (mandatory epilogue)
-
-After writing the SEP log, clean up all teams created during this run:
-
-```
-TeamDelete(name="squad")
-```
-
-Emit: `[Team Deleted] squad | cleanup complete`
-
-If TeamDelete fails, ignore silently.
 
 ---
 

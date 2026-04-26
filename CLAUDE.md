@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repository is
 
-This is the source repository for the `claude-tech-squad` Claude Code plugin — a full software delivery squad of 74 specialist agents and 21 skills that replicate big tech engineering pipelines. The repository ships a marketplace manifest, the plugin itself, a validation ladder, a dogfooding pack with golden run support, and a live pipeline dashboard.
+This is the source repository for the `claude-tech-squad` Claude Code plugin — a full software delivery squad of 74 specialist agents and 23 skills that replicate big tech engineering pipelines. The repository ships a marketplace manifest, the plugin itself, a validation ladder, a dogfooding pack with golden run support, and a live pipeline dashboard.
 
 Built on **Harness Engineering** principles — the infrastructure, constraints, and feedback loops that make AI agents reliable in production. The plugin scores 10/10 across all 5 pillars (Tool Orchestration, Guardrails, Error Recovery, Observability, Human-in-the-Loop) and all 5 practical concepts (Rule Files, Progressive Disclosure, Mechanical Enforcers, Reasoning Sandwich, Entropy Management).
 
@@ -81,7 +81,7 @@ bash scripts/dogfood-report.sh
 - Pre-Execution Plan / Analysis Plan in all 74 agents
 - Progressive Disclosure in orchestrator skills
 - `hooks/pre-tool-guard.sh` exists and is executable
-- Token tracking (`tokens_input:`) in all 21 skill SEP log templates
+- Token tracking (`tokens_input:`) in all 23 skill SEP log templates
 
 ---
 
@@ -94,7 +94,7 @@ bash scripts/dogfood-report.sh
 │   ├── .claude-plugin/plugin.json           # plugin metadata and version
 │   ├── runtime-policy.yaml                  # retry, fallback, severity, checkpoints, cost, doom loop, auto-advance, entropy, tool allowlists, observability
 │   ├── agents/                              # 74 specialist agent files (one .md per agent)
-│   ├── skills/                              # 21 skill directories (each with SKILL.md)
+│   ├── skills/                              # 23 skill directories (each with SKILL.md)
 │   │   └── <skill-name>/SKILL.md
 │   ├── hooks/                               # runtime PreToolUse mechanical enforcers
 │   │   ├── pre-tool-guard.sh                # blocks destructive operations deterministically

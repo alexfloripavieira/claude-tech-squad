@@ -407,11 +407,10 @@ Each implementation agent prompt must include:
 - Failing test files from TDD Specialist (full — they implement against these)
 - Relevant specialist notes for their domain only (full)
 - Blueprint context (digest — not the full discovery document)
-- Detected project commands: `{{test_command}}`, `{{build_command}}` (from the Preflight Gate)
+- Detected project commands: `{{test_command}}`, `{{build_command}}` (from the Preflight Gate) — use these exact commands, never infer
 - Lint/static-analysis profile: `{{lint_profile}}`
 - Chosen architecture style: `{{architecture_style}}`
 - Design principles guardrails (full)
-- Project commands: `{{project_commands}}` — use these exact commands, never infer
 - Instruction: "Implement until the failing tests pass. Follow TDD. When done, return a summary of files changed and test results. Do NOT chain to other agents."
 
 **SEP Contrato 4 — Task Status Protocol:**
@@ -1075,6 +1074,19 @@ Options:
 
 Implementation is complete when user approves UAT or chooses [S].
 
+### Step 10a — Team Cleanup (before SEP log)
+
+Clean up the team created at Step 2 before writing the SEP log so cleanup status can be recorded:
+
+```
+TeamDelete(name="implement")
+```
+
+Capture outcome into `{{team_cleanup_status}}` (`success` or `failed: <reason>`). On failure, do not halt — emit a warning and continue:
+
+- On success: emit `[Team Deleted] implement | cleanup complete`
+- On failure: emit `[Team Cleanup Warning] implement | <reason>`
+
 ### Step 10b — Run Cost Summary and SEP Log
 
 **python3 plugins/claude-tech-squad/bin/squad-cli cost + sep-log** (preferred — uses real token counts collected during the run):
@@ -1117,22 +1129,11 @@ teammate_token_breakdown: {}       # required — map {teammate_name: {tokens_in
 estimated_cost_usd: {{usd}}
 total_duration_ms: {{ms}}
 blueprint_stale_override_reason: null   # non-null only when user forced continue with stale blueprint
+team_cleanup_status: {{team_cleanup_status}}
 ---
 ```
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
-
-### Step 11 — Team Cleanup (mandatory epilogue)
-
-After writing the SEP log, clean up the team:
-
-```
-TeamDelete(name="implement")
-```
-
-Emit: `[Team Deleted] implement | cleanup complete`
-
-If TeamDelete fails, ignore silently.
 
 ---
 

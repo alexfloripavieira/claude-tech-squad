@@ -328,6 +328,19 @@ Output: APPROVED or CHANGES REQUESTED. If CHANGES REQUESTED, only list blocker-c
 
 If reviewer outputs CHANGES REQUESTED: apply ONLY the blocker findings. Do NOT apply LOW/NIT suggestions. Repeat Step 5–6 once more with the blocker fixes only.
 
+### Step 6a — Team Cleanup (before SEP log)
+
+Clean up the team created at Step 2 before writing the SEP log so cleanup status can be recorded:
+
+```
+TeamDelete(name="bug-fix-team")
+```
+
+Capture outcome into `{{team_cleanup_status}}` (`success` or `failed: <reason>`). On failure, do not halt — emit a warning and continue:
+
+- On success: emit `[Team Deleted] bug-fix-team | cleanup complete`
+- On failure: emit `[Team Cleanup Warning] bug-fix-team | <reason>`
+
 ### Step 6b — Write SEP log (SEP Contrato 1)
 
 **python3 plugins/claude-tech-squad/bin/squad-cli sep-log** (preferred — if run was initialized with `python3 plugins/claude-tech-squad/bin/squad-cli init`):
@@ -366,6 +379,7 @@ tokens_input: {{total_input_tokens}}
 tokens_output: {{total_output_tokens}}
 estimated_cost_usd: {{estimated_cost}}
 total_duration_ms: {{wall_clock_duration}}
+team_cleanup_status: {{team_cleanup_status}}
 ---
 
 ## Fix Summary
@@ -395,15 +409,3 @@ Produce a concise summary:
 
 **Next steps:** Review the diff and commit when ready.
 ```
-
-### Step 8 — Team Cleanup (mandatory epilogue)
-
-After reporting to the user, clean up the team created at Step 2:
-
-```
-TeamDelete(name="bug-fix-team")
-```
-
-Emit: `[Team Deleted] bug-fix-team | cleanup complete`
-
-If TeamDelete fails, ignore silently.

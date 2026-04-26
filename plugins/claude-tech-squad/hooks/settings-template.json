@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash plugins/claude-tech-squad/hooks/pre-tool-guard.sh"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-guard.sh"
           }
         ]
       }
