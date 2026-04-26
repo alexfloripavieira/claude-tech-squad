@@ -222,6 +222,7 @@ If the workflow did not fire, run `./scripts/release.sh` as a fallback. For a fu
 
 ## Files that must NOT be edited manually
 
+
 The release pipeline generates these automatically on merge to `main`. Editing them by hand causes version drift that will fail `validate.sh`:
 
 - `CHANGELOG.md`
