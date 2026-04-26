@@ -692,4 +692,11 @@ if ! grep -q '^mandatory_test_gate:' "$PLUGIN_DIR/runtime-policy.yaml"; then
   exit 1
 fi
 
+for key in first_contact subsequent unknown_stack; do
+  if ! grep -q "    ${key}:" "$PLUGIN_DIR/runtime-policy.yaml"; then
+    echo "runtime-policy.yaml mandatory_test_gate.bootstrap_policy missing '${key}'"
+    exit 1
+  fi
+done
+
 echo "claude-tech-squad validation passed (v$PLUGIN_VERSION, $AGENT_COUNT agents)"

@@ -95,6 +95,35 @@ def check_paired_tests(
     return unpaired
 
 
+def detect_test_infra(repo_root: Path, stack: StackFingerprint) -> TestInfraStatus:
+    if stack.language == "python":
+        has_dir = (repo_root / "tests").is_dir() or any(
+            (repo_root / d).is_dir() for d in stack.test_dirs
+        )
+        has_runner = any(
+            (repo_root / cfg).exists()
+            for cfg in ("pyproject.toml", "pytest.ini", "setup.cfg", "tox.ini")
+        )
+        if has_dir and has_runner:
+            test_files = list((repo_root / "tests").rglob("test_*.py")) if has_dir else []
+            return (
+                TestInfraStatus.PRESENT_AND_CONFIGURED
+                if test_files
+                else TestInfraStatus.PARTIAL
+            )
+        if has_dir or has_runner:
+            return TestInfraStatus.PARTIAL
+        return TestInfraStatus.ABSENT
+    if stack.language in {"typescript", "javascript"}:
+        pkg = repo_root / "package.json"
+        if pkg.exists():
+            content = pkg.read_text()
+            if "jest" in content or "vitest" in content or "mocha" in content:
+                return TestInfraStatus.PRESENT_AND_CONFIGURED
+        return TestInfraStatus.ABSENT
+    return TestInfraStatus.UNKNOWN
+
+
 def evaluate_gate(
     unpaired: list[UnpairedFile],
     coverage_delta: float,

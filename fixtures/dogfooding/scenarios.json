@@ -168,6 +168,35 @@
         ],
         "schema_version": "1.0"
       }
+    },
+    {
+      "id": "no-test-infra",
+      "workflow": "test-bootstrap",
+      "repo_path": "fixtures/dogfooding/no-test-infra",
+      "prompt": "/claude-tech-squad:test-bootstrap\nDetect that this Python repository lacks test infrastructure, propose a bootstrap plan (framework, structure, CI step), and write characterization tests for the Order hotspot.",
+      "expected_architecture_style": [],
+      "expected_agents": [
+        "test-planner",
+        "test-automation-engineer",
+        "ci-cd"
+      ],
+      "forbidden_default_agents": [],
+      "required_trace_lines": [
+        "[Phase Start] test-bootstrap",
+        "[Teammate Spawned] test-planner",
+        "[Teammate Spawned] test-automation-engineer",
+        "[Teammate Spawned] ci-cd"
+      ],
+      "forbidden_strings": [
+        "code-debugger"
+      ],
+      "artifact_contract": [
+        "prompt.txt",
+        "trace.md",
+        "final.md",
+        "metadata.yaml",
+        "scorecard.md"
+      ]
     }
   ]
 }

@@ -22,7 +22,7 @@ require_dir() {
 python3 -m json.tool "$MANIFEST" >/dev/null
 
 SCENARIO_COUNT=$(python3 -c "import json; d=json.load(open('$MANIFEST')); print(len(d['scenarios']))")
-[ "$SCENARIO_COUNT" = "5" ] || fail "expected 5 scenarios in manifest, found $SCENARIO_COUNT"
+[ "$SCENARIO_COUNT" = "6" ] || fail "expected 6 scenarios in manifest, found $SCENARIO_COUNT"
 
 if [ "${1:-}" = "--print-prompts" ]; then
   python3 -c "import json; d=json.load(open('$MANIFEST')); [print(f\"[{s['id']}]\\n{s['prompt']}\\n\") for s in d['scenarios']]"
@@ -88,6 +88,15 @@ grep -q '\[tool\.ruff\]' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture miss
 grep -q '\[tool\.mypy\]' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture missing mypy config"
 grep -q 'anthropic' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture missing anthropic dependency"
 grep -q 'ai-engineer\|llm-eval-specialist' "$LLM_RAG/CLAUDE.md" || fail "llm-rag fixture missing AI specialist instruction"
+
+NO_TEST_INFRA="$FIXTURES_DIR/no-test-infra"
+require_file "$NO_TEST_INFRA/README.md"
+require_file "$NO_TEST_INFRA/CLAUDE.md"
+require_file "$NO_TEST_INFRA/src/orders/__init__.py"
+require_file "$NO_TEST_INFRA/src/orders/models.py"
+if [ -d "$NO_TEST_INFRA/tests" ]; then
+  fail "no-test-infra fixture must NOT contain a tests/ directory"
+fi
 
 # ── Integration-mode assertions for delivery docs + visual reporting ───────
 # Only run when INTEGRATION=1 (after a real golden run has populated .expected/)
