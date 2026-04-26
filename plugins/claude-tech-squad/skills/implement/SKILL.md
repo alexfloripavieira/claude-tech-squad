@@ -64,6 +64,23 @@ Emit these lines for every teammate action:
 - `[Checkpoint Saved] <workflow-name> | cursor=<checkpoint>`
 - `[Gate] <gate-name> | Waiting for user input`
 - `[Batch Spawned] <phase> | Teammates: <comma-separated names>`
+- `[Token Usage] run=<run_id> | used=<N>k | threshold=100k`
+- `[Context Advisory] run=<run_id> | recommend=finish-current-gate-then-rollover`
+- `[Gate] Context Rollover Required | run=<run_id> | used=<N>k | options=[R|D|F]`
+- `[Rollover Accepted] run=<run_id> | handoff=<artifact-path>`
+- `[Rollover Declined] run=<run_id> | reason=<user-text>`
+
+## Context Rollover Gate
+
+Between every teammate completion and the next teammate spawn, inspect cumulative token usage. Emit `[Token Usage]` at each phase boundary.
+
+- If `used >= 100k`: emit `[Context Advisory]`. Continue, but plan the next teammate as the last before rollover.
+- If `used >= 140k`: emit `[Gate] Context Rollover Required` and halt for operator choice `[R|D|F]`:
+  - `R` — Rollover now. Spawn `context-summarizer` as a teammate; then halt for `/clear` + `/resume-from-rollover <run_id>`.
+  - `D` — Defer one phase. Proceed one more teammate only, then force rollover.
+  - `F` — Force continue. Emit `[Rollover Declined]` with operator reason. Degradation risk accepted and logged.
+
+Thresholds and summarizer agent declared in `runtime-policy.yaml` under `context_management`. Checks only at boundaries, never mid-teammate. Rationale: `docs/architecture/0001-context-rollover.md`.
 
 ---
 
@@ -194,6 +211,12 @@ Validation rules:
 - `next_action` must identify the single best downstream step
 - `confidence_after_verification` must match `confidence` in `result_contract`
 - Missing `result_contract` OR missing `verification_checklist` means the teammate output is structurally invalid and must trigger the Teammate Failure Protocol
+
+## Visual Reporting Contract
+
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
 
 ## Runtime Resilience Contract
 
@@ -333,6 +356,36 @@ Call `TeamCreate` (fetch schema via ToolSearch if needed):
 - `description`: "Implementation run for: {{feature_or_task_one_line}}"
 
 Emit: `[Team Created] implement`
+
+### Step 2b — Delivery Docs: Tasks + Work Items (Phase 0)
+
+Before spawning TDD Specialist:
+
+1. Verify `ai-docs/prd-{{feature_slug}}/prd.md` and `ai-docs/prd-{{feature_slug}}/techspec.md` exist. If either is missing, block with:
+   ```
+   [Gate] Delivery Docs Missing | Run /claude-tech-squad:discovery and /claude-tech-squad:inception first | Waiting for user input
+   ```
+2. If `ai-docs/prd-{{feature_slug}}/tasks.md` exists and validates against `templates/tasks-template.md`, reuse. Else spawn `tasks-planner`:
+   ```
+   Agent(
+     team_name = "implement",
+     name = "tasks-planner",
+     subagent_type = "claude-tech-squad:tasks-planner",
+     prompt = <digest including slug, prd path, techspec path>
+   )
+   ```
+3. After tasks are produced, spawn `work-item-mapper`:
+   ```
+   Agent(
+     team_name = "implement",
+     name = "work-item-mapper",
+     subagent_type = "claude-tech-squad:work-item-mapper",
+     prompt = <digest + taxonomy context from runtime-policy.yaml>
+   )
+   ```
+4. If `delivery_gates.enabled: true` and any BLOCKING finding is returned, open a user gate.
+5. Pipe both teammates' `metrics` JSON through `render-teammate-card.sh` per the Visual Reporting Contract.
+6. Record checkpoints: `tasks-produced`, `work-items-produced`. Emit `[Checkpoint Saved] implement | cursor=<checkpoint>`.
 
 ### Step 3 — TDD Specialist Teammate (Failing Tests First)
 

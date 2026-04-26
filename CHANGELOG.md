@@ -1,5 +1,69 @@
 # Changelog
 
+## [5.56.1] - 2026-04-22 — Automated maintenance release
+
+### Changed
+
+- Implement feature X to enhance user experience and optimize performance
+## [5.56.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Harden ticket source adapters
+- Freeze MVP contracts
+
+### Fixed
+
+- Avoid required pyyaml for dashboard parsing
+## [5.55.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Adicionar visão do produto e roadmap para Claude Tech Squad
+## [5.54.1] - 2026-04-22 — Automated maintenance release
+
+### Changed
+
+- Update ticket sdk and console documentation
+## [5.54.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Evolve ticket planning sdk and console docs
+## [5.53.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Add onboarding dashboard ticket sdk and live evidence
+- Evolve ticket planning with local Jira, Linear, GitHub, pasted-text adapters, batch JSON support, and optional `/from-ticket` planning SEP logs
+- Stabilize SDK API v1 with deterministic `.to_json()`, SDK-specific errors, executable examples, and `ticket_plan_from_context`
+- Add future Console and Observability PRD, Tech Spec, and task plan
+
+### Changed
+
+- Include SDK examples in the release bundle and validate them with `scripts/test-sdk.sh`
+## [5.52.0] - 2026-04-22 — Automated feature release
+
+### Added
+
+- Add context rollover gate with /rollover and /resume
+
+### Changed
+
+- Add ADR 0001 and operator guide for context rollover
+- Merge branch 'main' of github.com:alexfloripavieira/claude-tech-squad
+- Add implementation plan for delivery docs, inception and visual reporting
+- Add design spec for delivery docs, inception skill and visual reporting
+## [5.51.0] - 2026-04-21 — Automated feature release
+
+### Added
+
+- Delivery docs pipeline, inception skill, visual reporting (#22)
+## [5.50.0] - 2026-04-21 — Automated feature release
+
+### Added
+
+- Add CodeRabbit final review gate to /implement and /squad (#21)
 ## [5.49.0] - 2026-04-18 — Automated feature release
 
 ### Added

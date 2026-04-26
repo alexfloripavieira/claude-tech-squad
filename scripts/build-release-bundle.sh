@@ -25,6 +25,7 @@ cp "$ROOT/README.md" "$PACKAGE_ROOT/"
 cp "$ROOT/LICENSE" "$PACKAGE_ROOT/"
 cp "$ROOT/CHANGELOG.md" "$PACKAGE_ROOT/"
 cp -r "$ROOT/docs" "$PACKAGE_ROOT/docs"
+cp -r "$ROOT/examples" "$PACKAGE_ROOT/examples"
 cp -r "$ROOT/.claude-plugin" "$PACKAGE_ROOT/.claude-plugin"
 cp -r "$ROOT/plugins" "$PACKAGE_ROOT/plugins"
 

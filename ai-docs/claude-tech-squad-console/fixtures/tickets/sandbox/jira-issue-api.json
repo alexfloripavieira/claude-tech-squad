@@ -1,0 +1,27 @@
+{
+  "source": "jira",
+  "key": "SAN-42",
+  "fields": {
+    "summary": "Sandbox: rotate analytics export token",
+    "description": "A sandbox Jira payload with anonymized project, account, and component data. The export token rotation flow needs a runbook and validation checklist.",
+    "issuetype": { "name": "Task" },
+    "priority": { "name": "High" },
+    "labels": ["security", "runbook"],
+    "components": [{ "name": "analytics" }],
+    "subtasks": [
+      { "key": "SAN-43", "fields": { "summary": "Draft rotation runbook" } },
+      { "key": "SAN-44", "fields": { "summary": "Add validation checklist" } }
+    ],
+    "comment": {
+      "comments": [
+        {
+          "body": "Sandbox credential is fake; use this only for adapter normalization tests."
+        }
+      ]
+    }
+  },
+  "acceptance_criteria": [
+    "Rotation steps are documented",
+    "Rollback criteria are explicit"
+  ]
+}

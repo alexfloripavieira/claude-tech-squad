@@ -1,0 +1,35 @@
+scenario_id: layered-monolith
+workflow: discovery
+fixture_path: fixtures/dogfooding/layered-monolith
+execution_mode: inline
+timestamp: 2026-04-22T15:49:08Z
+operator: alex
+score: pass
+final_status: completed
+architecture_style: layered
+retry_count: 0
+fallbacks_invoked: []
+checkpoints:
+  - preflight-passed
+  - prd-produced
+  - gate-1-approved
+  - gate-2-approved
+  - gate-3-approved
+  - gate-4-approved
+  - specialist-bench-complete
+  - quality-baseline-complete
+  - blueprint-confirmed
+expected_agents_present:
+  - backend-architect
+forbidden_agents_absent:
+  - hexagonal-architect
+  - invalid-debugger-agent
+auth_touching_feature: false
+security_reviewer_gate: soft
+tokens_input: ~4200
+tokens_output: ~2800
+estimated_cost_usd: 0.08
+total_duration_ms: 180000
+implement_triggered: false
+implement_deferred_reason: "Fase 1 golden-run capture — user requested discovery artifacts only; /implement to be invoked in a separate run"
+notes: "Live inline golden run for layered-monolith audit-log filters. Minimal specialist bench (backend-architect only); privacy/compliance skipped by design (no new PII, no regulated data). Preserves layered pattern per fixture CLAUDE.md."

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://claude-tech-squad.local/schemas/ticket-context.schema.json",
+  "title": "TicketContext",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source",
+    "ticket_id",
+    "title",
+    "description",
+    "issue_type",
+    "priority",
+    "acceptance_criteria",
+    "subtasks",
+    "labels",
+    "linked_issues",
+    "comments"
+  ],
+  "properties": {
+    "source": { "type": "string", "minLength": 1 },
+    "ticket_id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "issue_type": { "type": "string", "minLength": 1 },
+    "priority": { "type": "string", "minLength": 1 },
+    "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+    "subtasks": { "type": "array", "items": { "type": "string" } },
+    "labels": { "type": "array", "items": { "type": "string" } },
+    "linked_issues": { "type": "array", "items": { "type": "string" } },
+    "comments": { "type": "array", "items": { "type": "string" } }
+  }
+}

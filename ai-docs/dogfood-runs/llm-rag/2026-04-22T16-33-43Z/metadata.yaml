@@ -1,0 +1,67 @@
+---
+scenario_id: llm-rag
+run_id: llm-rag-context-retrieval-2026-04-22T16-33-43Z
+phase: fase-1-live-golden-run
+skill: claude-tech-squad:discovery
+fixture_path: fixtures/dogfooding/llm-rag
+operator: alex.vieira@a1.com.vc
+score: pass
+final_status: completed
+started_at: 2026-04-22T16:33:43Z
+completed_at: 2026-04-22T16:39:55Z
+duration_seconds: 372
+execution_mode: inline
+inline_reason: no_tmux_host_detected_operator_authorized_fallback
+architecture_style: ai-native-pipeline
+lint_profile: python-ruff
+docs_lookup_mode: context7-first
+runtime_policy_version: v5.52.0
+plugin_version: 5.52.0
+feature_slug: context-aware-retrieval
+teammates_total: 14
+teammates_completed: 14
+teammates_failed: 0
+fallbacks_invoked: 0
+retries: 0
+doom_loops_detected: 0
+checkpoints_hit:
+  - preflight-passed
+  - prd-produced
+  - gate-1-approved
+  - gate-2-approved
+  - gate-3-approved
+  - gate-4-approved
+  - specialist-bench-complete
+  - quality-baseline-complete
+  - blueprint-confirmed
+gates:
+  gate_0_scope_confirmation: not_triggered
+  gate_1_product_definition: approved
+  gate_2_scope_validation: approved
+  gate_3_technical_tradeoffs: approved
+  gate_4_architecture_direction: approved
+  gate_final_blueprint: approved
+  gate_implement_bridge: deferred_golden_run_capture
+auth_touching_feature: false
+security_reviewer_gate: soft
+feature_flag_required: true
+feature_flag_name: ctx_aware_retrieval_enabled
+tokens_input: 38214
+tokens_output: 11702
+estimated_cost_usd: 0.71
+adrs_generated: 3
+artifacts:
+  - ai-docs/dogfood-runs/llm-rag/2026-04-22T16-33-43Z/prompt.txt
+  - ai-docs/dogfood-runs/llm-rag/2026-04-22T16-33-43Z/trace.md
+  - ai-docs/dogfood-runs/llm-rag/2026-04-22T16-33-43Z/final.md
+  - ai-docs/dogfood-runs/llm-rag/2026-04-22T16-33-43Z/scorecard.md
+  - ai-docs/dogfood-runs/llm-rag/2026-04-22T16-33-43Z/metadata.yaml
+  - ai-docs/.squad-log/2026-04-22T16-33-43Z-discovery-llm-rag-context-retrieval.md
+evaluation_gates_defined:
+  ragas_faithfulness_threshold: 0.85
+  ragas_context_precision_threshold: 0.80
+  ragas_answer_relevance_threshold: 0.75
+  max_delta_vs_baseline: -0.03
+  p95_latency_budget_ms: 2500
+  injection_defense_required: 10_of_10
+---

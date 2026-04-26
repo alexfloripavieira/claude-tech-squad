@@ -44,6 +44,7 @@ test -f "$ROOT/scripts/release.sh"
 test -f "$ROOT/scripts/smoke-test.sh"
 test -f "$ROOT/scripts/dogfood.sh"
 test -f "$ROOT/scripts/dogfood-report.sh"
+test -f "$ROOT/scripts/test-sdk.sh"
 test -f "$ROOT/scripts/start-golden-run.sh"
 test -f "$ROOT/scripts/prepare-release-metadata.sh"
 test -f "$ROOT/scripts/verify-release.sh"
@@ -56,6 +57,9 @@ test -f "$ROOT/fixtures/dogfooding/hotfix-checkout/CLAUDE.md"
 test -f "$ROOT/templates/rfc-template.md"
 test -f "$ROOT/templates/service-readiness-review.md"
 test -f "$ROOT/templates/golden-run-scorecard.md"
+test -f "$ROOT/templates/claude-md/base.md"
+test -f "$ROOT/templates/claude-md/ai-llm-section.md"
+test -f "$PLUGIN_DIR/skills/onboarding/catalog.json"
 test -f "$ROOT/.github/CODEOWNERS"
 test -f "$ROOT/.github/PULL_REQUEST_TEMPLATE.md"
 test -f "$ROOT/.github/ISSUE_TEMPLATE/bug-report.md"
@@ -70,6 +74,7 @@ REQUIRED_SKILLS=(
   implement
   squad
   bug-fix
+  inception
   security-audit
   migration-plan
   cloud-debug
@@ -77,6 +82,7 @@ REQUIRED_SKILLS=(
   factory-retrospective
   pre-commit-lint
   dashboard
+  from-ticket
 )
 
 for skill in "${REQUIRED_SKILLS[@]}"; do
@@ -162,6 +168,10 @@ REQUIRED_AGENTS=(
   tech-lead
   typescript-developer
   vue-developer
+  prd-author
+  inception-author
+  tasks-planner
+  work-item-mapper
 )
 
 for agent in "${REQUIRED_AGENTS[@]}"; do
@@ -232,9 +242,172 @@ for skill in discovery implement squad; do
   fi
 done
 
-for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:' '^checkpoint_resume:' '^reliability_metrics:'; do
+# ── Onboarding catalog and CLAUDE.md templates ──────────────────────────────
+python3 -m json.tool "$PLUGIN_DIR/skills/onboarding/catalog.json" >/dev/null
+python3 - "$ROOT" "$PLUGIN_DIR/skills/onboarding/catalog.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+catalog_path = Path(sys.argv[2])
+catalog = json.loads(catalog_path.read_text())
+
+if catalog.get("schema_version") != "1.0":
+    raise SystemExit("onboarding catalog schema_version must be 1.0")
+
+for key in ("default_template", "ai_llm_section", "profiles"):
+    if key not in catalog:
+        raise SystemExit(f"onboarding catalog missing {key}")
+
+required_profiles = {
+    "django",
+    "react",
+    "vue",
+    "typescript",
+    "javascript",
+    "python",
+    "generic",
+}
+profiles = catalog["profiles"]
+missing = sorted(required_profiles - set(profiles))
+if missing:
+    raise SystemExit(f"onboarding catalog missing profiles: {', '.join(missing)}")
+
+template_paths = [catalog["default_template"], catalog["ai_llm_section"]]
+for name, profile in profiles.items():
+    for field in ("label", "signals", "template", "specialists", "recommended_first_command", "required_health_checks"):
+        if field not in profile:
+            raise SystemExit(f"onboarding profile {name} missing {field}")
+    template_paths.append(profile["template"])
+
+for rel in template_paths:
+    if not (root / rel).is_file():
+        raise SystemExit(f"onboarding template not found: {rel}")
+PY
+
+grep -q 'onboarding-plan' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
+  echo "squad-cli missing onboarding-plan command"
+  exit 1
+}
+
+test -f "$PLUGIN_DIR/bin/squad_cli/dashboard.py" || {
+  echo "squad-cli missing dashboard module"
+  exit 1
+}
+
+test -f "$PLUGIN_DIR/bin/squad_cli/ticket.py" || {
+  echo "squad-cli missing ticket module"
+  exit 1
+}
+
+test -f "$PLUGIN_DIR/bin/squad_cli/sdk.py" || {
+  echo "squad-cli missing SDK module"
+  exit 1
+}
+
+test -f "$PLUGIN_DIR/bin/squad_cli/ticket_sources/jira.py" || {
+  echo "squad-cli missing Jira ticket source adapter"
+  exit 1
+}
+
+test -f "$PLUGIN_DIR/bin/squad_cli/ticket_sources/linear.py" || {
+  echo "squad-cli missing Linear ticket source adapter"
+  exit 1
+}
+
+test -f "$PLUGIN_DIR/bin/squad_cli/ticket_sources/github.py" || {
+  echo "squad-cli missing GitHub ticket source adapter"
+  exit 1
+}
+
+grep -q 'class TicketSourceClient' "$PLUGIN_DIR/bin/squad_cli/ticket_sources/base.py" || {
+  echo "ticket source base missing TicketSourceClient interface"
+  exit 1
+}
+
+grep -q 'fetch_context_with_fallback' "$PLUGIN_DIR/bin/squad_cli/ticket_sources/__init__.py" || {
+  echo "ticket sources missing formal fallback helper"
+  exit 1
+}
+
+test -f "$ROOT/scripts/test-ticket-sources.py" || {
+  echo "Missing ticket source unit tests"
+  exit 1
+}
+
+for example in sdk_ticket_plan.py sdk_dashboard_report.py sdk_onboarding_plan.py; do
+  test -f "$ROOT/examples/$example" || {
+    echo "Missing SDK example: $example"
+    exit 1
+  }
+done
+
+grep -q 'dashboard' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
+  echo "squad-cli missing dashboard command"
+  exit 1
+}
+
+grep -q 'ticket-plan' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
+  echo "squad-cli missing ticket-plan command"
+  exit 1
+}
+
+grep -q 'sdk-smoke' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
+  echo "squad-cli missing sdk-smoke command"
+  exit 1
+}
+
+grep -q 'ticket_plan_from_context' "$PLUGIN_DIR/bin/squad_cli/sdk.py" || {
+  echo "SDK missing ticket_plan_from_context"
+  exit 1
+}
+
+grep -q 'to_json' "$PLUGIN_DIR/bin/squad_cli/sdk.py" || {
+  echo "SDK missing deterministic JSON helper"
+  exit 1
+}
+
+grep -q 'ai-docs/dashboard.html' "$SKILLS_DIR/dashboard/SKILL.md" || {
+  echo "dashboard skill missing HTML report contract"
+  exit 1
+}
+
+# ── Visual Reporting Contract in orchestrator skills ─────────────────────────
+for skill in discovery implement squad inception bug-fix hotfix; do
+  skill_file="$SKILLS_DIR/$skill/SKILL.md"
+  if [ ! -f "$skill_file" ]; then
+    continue
+  fi
+  if ! grep -q "^## Visual Reporting Contract$" "$skill_file"; then
+    echo "Skill missing Visual Reporting Contract section: $skill"
+    exit 1
+  fi
+done
+
+# ── Render scripts present and executable ────────────────────────────────────
+for script in render-teammate-card.sh render-pipeline-board.sh; do
+  path="$PLUGIN_DIR/scripts/$script"
+  if [ ! -f "$path" ]; then
+    echo "Missing render script: $script"
+    exit 1
+  fi
+  if [ ! -x "$path" ]; then
+    echo "Render script not executable: $script"
+    exit 1
+  fi
+done
+
+for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:' '^checkpoint_resume:' '^reliability_metrics:' '^work_item_taxonomy:' '^delivery_gates:'; do
   if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
     echo "runtime-policy.yaml missing required key matching: $key"
+    exit 1
+  fi
+done
+
+for key in '^  teammate_cards:' '^  pipeline_board:'; do
+  if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
+    echo "runtime-policy.yaml observability missing key: $key"
     exit 1
   fi
 done

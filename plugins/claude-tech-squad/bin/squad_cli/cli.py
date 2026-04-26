@@ -274,6 +274,125 @@ def dry_run_cmd(skill: str, policy: str, project_root: str):
     click.echo(output)
 
 
+@main.command("onboarding-plan")
+@click.option("--project-root", default=".", type=click.Path(exists=True))
+@click.option(
+    "--catalog",
+    default="plugins/claude-tech-squad/skills/onboarding/catalog.json",
+    type=click.Path(exists=True),
+)
+def onboarding_plan_cmd(project_root: str, catalog: str):
+    from squad_cli.onboarding import build_onboarding_plan
+
+    plan = build_onboarding_plan(Path(project_root), Path(catalog))
+    _output(plan.to_dict())
+
+
+@main.command("dashboard")
+@click.option("--log-dir", default="ai-docs/.squad-log", type=click.Path())
+@click.option("--output-md", default="ai-docs/dashboard-snapshot.md", type=click.Path())
+@click.option("--output-html", default="ai-docs/dashboard.html", type=click.Path())
+@click.option("--limit", default=30, type=int)
+@click.option("--write-sep-log/--no-write-sep-log", default=True)
+def dashboard_cmd(
+    log_dir: str,
+    output_md: str,
+    output_html: str,
+    limit: int,
+    write_sep_log: bool,
+):
+    from squad_cli.dashboard import build_dashboard_report, write_dashboard_outputs
+
+    report = build_dashboard_report(Path(log_dir), limit)
+    outputs = write_dashboard_outputs(
+        report,
+        Path(output_md),
+        Path(output_html) if output_html else None,
+        Path(log_dir) if write_sep_log else None,
+    )
+    _output({"status": "written", "outputs": outputs, "report": report.to_dict()})
+
+
+@main.command("ticket-plan")
+@click.argument("ticket", required=False, default="")
+@click.option("--ticket-json", default=None, type=click.Path(exists=True))
+@click.option("--text-file", default=None, type=click.Path(exists=True))
+@click.option("--write-sep-log/--no-write-sep-log", default=False)
+@click.option("--fallback-used/--no-fallback-used", default=False)
+@click.option("--log-dir", default="ai-docs/.squad-log", type=click.Path())
+def ticket_plan_cmd(
+    ticket: str,
+    ticket_json: str | None,
+    text_file: str | None,
+    write_sep_log: bool,
+    fallback_used: bool,
+    log_dir: str,
+):
+    from squad_cli.ticket import (
+        build_ticket_plans,
+        load_ticket_contexts,
+        write_from_ticket_sep_log,
+    )
+
+    contexts = load_ticket_contexts(
+        ticket,
+        Path(ticket_json) if ticket_json else None,
+        Path(text_file) if text_file else None,
+    )
+    plans = build_ticket_plans(contexts)
+    sep_logs = []
+    if write_sep_log:
+        sep_logs = [
+            str(write_from_ticket_sep_log(plan, Path(log_dir), fallback_used=fallback_used))
+            for plan in plans
+        ]
+
+    if len(plans) == 1:
+        output = plans[0].to_dict()
+        output["fallback_used"] = fallback_used
+        if sep_logs:
+            output["sep_log"] = sep_logs[0]
+        _output(output)
+        return
+
+    _output(
+        {
+            "status": "planned",
+            "count": len(plans),
+            "fallback_used": fallback_used,
+            "plans": [plan.to_dict() for plan in plans],
+            "sep_logs": sep_logs,
+        }
+    )
+
+
+@main.command("sdk-smoke")
+@click.option("--project-root", default=".", type=click.Path(exists=True))
+@click.option(
+    "--plugin-root",
+    default="plugins/claude-tech-squad",
+    type=click.Path(exists=True),
+)
+def sdk_smoke_cmd(project_root: str, plugin_root: str):
+    from squad_cli.sdk import create_client
+
+    client = create_client(project_root=project_root, plugin_root=plugin_root)
+    onboarding = client.onboarding_plan()
+    dashboard = client.dashboard_report(limit=5)
+    ticket = client.ticket_plan("PROJ-123")
+    from_context = client.ticket_plan_from_context(ticket.extracted_context)
+    _output(
+        {
+            "status": "ok",
+            "onboarding_stack": onboarding.stack,
+            "dashboard_logs_analyzed": dashboard.logs_analyzed,
+            "ticket_source": ticket.source,
+            "ticket_recommended_skill": ticket.recommended_skill,
+            "ticket_context_skill": from_context.recommended_skill,
+        }
+    )
+
+
 @main.command()
 @click.option("--run-id", required=True)
 @click.option("--key", required=True, help="Memory key: 'shared' or teammate name")

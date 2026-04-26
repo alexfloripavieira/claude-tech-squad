@@ -1,0 +1,2 @@
+/claude-tech-squad:rollover
+Live golden run for Fase 1: assume an /implement run has completed TDD and implementation phase outputs and is about to enter review. Invoke /rollover to consolidate state, generate rollover-brief.md and rollover-state.json, then demonstrate /resume-from-rollover reading the JSON state, re-emitting invariants, and handing control back. Write real trace/final/metadata/scorecard artifacts plus SEP log with execution_mode: inline unless teammate/tmux is active.

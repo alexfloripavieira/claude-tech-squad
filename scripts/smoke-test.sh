@@ -10,11 +10,148 @@ SKILLS_DIR="$PLUGIN_DIR/skills"
 bash "$ROOT/scripts/validate.sh"
 bash "$ROOT/scripts/dogfood.sh"
 bash "$ROOT/scripts/dogfood-report.sh" --schema-only
+python3 "$ROOT/scripts/validate-console-contracts.py"
+python3 "$ROOT/scripts/test-ticket-sources.py"
 
 TMP_GOLDEN_DIR="$(mktemp -d)"
 TMP_DIST_DIR="$(mktemp -d)"
 TMP_RELEASE_REPO="$(mktemp -d)"
 trap 'rm -rf "$TMP_GOLDEN_DIR" "$TMP_DIST_DIR" "$TMP_RELEASE_REPO"' EXIT
+
+ONBOARDING_PLAN="$TMP_GOLDEN_DIR/onboarding-plan.json"
+python3 "$PLUGIN_DIR/bin/squad-cli" onboarding-plan \
+  --project-root "$ROOT/fixtures/dogfooding/llm-rag" \
+  --catalog "$SKILLS_DIR/onboarding/catalog.json" > "$ONBOARDING_PLAN"
+python3 - "$ONBOARDING_PLAN" <<'PY'
+import json
+import sys
+
+plan = json.load(open(sys.argv[1]))
+assert plan["stack"] == "python", plan
+assert plan["ai_feature"] is True, plan
+assert plan["template"] == "templates/claude-md/stacks/python.md", plan
+assert "python-developer" in plan["specialists"], plan
+PY
+
+DASHBOARD_LOG_DIR="$TMP_GOLDEN_DIR/sep-logs"
+mkdir -p "$DASHBOARD_LOG_DIR"
+printf '%s\n' \
+  '---' \
+  'run_id: hotfix123' \
+  'skill: hotfix' \
+  'timestamp: 2026-04-22T10:00:00Z' \
+  'status: completed' \
+  'final_status: completed' \
+  'execution_mode: inline' \
+  'architecture_style: existing-repo-pattern' \
+  'checkpoints: [preflight-passed, patch-applied]' \
+  'fallbacks_invoked: []' \
+  'postmortem_recommended: true' \
+  '---' \
+  '' \
+  '## Output Digest' \
+  'Checkout hotfix completed.' \
+  > "$DASHBOARD_LOG_DIR/2026-04-22T10-00-00-hotfix-hotfix123.md"
+printf '%s\n' \
+  '---' \
+  'run_id: discovery456' \
+  'skill: discovery' \
+  'timestamp: 2026-04-22T11:00:00Z' \
+  'status: failed' \
+  'final_status: failed' \
+  'execution_mode: inline' \
+  'architecture_style: layered' \
+  'checkpoints: [preflight-passed, gate-blocked]' \
+  'fallbacks_invoked: []' \
+  'gates_blocked: [scope-validation]' \
+  '---' \
+  '' \
+  '## Output Digest' \
+  'Discovery stopped at scope gate.' \
+  > "$DASHBOARD_LOG_DIR/2026-04-22T11-00-00-discovery-discovery456.md"
+DASHBOARD_JSON="$TMP_GOLDEN_DIR/dashboard-result.json"
+python3 "$PLUGIN_DIR/bin/squad-cli" dashboard \
+  --log-dir "$DASHBOARD_LOG_DIR" \
+  --output-md "$TMP_GOLDEN_DIR/dashboard-snapshot.md" \
+  --output-html "$TMP_GOLDEN_DIR/dashboard.html" \
+  --no-write-sep-log > "$DASHBOARD_JSON"
+python3 - "$DASHBOARD_JSON" "$TMP_GOLDEN_DIR/dashboard-snapshot.md" "$TMP_GOLDEN_DIR/dashboard.html" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+result = json.load(open(sys.argv[1]))
+report = result["report"]
+assert report["logs_analyzed"] == 2, report
+assert len(report["pending_hotfixes"]) == 1, report
+assert Path(sys.argv[2]).read_text().find("Hotfixes Awaiting Post-Mortem") >= 0
+assert Path(sys.argv[3]).read_text().find("<html") >= 0
+PY
+
+TICKET_FIXTURE="$TMP_GOLDEN_DIR/ticket.json"
+printf '%s\n' \
+  '{' \
+  '  "source": "linear",' \
+  '  "ticket_id": "LIN-123",' \
+  '  "title": "Add prompt telemetry",' \
+  '  "issue_type": "Story",' \
+  '  "priority": "High",' \
+  '  "labels": ["llm"],' \
+  '  "acceptance_criteria": ["records prompt version", "captures eval outcome"],' \
+  '  "subtasks": ["schema", "dashboard", "docs"]' \
+  '}' \
+  > "$TICKET_FIXTURE"
+TICKET_PLAN="$TMP_GOLDEN_DIR/ticket-plan.json"
+python3 "$PLUGIN_DIR/bin/squad-cli" ticket-plan LIN-123 --ticket-json "$TICKET_FIXTURE" > "$TICKET_PLAN"
+python3 - "$TICKET_PLAN" <<'PY'
+import json
+import sys
+
+plan = json.load(open(sys.argv[1]))
+assert plan["source"] == "linear", plan
+assert plan["ticket_id"] == "LIN-123", plan
+assert plan["recommended_skill"] == "prompt-review", plan
+assert plan["complexity_tier"] == "medium", plan
+assert "Ticket Context - LIN-123" in plan["launch_context"], plan
+PY
+
+TICKET_BATCH="$TMP_GOLDEN_DIR/ticket-batch.json"
+printf '%s\n' \
+  '[' \
+  '  {"source": "github", "repository": "acme/web", "number": 42, "title": "Fix checkout error", "labels": [{"name": "bug"}], "priority": "High"},' \
+  '  {"source": "jira", "key": "OPS-7", "fields": {"summary": "Audit Terraform state", "issuetype": {"name": "Task"}, "priority": {"name": "Medium"}, "labels": ["infra"]}}' \
+  ']' \
+  > "$TICKET_BATCH"
+BATCH_PLAN="$TMP_GOLDEN_DIR/ticket-batch-plan.json"
+python3 "$PLUGIN_DIR/bin/squad-cli" ticket-plan --ticket-json "$TICKET_BATCH" --write-sep-log --log-dir "$TMP_GOLDEN_DIR/from-ticket-logs" > "$BATCH_PLAN"
+python3 - "$BATCH_PLAN" <<'PY'
+import json
+import sys
+
+result = json.load(open(sys.argv[1]))
+assert result["count"] == 2, result
+assert result["plans"][0]["source"] == "github", result
+assert result["plans"][1]["recommended_skill"] == "iac-review", result
+assert len(result["sep_logs"]) == 2, result
+PY
+
+SDK_SMOKE="$TMP_GOLDEN_DIR/sdk-smoke.json"
+python3 "$PLUGIN_DIR/bin/squad-cli" sdk-smoke \
+  --project-root "$ROOT/fixtures/dogfooding/llm-rag" \
+  --plugin-root "$PLUGIN_DIR" > "$SDK_SMOKE"
+python3 - "$SDK_SMOKE" <<'PY'
+import json
+import sys
+
+result = json.load(open(sys.argv[1]))
+assert result["status"] == "ok", result
+assert result["onboarding_stack"] == "python", result
+assert result["ticket_source"] == "jira", result
+assert result["ticket_context_skill"] == result["ticket_recommended_skill"], result
+PY
+
+bash "$ROOT/scripts/test-sdk.sh" >/dev/null
+
 GOLDEN_RUNS_DIR="$TMP_GOLDEN_DIR" bash "$ROOT/scripts/start-golden-run.sh" layered-monolith smoke-test >/dev/null
 
 LATEST_SCAFFOLD="$(find "$TMP_GOLDEN_DIR/layered-monolith" -mindepth 1 -maxdepth 1 -type d | sort | tail -1)"
@@ -72,7 +209,7 @@ for skill in discovery implement squad; do
   grep -q '^### Checkpoint / Resume Rules$' "$skill_file" || { echo "Smoke test failed: missing Checkpoint / Resume Rules in $skill"; exit 1; }
 done
 
-for skill in bug-fix cloud-debug dependency-check dashboard factory-retrospective hotfix iac-review incident-postmortem llm-eval migration-plan multi-service onboarding pre-commit-lint prompt-review pr-review refactor release security-audit tech-debt-audit; do
+for skill in bug-fix cloud-debug dependency-check dashboard factory-retrospective from-ticket hotfix iac-review incident-postmortem llm-eval migration-plan multi-service onboarding pre-commit-lint prompt-review pr-review refactor release security-audit tech-debt-audit; do
   skill_file="$SKILLS_DIR/$skill/SKILL.md"
   [ -f "$skill_file" ] || { echo "Smoke test failed: SKILL.md missing for $skill"; exit 1; }
   grep -q '## Global Safety Contract' "$skill_file" || { echo "Smoke test failed: missing Global Safety Contract in $skill"; exit 1; }
@@ -227,5 +364,32 @@ for trace_line in 'Cost Warning' 'Doom Loop' 'Auto-Advanced' 'Entropy Check' 'SE
     exit 1
   }
 done
+
+# ── Delivery docs agents ───────────────────────────────────────────────────
+for a in prd-author inception-author tasks-planner work-item-mapper; do
+  test -f "$PLUGIN_DIR/agents/$a.md" || {
+    echo "Smoke test failed: missing agent $a"
+    exit 1
+  }
+done
+
+# ── Inception skill present ────────────────────────────────────────────────
+test -f "$PLUGIN_DIR/skills/inception/SKILL.md" || {
+  echo "Smoke test failed: missing inception skill"
+  exit 1
+}
+
+# ── Render scripts executable ──────────────────────────────────────────────
+for s in render-teammate-card.sh render-pipeline-board.sh; do
+  path="$PLUGIN_DIR/scripts/$s"
+  test -f "$path" || { echo "Smoke test failed: missing $s"; exit 1; }
+  test -x "$path" || { echo "Smoke test failed: $s not executable"; exit 1; }
+done
+
+# ── Render byte-diff tests ─────────────────────────────────────────────────
+bash "$ROOT/scripts/test-render.sh" > /dev/null || {
+  echo "Smoke test failed: render byte-diff tests failed"
+  exit 1
+}
 
 echo "claude-tech-squad smoke test passed"

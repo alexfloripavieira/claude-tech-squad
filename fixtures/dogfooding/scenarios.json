@@ -121,6 +121,53 @@
         "metadata.yaml",
         "scorecard.md"
       ]
+    },
+    {
+      "id": "rollover-midimplement",
+      "workflow": "rollover",
+      "repo_path": "fixtures/dogfooding/layered-monolith",
+      "prompt": "/claude-tech-squad:rollover\nAssume an /implement run has produced two phase outputs and is about to enter the review phase. Invoke /rollover to consolidate state. Then demonstrate /resume-from-rollover reading the machine state JSON, re-emitting invariants, and handing control back.",
+      "expected_architecture_style": [
+        "existing-repo-pattern",
+        "layered"
+      ],
+      "expected_agents": [
+        "context-summarizer"
+      ],
+      "forbidden_default_agents": [],
+      "required_trace_lines": [
+        "[Rollover Requested]",
+        "[Teammate Spawned] context-summarizer",
+        "[Rollover Accepted]",
+        "[Resume From]",
+        "[Resume Accepted]"
+      ],
+      "forbidden_strings": [
+        "[Rollover Error]",
+        "[Resume Error]"
+      ],
+      "artifact_contract": [
+        "prompt.txt",
+        "trace.md",
+        "final.md",
+        "metadata.yaml",
+        "scorecard.md",
+        "rollover-brief.md",
+        "rollover-state.json"
+      ],
+      "rollover_artifact_schema": {
+        "required_keys": [
+          "schema_version",
+          "run_id",
+          "skill",
+          "completed_phases",
+          "open_decisions",
+          "invariants",
+          "next_action",
+          "checkpoint_cursor"
+        ],
+        "schema_version": "1.0"
+      }
     }
   ]
 }

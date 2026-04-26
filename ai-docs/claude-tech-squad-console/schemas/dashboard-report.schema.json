@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://claude-tech-squad.local/schemas/dashboard-report.schema.json",
+  "title": "DashboardReport",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "generated_at",
+    "logs_analyzed",
+    "skills_covered",
+    "overall_success_rate",
+    "skill_summaries",
+    "pending_hotfixes",
+    "recent_runs",
+    "source_log_dir"
+  ],
+  "properties": {
+    "generated_at": { "type": "string", "minLength": 1 },
+    "logs_analyzed": { "type": "integer", "minimum": 0 },
+    "skills_covered": { "type": "integer", "minimum": 0 },
+    "overall_success_rate": { "type": "number", "minimum": 0, "maximum": 100 },
+    "skill_summaries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "skill",
+          "runs",
+          "completed",
+          "failed_or_aborted",
+          "success_rate",
+          "last_run",
+          "blocked_gates",
+          "fallbacks",
+          "flags"
+        ],
+        "properties": {
+          "skill": { "type": "string", "minLength": 1 },
+          "runs": { "type": "integer", "minimum": 0 },
+          "completed": { "type": "integer", "minimum": 0 },
+          "failed_or_aborted": { "type": "integer", "minimum": 0 },
+          "success_rate": { "type": "number", "minimum": 0, "maximum": 100 },
+          "last_run": { "type": "string" },
+          "blocked_gates": { "type": "integer", "minimum": 0 },
+          "fallbacks": { "type": "integer", "minimum": 0 },
+          "flags": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "pending_hotfixes": { "type": "array", "items": { "$ref": "sep-run.schema.json" } },
+    "recent_runs": { "type": "array", "items": { "$ref": "sep-run.schema.json" } },
+    "source_log_dir": { "type": "string" }
+  }
+}

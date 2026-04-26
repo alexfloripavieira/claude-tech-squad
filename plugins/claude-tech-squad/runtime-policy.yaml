@@ -202,7 +202,8 @@ tool_allowlists:
                analytics-engineer, design-principles-specialist, test-planner,
                llm-eval-specialist, llm-cost-analyst, llm-safety-reviewer,
                cost-optimizer, growth-engineer, solutions-architect, agent-architect,
-               conversational-designer, search-engineer, django-pm]
+               conversational-designer, search-engineer, django-pm,
+               prd-author, inception-author, tasks-planner, work-item-mapper]
     implementation:
       tools: [Read, Glob, Grep, Bash, Edit, Write]
       agents: [backend-dev, frontend-dev, mobile-dev, data-engineer, platform-dev,
@@ -246,6 +247,8 @@ severity_policy:
 
 fallback_matrix:
   discovery:
+    prd-author:
+      - claude-tech-squad:pm
     pm:
       - claude-tech-squad:po
     business-analyst:
@@ -332,6 +335,10 @@ fallback_matrix:
       - claude-tech-squad:rag-engineer
       - claude-tech-squad:data-engineer
   implement:
+    tasks-planner:
+      - claude-tech-squad:planner
+    work-item-mapper:
+      - claude-tech-squad:jira-confluence-specialist
     tdd-specialist:
       - claude-tech-squad:test-planner
     reviewer:
@@ -415,6 +422,14 @@ fallback_matrix:
       - claude-tech-squad:cost-optimizer
       - claude-tech-squad:ai-engineer
   squad:
+    prd-author:
+      - claude-tech-squad:pm
+    inception-author:
+      - claude-tech-squad:tech-lead
+    tasks-planner:
+      - claude-tech-squad:planner
+    work-item-mapper:
+      - claude-tech-squad:jira-confluence-specialist
     pm:
       - claude-tech-squad:po
     planner:
@@ -468,6 +483,15 @@ fallback_matrix:
     security-reviewer:
       - claude-tech-squad:compliance-reviewer
       - claude-tech-squad:security-engineer
+  inception:
+    inception-author:
+      - claude-tech-squad:tech-lead
+  bug-fix:
+    work-item-mapper:
+      - claude-tech-squad:jira-confluence-specialist
+  hotfix:
+    work-item-mapper:
+      - claude-tech-squad:jira-confluence-specialist
 
 checkpoint_resume:
   write_to_sep_log: true
@@ -601,3 +625,94 @@ observability:
       - "[Health Check]"
       - "[Health Warning]"
       - "[SEP Log Written]"
+  teammate_cards:
+    enabled: true
+    format: ascii            # ascii | compact | silent
+    description: >
+      After each teammate returns, the orchestrator pipes the Result Contract
+      metrics JSON through plugins/claude-tech-squad/scripts/render-teammate-card.sh
+      to print a compact inline card (tokens in/out, cost, duration, confidence,
+      gaps, artifacts). Set format to silent in CI.
+  pipeline_board:
+    enabled: true
+    include_budget_bar: true
+    include_artifacts: true
+    description: >
+      At the end of an orchestrator skill run, before writing the SEP log, the
+      orchestrator assembles a pipeline summary JSON and pipes it through
+      plugins/claude-tech-squad/scripts/render-pipeline-board.sh to print an
+      ASCII board (per-teammate rows, totals, budget bar, checkpoints, gates,
+      artifacts, sep log path).
+
+# ── Work-item taxonomy (vendor-neutral, configurable by team) ───────────────
+work_item_taxonomy:
+  levels:
+    - name: initiative
+      description: Strategic, cross-team work
+    - name: epic
+      description: Product-level value delivery
+    - name: story
+      description: Functional delivery with code
+    - name: task
+      description: Work without code (analysis, discovery, spike)
+    - name: subtask
+      description: Operational breakdown of any item above
+  defect_classification:
+    - name: defect
+      description: Issue in delivered functionality, not necessarily in production
+    - name: bug
+      description: Issue in active production
+  estimation:
+    effort_unit: hours       # hours | days | points
+    completion_unit: days    # hours | days | points
+
+# ── Delivery gates (opt-in, policy-driven) ──────────────────────────────────
+delivery_gates:
+  enabled: false
+  rules:
+    - id: code_requires_story_not_task
+      severity: WARNING
+      description: Items that produce code must be mapped as story, not task
+    - id: epic_needs_end_criterion
+      severity: WARNING
+      description: Epics need an explicit completion criterion unless tagged continuous
+    - id: qa_required_for_stories
+      severity: INFO
+      description: Stories should include a QA step in the flow
+
+# ── Context rollover management (ADR 0001) ──────────────────────────────────
+context_management:
+  enabled: true
+  advisory_threshold_tokens: 100000
+  hard_rollover_threshold_tokens: 140000
+  summarizer_agent: context-summarizer
+  summarizer_model_class: chat
+  summarizer_model_preference:
+    - claude-haiku-4-5
+    - groq/llama-3.3-70b-versatile
+    - gpt-4o-mini
+  rollover_gate_options:
+    R: rollover-now
+    D: defer-one-phase
+    F: force-continue-with-risk
+  check_only_at_phase_boundaries: true
+  artifacts:
+    brief_path_template: ai-docs/.squad-log/rollover-<run_id>-brief.md
+    state_path_template: ai-docs/.squad-log/rollover-<run_id>.json
+    schema_version: "1.0"
+  applies_to_skills:
+    - squad
+    - implement
+    - hotfix
+    - refactor
+    - multi-service
+  operator_skills:
+    proactive: rollover
+    resume: resume-from-rollover
+  cost_budget_usd_per_rollover: 0.10
+  description: >
+    Long-running skills must check cumulative token usage between phase
+    boundaries. At 100k soft, emit [Context Advisory]. At 140k hard, emit
+    [Gate] Context Rollover Required and halt for operator choice. See
+    docs/architecture/0001-context-rollover.md for the decision record and
+    alternatives considered.

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://claude-tech-squad.local/schemas/sep-run.schema.json",
+  "title": "SepRun",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "path",
+    "run_id",
+    "skill",
+    "timestamp",
+    "final_status",
+    "checkpoints",
+    "fallbacks_invoked",
+    "gates_blocked",
+    "findings_critical",
+    "findings_high",
+    "postmortem_recommended",
+    "parent_run_id",
+    "summary"
+  ],
+  "properties": {
+    "path": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "skill": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string" },
+    "final_status": { "type": "string", "minLength": 1 },
+    "checkpoints": { "type": "array", "items": { "type": "string" } },
+    "fallbacks_invoked": { "type": "array" },
+    "gates_blocked": { "type": "array", "items": { "type": "string" } },
+    "findings_critical": { "type": "integer", "minimum": 0 },
+    "findings_high": { "type": "integer", "minimum": 0 },
+    "postmortem_recommended": { "type": "boolean" },
+    "parent_run_id": { "type": "string" },
+    "summary": { "type": "string" }
+  }
+}

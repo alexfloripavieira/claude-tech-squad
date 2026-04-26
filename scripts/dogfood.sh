@@ -22,7 +22,7 @@ require_dir() {
 python3 -m json.tool "$MANIFEST" >/dev/null
 
 SCENARIO_COUNT=$(python3 -c "import json; d=json.load(open('$MANIFEST')); print(len(d['scenarios']))")
-[ "$SCENARIO_COUNT" = "4" ] || fail "expected 4 scenarios in manifest, found $SCENARIO_COUNT"
+[ "$SCENARIO_COUNT" = "5" ] || fail "expected 5 scenarios in manifest, found $SCENARIO_COUNT"
 
 if [ "${1:-}" = "--print-prompts" ]; then
   python3 -c "import json; d=json.load(open('$MANIFEST')); [print(f\"[{s['id']}]\\n{s['prompt']}\\n\") for s in d['scenarios']]"
@@ -88,5 +88,18 @@ grep -q '\[tool\.ruff\]' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture miss
 grep -q '\[tool\.mypy\]' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture missing mypy config"
 grep -q 'anthropic' "$LLM_RAG/pyproject.toml" || fail "llm-rag fixture missing anthropic dependency"
 grep -q 'ai-engineer\|llm-eval-specialist' "$LLM_RAG/CLAUDE.md" || fail "llm-rag fixture missing AI specialist instruction"
+
+# ── Integration-mode assertions for delivery docs + visual reporting ───────
+# Only run when INTEGRATION=1 (after a real golden run has populated .expected/)
+if [ "${INTEGRATION:-0}" = "1" ]; then
+  EXPECTED_ROOT="$FIXTURES_DIR/layered-monolith/.expected"
+  for f in prd.md techspec.md tasks.md work-items.md; do
+    require_file "$EXPECTED_ROOT/ai-docs/prd-layered-monolith/$f"
+  done
+  TERMINAL_OUT="$EXPECTED_ROOT/terminal-out.txt"
+  require_file "$TERMINAL_OUT"
+  grep -q "TOTAL" "$TERMINAL_OUT" || fail "terminal-out missing pipeline board TOTAL row"
+  grep -q "prd-author" "$TERMINAL_OUT" || fail "terminal-out missing prd-author card"
+fi
 
 echo "claude-tech-squad dogfood fixtures passed"

@@ -1,0 +1,23 @@
+{
+  "source": "github",
+  "repository": "sandbox/api",
+  "number": 314,
+  "title": "Sandbox: guard checkout retry on duplicate webhook",
+  "body": "A replayed payment webhook can schedule checkout retry twice. This sandbox payload mirrors the GitHub Issues REST shape with anonymized repository and user data.",
+  "issue_type": "Bug",
+  "priority": "High",
+  "labels": [
+    { "id": 1001, "name": "bug", "color": "d73a4a" },
+    { "id": 1002, "name": "checkout", "color": "0e8a16" }
+  ],
+  "comments": [
+    {
+      "id": 9001,
+      "body": "Sandbox trace shows two retry jobs for the same payment event."
+    }
+  ],
+  "acceptance_criteria": [
+    "Duplicate webhook events do not enqueue duplicate retry jobs",
+    "The retry guard is covered by a regression test"
+  ]
+}

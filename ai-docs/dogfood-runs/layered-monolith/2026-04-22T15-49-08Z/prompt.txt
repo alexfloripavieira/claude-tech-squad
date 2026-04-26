@@ -1,0 +1,2 @@
+/claude-tech-squad:discovery
+Live golden run for Fase 1: design a delivery slice for audit-log filters in fixtures/dogfooding/layered-monolith. Preserve the layered monolith structure, propose only necessary specialists, show explicit preflight/execution/gate lines, and write real trace/final/metadata/scorecard artifacts plus SEP log. Use execution_mode: inline unless teammate/tmux is active.
