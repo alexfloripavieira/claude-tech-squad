@@ -416,9 +416,15 @@ These three skills run multi-phase pipelines with parallel and sequential teamma
 
 ### Audit-class skills (read-only, single-pass)
 
-Skills that produce a report by spawning specialists and synthesizing their findings, but never write production code: `security-audit`, `tech-debt-audit`, `dependency-check`, `iac-review`, `pr-review`, `prompt-review`, `cloud-debug`, `llm-eval`, `migration-plan`, `incident-postmortem`, `factory-retrospective`, `dashboard`, `cost-estimate`, `from-ticket`.
+Skills that produce a report read-only and never write production code. Two architectural sub-classes exist:
 
-These skills MUST declare: Global Safety Contract, Visual Reporting Contract, Teammate Failure Protocol, SEP log instruction. They MAY declare Preflight Gate, ARC, Runtime Resilience, Checkpoint/Resume, Progressive Disclosure when relevant. They are EXEMPT from the orchestrator-only validation because their pipeline does not span phases or require cross-session resumption.
+**Lens-led audit-class** — spawn 3+ specialist lenses in parallel, then a single synthesizer agent reduces their findings into a canonical register. Examples: `tech-debt-audit` (5 lenses → tech-debt-analyst), `pentest-deep` (4–5 lenses → ethical-hacker).
+
+**Scanner-led audit-class** — orchestrator runs deterministic external scanners inline (bandit, pip-audit, npm audit, trivy, semgrep, etc.), captures their outputs, and forwards them to a single reviewer agent for triage. The "lens" work is done by the scanner, not by an LLM agent. Examples: `security-audit` (bandit + pip-audit + npm audit + secrets scan → security-reviewer + optional llm-safety-reviewer).
+
+Both sub-classes MUST declare: Global Safety Contract, Visual Reporting Contract, Teammate Failure Protocol, SEP log instruction, Remediation Triage Checkpoint (when the skill produces a remediation backlog). They MAY declare Preflight Gate, ARC, Runtime Resilience, Checkpoint/Resume, Progressive Disclosure when relevant. They are EXEMPT from the orchestrator-only validation because their pipeline does not span phases or require cross-session resumption.
+
+Other audit-class skills (lens or scanner depending on stack signals): `dependency-check`, `iac-review`, `pr-review`, `prompt-review`, `cloud-debug`, `llm-eval`, `migration-plan`, `incident-postmortem`, `factory-retrospective`, `dashboard`, `cost-estimate`, `from-ticket`.
 
 ### Session-management skills
 

@@ -396,6 +396,12 @@ dedup_new: N
 dedup_recurring: N
 dedup_regressed: N
 remediation_artifact: ai-docs/security-remediation-YYYY-MM-DD.md
+compliance_scope:
+  lgpd: {{bool_or_null}}
+  gdpr: {{bool_or_null}}
+  pci_dss: {{bool_or_null}}
+  hipaa: {{bool_or_null}}
+developer_feedback: {{one_line_text_or_null}}   # captured at end-of-run from operator if provided
 tokens_input: {{total_input_tokens}}  # required — actual measurement or null; 0 placeholder forbidden
 tokens_output: {{total_output_tokens}}  # required — actual measurement or null; 0 placeholder forbidden
 estimated_cost_usd: {{estimated_cost}}
