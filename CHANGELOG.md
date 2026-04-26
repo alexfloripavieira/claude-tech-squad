@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.57.1] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Standardize skill contract conventions and refresh counts (#25)
 ## [5.57.0] - 2026-04-26 — Automated feature release
 
 ### Added
