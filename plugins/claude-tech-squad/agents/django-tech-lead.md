@@ -6,16 +6,16 @@ description: |
   <example>
   Context: A Django team is starting a new module and wants a planning lead.
   user: "Como devemos estruturar esse novo modulo em Django?"
-  assistant: "I'll use the tech-lead agent to decide app boundaries, model strategy, and delivery sequence."
+  assistant: "I'll use the django-tech-lead agent to decide app boundaries, model strategy, and delivery sequence."
   <commentary>
-  Django-specific planning before coding is the tech-lead's home.
+  Django-specific planning before coding is the django-tech-lead's home.
   </commentary>
   </example>
 
   <example>
   Context: Django project needs task decomposition aligned with delivery.
   user: "Decompose this Django feature into deliverable tasks"
-  assistant: "I'll use the tech-lead agent to break the work into Django-shaped, sequenced tasks."
+  assistant: "I'll use the django-tech-lead agent to break the work into Django-shaped, sequenced tasks."
   <commentary>
   Decomposition tied to Django delivery is in scope.
   </commentary>

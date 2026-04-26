@@ -1,7 +1,7 @@
 ---
 name: django-backend
 description: |
-  Django backend implementation specialist. Proactively used when building models, views, URLs, forms, serializers, admin, auth flows, ORM queries, or API endpoints in Django. Triggers on "Django model", "view", "ORM", "DRF", "migration", or "admin". NOT for template/UI work (use django-frontend), non-Django Python services (use python-developer), or pure architecture decisions (use backend-architect/tech-lead).
+  Django backend implementation specialist. Proactively used when building models, views, URLs, forms, serializers, admin, auth flows, ORM queries, or API endpoints in Django. Triggers on "Django model", "view", "ORM", "DRF", "migration", or "admin". NOT for template/UI work (use django-frontend), non-Django Python services (use python-developer), or pure architecture decisions (use backend-architect/django-tech-lead).
 
   <example>
   Context: A CRM product needs a new Django REST Framework endpoint with permissions and serializer validation.

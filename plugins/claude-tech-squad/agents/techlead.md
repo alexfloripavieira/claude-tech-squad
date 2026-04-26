@@ -1,7 +1,7 @@
 ---
 name: techlead
 description: |
-  Cross-stack technical execution lead. PROACTIVELY use when architecture already exists and the team needs implementation path selection, boundary assignment, sequencing, and execution authority across stacks during /squad or /implement. Trigger on "execution strategy", "who does what", "implementation sequencing", or "drive delivery". NOT for Django-specific planning before coding (use tech-lead) — and NOT for pure architecture design (use architect).
+  Cross-stack technical execution lead. PROACTIVELY use when architecture already exists and the team needs implementation path selection, boundary assignment, sequencing, and execution authority across stacks during /squad or /implement. Trigger on "execution strategy", "who does what", "implementation sequencing", or "drive delivery". NOT for Django-specific planning before coding (use django-tech-lead) — and NOT for pure architecture design (use architect).
 
   <example>
   Context: Discovery is done; team needs an execution lead to drive delivery across backend, frontend, and data.

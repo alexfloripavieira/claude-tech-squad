@@ -703,6 +703,16 @@ done
 PORTABILITY_VIOLATIONS=$(grep -rEn 'plugins/claude-tech-squad/(bin|scripts|runtime-policy\.yaml)' \
   "$PLUGIN_DIR/skills" "$PLUGIN_DIR/hooks" "$PLUGIN_DIR/commands" 2>/dev/null \
   | grep -v 'CLAUDE_PLUGIN_ROOT' || true)
+
+# Stale slug check: tech-lead was renamed to django-tech-lead in 5.62.1
+STALE_TECHLEAD=$(grep -rEn '\btech-lead\b' \
+  "$PLUGIN_DIR/agents" "$PLUGIN_DIR/skills" "$PLUGIN_DIR/bin" "$PLUGIN_DIR/runtime-policy.yaml" 2>/dev/null \
+  | grep -v 'django-tech-lead' || true)
+if [ -n "$STALE_TECHLEAD" ]; then
+  echo "Stale slug: 'tech-lead' was renamed to 'django-tech-lead' in 5.62.1:"
+  echo "$STALE_TECHLEAD"
+  exit 1
+fi
 if [ -n "$PORTABILITY_VIOLATIONS" ]; then
   echo "Portability: skills/hooks/commands must use \${CLAUDE_PLUGIN_ROOT} instead of repo-relative paths:"
   echo "$PORTABILITY_VIOLATIONS"

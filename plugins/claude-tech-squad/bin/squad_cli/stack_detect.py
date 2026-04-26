@@ -9,7 +9,7 @@ from dataclasses import dataclass, field, asdict
 ROUTING_TABLE: dict[str, dict[str, str]] = {
     "django": {
         "pm_agent": "django-pm",
-        "techlead_agent": "tech-lead",
+        "techlead_agent": "django-tech-lead",
         "backend_agent": "django-backend",
         "frontend_agent": "django-frontend",
         "reviewer_agent": "code-reviewer",
