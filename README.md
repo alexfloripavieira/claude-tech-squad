@@ -73,9 +73,11 @@ For less common situations — refactor, security audit, migration, LLM eval, mu
 /claude-tech-squad:incident-postmortem # blameless post-mortem
 
 # Quality & security
-/claude-tech-squad:pr-review      # full specialist bench review on any PR
-/claude-tech-squad:security-audit # static analysis + secrets scan + CVE check
-/claude-tech-squad:refactor       # test-guarded incremental refactoring
+/claude-tech-squad:pr-review        # full specialist bench review on any PR
+/claude-tech-squad:security-audit   # scanner-led: static analysis + secrets scan + CVE check
+/claude-tech-squad:pentest-deep     # ethical-hacker deep audit: 16 dimensions (LGPD/GDPR/PCI/SOC2 + leak + invasion)
+/claude-tech-squad:tech-debt-audit  # multi-lens debt scoring (blast x churn x complexity) + hotspot map + ROI plan
+/claude-tech-squad:refactor         # test-guarded incremental refactoring
 
 # LLM / AI specific
 /claude-tech-squad:llm-eval      # run eval suite as CI gate — detect regressions before deploy

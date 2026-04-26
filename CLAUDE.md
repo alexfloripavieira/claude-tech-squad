@@ -173,6 +173,8 @@ Not every skill invocation requires a full TeamCreate + Agent spawn cycle. The r
 | `/claude-tech-squad:discovery` | **No — MUST spawn teammates** | Specialist bench is the point. |
 | `/claude-tech-squad:refactor` | **No — MUST spawn teammates** | Characterization tests + reviewer gate. |
 | `/claude-tech-squad:security-audit` | Inline | Runs scanners + one reviewer agent; no multi-gate pipeline. |
+| `/claude-tech-squad:tech-debt-audit` | **No — MUST spawn teammates** | 5 specialist lenses run in parallel before tech-debt-analyst synthesizes. |
+| `/claude-tech-squad:pentest-deep` | **No — MUST spawn teammates** | 4–5 specialist lenses run in parallel before ethical-hacker synthesizes the 16-dimension report. |
 | `/claude-tech-squad:factory-retrospective` | Inline | Reads logs, no parallel specialist work. |
 
 When in doubt: if the skill SKILL.md contains `TeamCreate` + multiple `Agent(...)` spawns in its execution block, it MUST use teammates. Inline bypass is forbidden except for the explicit whitelist above. Added 2026-04-18 after the retrospective documented silent inline bypass in `/implement` runs.

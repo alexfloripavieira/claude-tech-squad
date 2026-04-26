@@ -77,6 +77,38 @@ Options:
 - Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
 - Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
 
+### Step 0a — Remediation Triage Checkpoint (blocking)
+
+Before any other work, compute the close-rate across prior `ai-docs/tech-debt-*.md` registers to detect a stagnant backlog (a tech-debt doom loop):
+
+```bash
+TOTAL_OPEN=$(grep -h "^| .*CRITICAL\|^| .*HIGH" ai-docs/tech-debt-*.md 2>/dev/null | grep -v "OPEN_REPLACED_BY\|CLOSED" | wc -l)
+TOTAL_CLOSED=$(grep -h "^| .*CRITICAL.*CLOSED\|^| .*HIGH.*CLOSED" ai-docs/tech-debt-*.md 2>/dev/null | wc -l)
+TOTAL=$((TOTAL_OPEN + TOTAL_CLOSED))
+if [ "$TOTAL" -gt 0 ]; then
+  CLOSE_RATE=$((TOTAL_CLOSED * 100 / TOTAL))
+else
+  CLOSE_RATE=100
+fi
+echo "close_rate=${CLOSE_RATE}% open=${TOTAL_OPEN} closed=${TOTAL_CLOSED}"
+```
+
+**If close-rate < 40%:** the backlog is stagnant. Emit:
+
+```
+[Gate] Tech Debt Doom Loop Detected | close_rate={{rate}}% | open_critical_high={{open}}
+A new audit would add findings without closing the backlog. This run is BLOCKED until:
+- [Q] Invoke /claude-tech-squad:squad on the recurring CRITICAL/HIGH findings (mandatory recommendation)
+- [O] Override — provide explicit reason to be recorded in SEP log under `doom_loop_override_reason`
+- [X] Abort this audit
+```
+
+If [Q]: exit cleanly and instruct the user to run `/claude-tech-squad:squad "Address recurring CRITICAL/HIGH tech-debt findings"`. If [O]: record `doom_loop_override_reason` in the SEP log and continue. If [X]: abort.
+
+If no prior register exists, skip this gate silently and continue.
+
+Emit: `[Remediation Triage] passed | close_rate={{rate}}% | action={{continued|overridden|aborted}}`
+
 ### Step 1 — Preflight Gate
 
 Emit `[Preflight Start] tech-debt-audit`
@@ -299,6 +331,7 @@ regressed_count: {{G}}
 systemic_categories: {{list}}
 analyst_confidence: high | medium | low
 register_artifact: ai-docs/tech-debt-YYYY-MM-DD.md
+developer_feedback: {{one_line_text_or_null}}   # captured at end-of-run from operator if provided
 tokens_input: {{actual_or_null}}
 tokens_output: {{actual_or_null}}
 estimated_cost_usd: {{usd}}
@@ -313,6 +346,16 @@ team_cleanup_status: {{team_cleanup_status}}
 When writing manually, substitute every `{{...}}` placeholder with the captured value — including `{{team_cleanup_status}}` from Step 9a (use `success` or `failed: <reason>`; never leave the literal placeholder).
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
+
+### Step 9c — Temp file cleanup
+
+After the SEP log is written, remove the per-run temp files used during the analysis:
+
+```bash
+rm -f /tmp/tech-debt-churn.txt
+```
+
+Cleanup failures are non-fatal — log a WARNING in the SEP log and continue.
 
 ### Step 10 — Report to User
 
