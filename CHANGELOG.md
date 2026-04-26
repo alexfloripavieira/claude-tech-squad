@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.57.0] - 2026-04-26 — Automated feature release
+
+### Added
+
+- Add deep tech debt audit skill and tech-debt-analyst agent (#24)
 ## [5.56.2] - 2026-04-26 — Automated maintenance release
 
 ### Fixed
