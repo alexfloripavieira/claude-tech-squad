@@ -403,3 +403,33 @@ This prevents wasted tokens on agents that are not converging toward a solution.
 | No checkpoints defined | Interrupted runs cannot be resumed |
 | No SEP log instruction | `/factory-retrospective` has no data to analyze |
 | Gates with no decision criteria | User cannot meaningfully approve or reject |
+
+---
+
+## Skill classification — full orchestrator vs. audit-class vs. session-management
+
+Not every skill needs every section above. The contract enforced by `validate.sh` distinguishes three classes.
+
+### Full orchestrator (enforced by `validate.sh` for `discovery`, `implement`, `squad`)
+
+These three skills run multi-phase pipelines with parallel and sequential teammate batches, several gates, and explicit checkpoints. They MUST declare every section: Preflight Gate, Agent Result Contract (ARC), Runtime Resilience Contract, Checkpoint / Resume Rules, Progressive Disclosure, Live Status Protocol, plus all common contracts (Global Safety, Operator Visibility, Visual Reporting, Teammate Failure Protocol, SEP log).
+
+### Audit-class skills (read-only, single-pass)
+
+Skills that produce a report by spawning specialists and synthesizing their findings, but never write production code: `security-audit`, `tech-debt-audit`, `dependency-check`, `iac-review`, `pr-review`, `prompt-review`, `cloud-debug`, `llm-eval`, `migration-plan`, `incident-postmortem`, `factory-retrospective`, `dashboard`, `cost-estimate`, `from-ticket`.
+
+These skills MUST declare: Global Safety Contract, Visual Reporting Contract, Teammate Failure Protocol, SEP log instruction. They MAY declare Preflight Gate, ARC, Runtime Resilience, Checkpoint/Resume, Progressive Disclosure when relevant. They are EXEMPT from the orchestrator-only validation because their pipeline does not span phases or require cross-session resumption.
+
+### Session-management skills
+
+Skills that handle long-running session state across `/clear` boundaries: `rollover`, `resume-from-rollover`. Their operating model is fundamentally different — they consume and produce handoff artifacts (`rollover-brief.md`, `rollover-state.json`) rather than spawning teammate batches. They MUST declare: Global Safety Contract, Operator Visibility Contract, SEP log instruction. They are exempt from the orchestrator-only sections because there are no specialist teammates to coordinate.
+
+### Quick reference
+
+| Class | Required sections | Exempt from |
+|---|---|---|
+| Full orchestrator | Everything in this contract | — |
+| Audit-class | Global Safety + Visual Reporting + Teammate Failure + SEP log | ARC, Runtime Resilience, Checkpoint/Resume, Progressive Disclosure, Live Status |
+| Session-management | Global Safety + Operator Visibility + SEP log | All teammate-coordination sections |
+
+`validate.sh` enforces the orchestrator contract only on `discovery`, `implement`, `squad`. Adding a new skill to that enforcement list automatically promotes it to full-orchestrator class.
