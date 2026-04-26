@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.60.0] - 2026-04-26 — Automated feature release
+
+### Added
+
+- Runtime test gate hook + squad-cli evaluate (Pillar B, shadow mode) (#37)
 ## [5.59.0] - 2026-04-26 — Automated feature release
 
 ### Added
