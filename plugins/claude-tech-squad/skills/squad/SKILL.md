@@ -601,8 +601,7 @@ Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 After writing the SEP log, clean up all teams created during this run:
 
 ```
-TeamDelete(name="discovery")
-TeamDelete(name="implement")
+TeamDelete(name="squad")
 ```
 
 Emit: `[Team Deleted] squad | cleanup complete`

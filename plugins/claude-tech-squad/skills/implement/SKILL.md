@@ -384,7 +384,7 @@ Spawn implementation agents in parallel based on the TechLead's workstream plan.
 Only spawn agents for workstreams that apply to this task.
 
 ```
-# Spawn relevant implementation agents in parallel using routing table from Step 0.5
+# Spawn relevant implementation agents in parallel using routing table from the Preflight Gate
 Agent(team_name=<team>, name="backend-dev",  subagent_type="claude-tech-squad:{{backend_agent}}",  prompt=...)
 Agent(team_name=<team>, name="frontend-dev", subagent_type="claude-tech-squad:{{frontend_agent}}", prompt=...)
 Agent(team_name=<team>, name="platform-dev", subagent_type="claude-tech-squad:platform-dev",       prompt=...)
@@ -407,7 +407,7 @@ Each implementation agent prompt must include:
 - Failing test files from TDD Specialist (full — they implement against these)
 - Relevant specialist notes for their domain only (full)
 - Blueprint context (digest — not the full discovery document)
-- Detected project commands: `{{test_command}}`, `{{build_command}}` (from Step 0)
+- Detected project commands: `{{test_command}}`, `{{build_command}}` (from the Preflight Gate)
 - Lint/static-analysis profile: `{{lint_profile}}`
 - Chosen architecture style: `{{architecture_style}}`
 - Design principles guardrails (full)
@@ -708,7 +708,7 @@ Emit: `[Batch Spawned] quality-bench | Teammates: <list>`
 Only spawn reviewers relevant to this project. Each receives the full implementation output.
 Instruction per reviewer: "Review from your specialist lens. Return findings as a checklist. Do NOT chain."
 
-The `code-quality` agent prompt must include the detected `{{lint_command}}` from Step 0 and the full implementation diff.
+The `code-quality` agent prompt must include the detected `{{lint_command}}` from the Preflight Gate and the full implementation diff.
 
 **Load test agent (conditional):** Spawn if the implementation adds or modifies HTTP endpoints, message queues, batch jobs, or any operation that processes variable input volume:
 
@@ -1122,7 +1122,7 @@ blueprint_stale_override_reason: null   # non-null only when user forced continu
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
-### Step 12 — Team Cleanup (mandatory epilogue)
+### Step 11 — Team Cleanup (mandatory epilogue)
 
 After writing the SEP log, clean up the team:
 

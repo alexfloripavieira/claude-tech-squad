@@ -395,3 +395,15 @@ Produce a concise summary:
 
 **Next steps:** Review the diff and commit when ready.
 ```
+
+### Step 8 — Team Cleanup (mandatory epilogue)
+
+After reporting to the user, clean up the team created at Step 2:
+
+```
+TeamDelete(name="bug-fix-team")
+```
+
+Emit: `[Team Deleted] bug-fix-team | cleanup complete`
+
+If TeamDelete fails, ignore silently.
