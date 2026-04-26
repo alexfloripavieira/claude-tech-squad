@@ -1,5 +1,35 @@
 # Changelog
 
+## [5.62.5] - 2026-04-26 — Plugin manifest fix
+
+### Fixed
+
+- `repository` field in `plugin.json` changed from object `{type, url}` (npm-style) to string. Claude Code marketplace schema requires string; previous shape caused `Validation errors: repository: Invalid input: expected string, received object` and prevented the plugin from loading.
+
+## [5.62.4] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Merge pull request #41 from alexfloripavieira/chore/plugin-validator-review-fixes
+- Address plugin-validator and agent-creator review findings
+## [5.62.3] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Merge fix/stale-tech-lead-refs: clean up residual tech-lead slug refs
+
+### Fixed
+
+- Clean up stale tech-lead refs after agent rename
+## [5.62.2] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Merge refactor/portability-and-polish-5.61.1: fix portability + standardize agent contracts
+
+### Fixed
+
+- Portability and polish across plugin contracts
 ## [5.62.1] - 2026-04-26 — Automated maintenance release
 
 ### Fixed
