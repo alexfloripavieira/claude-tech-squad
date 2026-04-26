@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.58.5] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Address plugin-dev review findings (#31)
 ## [5.58.4] - 2026-04-26 — Automated maintenance release
 
 ### Changed
