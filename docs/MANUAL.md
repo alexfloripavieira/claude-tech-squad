@@ -1,6 +1,6 @@
 # Claude Tech Squad — Technical Manual
 
-**Version:** 5.49.0
+**Version:** 5.56.1
 **Plugin:** `claude-tech-squad`
 
 ---
@@ -182,6 +182,8 @@ Without tmux mode, the same workflows run correctly as inline subagents — same
 | `/prompt-review` | **[AI]** Review prompt changes: regression on golden examples, prompt injection, token cost. |
 | `/multi-service` | **[Distributed]** Coordinate changes affecting multiple services: contracts, deployment ordering, blast radius. |
 | `/iac-review` | **[Infra]** Review IaC changes before apply: blast radius, IAM/network security, cost impact, safe sequence. |
+| `/rollover` | **[Meta]** Consolidate run state into a handoff brief and machine-state JSON before `/clear`. Proactive or triggered by the 140k context gate. See `docs/CONTEXT-ROLLOVER.md`. |
+| `/resume-from-rollover` | **[Meta]** Resume a run from its rollover handoff artifact after `/clear`. Re-emits invariants, reopens unresolved decisions, hands control back to the originating skill. |
 
 ### Stack-aware vs Stack-agnostic skills
 
@@ -1035,6 +1037,9 @@ Python / TypeScript / JavaScript / Shell stack:
 | **Gate 3** — Deploy Checklist | `/hotfix` | orchestrator | Staging verified → prod deploy → monitor 15min |
 | **Gate 1** — PR Intake | `/pr-review` | orchestrator | PR URL + repo |
 | **Gate 2** — Post Threads? | `/pr-review` | orchestrator | Confirm opening threads on GitHub |
+| **Context Advisory** | any long-running skill | orchestrator | Soft warning at 100k tokens; no action required |
+| **Context Rollover Required** | any long-running skill | orchestrator | Hard halt at 140k tokens; pick `R` / `D` / `F`. See `docs/CONTEXT-ROLLOVER.md` |
+| **Rollover Open Decision** | `/resume-from-rollover` | orchestrator | Resolve a decision flagged by the summariser before resume |
 
 No gate can be skipped. Responding to the gate is what moves the pipeline to the next phase.
 

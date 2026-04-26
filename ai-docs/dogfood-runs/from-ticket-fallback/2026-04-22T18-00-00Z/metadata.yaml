@@ -1,0 +1,15 @@
+scenario_id: from-ticket-fallback
+prepared_at: 2026-04-22T18:00:00Z
+operator: sandbox
+status: prepared
+live_external_calls: false
+credential_requirement: none
+ticket_source_requested: github
+ticket_identifier: sandbox/api#314
+fallback_fixture: ai-docs/claude-tech-squad-console/fixtures/tickets/sandbox/github-issue-api.json
+expected_fallback_used: true
+expected_fallbacks_invoked:
+  - ticket-source-unavailable
+required_commands:
+  - python3 scripts/test-ticket-sources.py
+  - python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan --ticket-json ai-docs/claude-tech-squad-console/fixtures/tickets/sandbox/github-issue-api.json --write-sep-log --fallback-used

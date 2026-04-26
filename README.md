@@ -24,6 +24,8 @@ See [ENGINEERING-OPERATING-SYSTEM.md](docs/ENGINEERING-OPERATING-SYSTEM.md) for 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) for contribution and vulnerability-handling rules.
 See [RELEASING.md](docs/RELEASING.md) for the official GitHub Actions publish path from `main`, including automatic semver, changelog, manifest, and manual updates.
 See [HOW-TO-CHANGE-AND-PUBLISH.md](docs/HOW-TO-CHANGE-AND-PUBLISH.md) for the operator checklist when changing the plugin and shipping a new version.
+See [SDK.md](docs/SDK.md) for the Python SDK facade over deterministic helper contracts.
+See [Claude Tech Squad Console PRD](ai-docs/claude-tech-squad-console/PRD.md) for the planned future frontend and observability console.
 Run `bash scripts/dogfood.sh` to validate the local dogfooding pack and `bash scripts/dogfood.sh --print-prompts` to print the fixture prompts.
 Run `bash scripts/dogfood-report.sh --schema-only` to validate the golden-run contract and `bash scripts/dogfood-report.sh` when real runs are available under `ai-docs/dogfood-runs/`.
 Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a real golden-run capture.
@@ -35,7 +37,8 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 - 74 specialist agents for software delivery (each with Reasoning Sandwich: plan → execute → verify)
 - 23 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
 - one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml` (retry, fallback, cost, doom loop, auto-advance, entropy, tool allowlists, observability)
-- one live pipeline dashboard: `plugins/claude-tech-squad/dashboard/live.html`
+- deterministic dashboard snapshots from SEP logs: `ai-docs/dashboard-snapshot.md` and `ai-docs/dashboard.html`
+- a lightweight Python SDK for onboarding, dashboard, and ticket planning contracts
 - runtime PreToolUse hooks: `plugins/claude-tech-squad/hooks/pre-tool-guard.sh`
 - one local dogfooding pack plus golden-run contract
 
@@ -49,6 +52,7 @@ Not sure which skill to run? Answer these four questions:
 | Is **production broken right now**? | → `/hotfix` (known location) or `/cloud-debug` (need to investigate) |
 | Do you have an **open PR** to review? | → `/pr-review` |
 | Do you want to **build a feature** end-to-end? | → `/squad` (full pipeline) or `/discovery` (blueprint only) then `/implement` |
+| Need **only a TechSpec** from an existing PRD? | → `/inception` (technical refinement: architecture, risks, gates, estimate) |
 
 For less common situations — refactor, security audit, migration, LLM eval, multi-service — see [SKILL-SELECTOR.md](docs/SKILL-SELECTOR.md).
 
@@ -99,7 +103,53 @@ For less common situations — refactor, security audit, migration, LLM eval, mu
 /claude-tech-squad:onboarding         # bootstrap any new repo for squad usage
 /claude-tech-squad:factory-retrospective # analyze executions and improve the process
 /claude-tech-squad:dashboard             # instant pipeline health: success rates, blocked gates, pending post-mortems
+
+# Session management — long runs without degradation
+/claude-tech-squad:rollover              # consolidate run state before /clear; produces brief + JSON handoff
+/claude-tech-squad:resume-from-rollover  # resume a run from its handoff in a fresh session
 ```
+
+`/onboarding` uses a versioned catalog (`plugins/claude-tech-squad/skills/onboarding/catalog.json`) and reusable `CLAUDE.md` templates under `templates/claude-md/`. Preview the selected profile with:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli onboarding-plan --project-root .
+```
+
+`/dashboard` has a mechanical aggregator that writes both Markdown and HTML snapshots from SEP logs:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli dashboard
+```
+
+`/from-ticket` also has a deterministic planning helper for Jira, Linear, GitHub Issues, JQL, or pasted ticket text:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan PROJ-123
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan LIN-123 --ticket-json ticket.json
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan --ticket-json tickets.json --write-sep-log
+```
+
+The helper supports local source adapters for Jira, Linear, GitHub Issue, and pasted ticket content. It accepts captured MCP/API JSON and batch JSON, but it does not call external APIs by itself.
+
+For programmatic use, import the lightweight Python SDK:
+
+```python
+from squad_cli.sdk import create_client
+
+client = create_client(project_root=".", plugin_root="plugins/claude-tech-squad")
+plan = client.ticket_plan("PROJ-123")
+plan_from_context = client.ticket_plan_from_context(plan.extracted_context)
+report = client.dashboard_report()
+```
+
+SDK results expose `.to_dict()` and deterministic `.to_json()`. SDK-specific errors include `TicketSourceError`, `CatalogError`, and `ReportParseError`.
+
+> **Long runs without context degradation.** The plugin now includes a context rollover gate.
+> Between phase boundaries, long-running skills (`/squad`, `/implement`) emit `[Context Advisory]` at
+> 100k cumulative tokens and `[Gate] Context Rollover Required` at 140k. Rollover produces a handoff
+> brief plus a structured JSON that `/resume-from-rollover` reads after `/clear`, so you never lose
+> decisions, invariants, or pending work to a saturated context window.
+> See `docs/CONTEXT-ROLLOVER.md` and `docs/architecture/0001-context-rollover.md`.
 
 > **Work directly from tickets.** Every execution skill accepts a ticket ID directly:
 > ```
@@ -205,7 +255,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 /claude-tech-squad:prompt-review # before merging any prompt file change
 ```
 
-## Specialist Roster (74 agents)
+## Specialist Roster (78 agents)
 
 ### Discovery & Planning
 - PM
@@ -214,6 +264,12 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 - Planner
 - Architect
 - Tech Lead
+
+### Delivery Docs
+- PRD Author *(generates PRD from orchestrator context, PT-BR content, strict template compliance)*
+- Inception Author *(generates TechSpec with viability, risks, gates, effort estimate)*
+- Tasks Planner *(decomposes PRD+TechSpec into sequenced tasks with test subtasks)*
+- Work Item Mapper *(maps delivery artifacts to configured vendor-neutral taxonomy; classifies defect vs bug)*
 
 ### Architecture Specialists
 - Backend Architect

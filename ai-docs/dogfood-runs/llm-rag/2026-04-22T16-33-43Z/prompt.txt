@@ -1,0 +1,1 @@
+Live golden run for Fase 1: design a delivery slice for context-aware document retrieval in fixtures/dogfooding/llm-rag. Include evaluation gates with RAGAS-style metrics before shipping, show explicit preflight/execution/gate lines, and write real trace/final/metadata/scorecard artifacts plus SEP log. Use execution_mode: inline unless teammate/tmux is active.

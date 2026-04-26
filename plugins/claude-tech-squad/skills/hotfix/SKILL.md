@@ -354,6 +354,29 @@ Ready to proceed? [Y] when each step is done.
 
 This is informational — the actual deploy is always a manual step. Do NOT attempt to deploy automatically.
 
+### Step 11b — Post-Fix Classification (Work Item Mapping)
+
+After the deploy checklist gate, before writing the SEP log:
+
+1. Spawn `work-item-mapper` with the incident report + patch summary as input:
+   ```
+   Agent(
+     team_name = "hotfix-team",
+     name = "work-item-mapper",
+     subagent_type = "claude-tech-squad:work-item-mapper",
+     prompt = <incident report + root cause + patch summary + taxonomy context>
+   )
+   ```
+2. Hotfix always classifies as `bug` per `runtime-policy.yaml` `work_item_taxonomy.defect_classification` — the incident was in active production.
+3. Pipe the mapper's `metrics` JSON through `render-teammate-card.sh` per the Visual Reporting Contract.
+4. Record the classification in the SEP log under `delivery_docs.work_items`.
+
+## Visual Reporting Contract
+
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
+
 ### Step 12 — Write SEP log (SEP Contrato 1)
 
 **python3 plugins/claude-tech-squad/bin/squad-cli sep-log** (preferred — if run was initialized with `python3 plugins/claude-tech-squad/bin/squad-cli init`):

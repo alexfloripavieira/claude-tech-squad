@@ -1,0 +1,18 @@
+scenario_id: rollover-midimplement
+workflow: rollover
+fixture_path: fixtures/dogfooding/layered-monolith
+execution_mode: inline
+timestamp: 2026-04-22T17:10:00Z
+operator: claude-opus-4-7
+score: pass
+final_status: completed
+retry_count: 0
+tokens_input: 159600
+tokens_output: 4820
+estimated_cost_usd: 0.03
+total_duration_ms: 41200
+run_id: rollover-midimplement-live-fase1
+summarizer_model: claude-haiku-4-5-20251001
+rollover_reason: operator_requested
+teammate_available: false
+notes: "Fase 1 live golden run. Rollover + resume executed end-to-end with inline summarizer (tmux not active). Real artifacts generated; checkpoint saved and resumed via squad-cli."

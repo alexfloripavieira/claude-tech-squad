@@ -1,0 +1,24 @@
+{
+  "source": "jira",
+  "key": "OPS-7",
+  "fields": {
+    "summary": "Audit Terraform state access",
+    "description": "Review infrastructure state access after the platform account split.",
+    "issuetype": { "name": "Task" },
+    "priority": { "name": "Medium" },
+    "labels": ["infra", "terraform"],
+    "subtasks": [
+      { "key": "OPS-8" },
+      { "key": "OPS-9" }
+    ],
+    "comment": {
+      "comments": [
+        { "body": "Cloud team wants the read-only review before the next deploy." }
+      ]
+    }
+  },
+  "acceptance_criteria": [
+    "State backends and IAM policies are reviewed",
+    "Risky access patterns are documented"
+  ]
+}

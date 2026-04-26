@@ -1,0 +1,2 @@
+/claude-tech-squad:hotfix
+Live golden run for Fase 1: investigate the production 500 checkout error in fixtures/dogfooding/hotfix-checkout after the latest deploy. Show diagnosis gate, minimal patch path, explicit execution lines, real trace/final/metadata/scorecard artifacts, and SEP log. Use execution_mode: inline unless teammate/tmux is active.

@@ -210,6 +210,17 @@ Run once in any new repository before using other squad commands. Detects the st
 /claude-tech-squad:onboarding
 ```
 
+Onboarding uses a versioned catalog at `plugins/claude-tech-squad/skills/onboarding/catalog.json`.
+The catalog maps detected stacks to `CLAUDE.md` overlays under `templates/claude-md/`, specialist routing, first-command recommendations, and health checks. You can preview the selected profile without running the full skill:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli onboarding-plan \
+  --project-root . \
+  --catalog plugins/claude-tech-squad/skills/onboarding/catalog.json
+```
+
+If `CLAUDE.md` already exists, onboarding skips template generation and reports that explicitly.
+
 ### `/claude-tech-squad:release`
 
 Use when implementation is done and you need to cut a release. Builds change inventory from git, validates CI/CD, generates rollback plan and release notes, creates the version tag.
@@ -217,6 +228,48 @@ Use when implementation is done and you need to cut a release. Builds change inv
 ```text
 /claude-tech-squad:release
 ```
+
+### `/claude-tech-squad:dashboard`
+
+Use for a zero-agent pipeline health snapshot from SEP logs. It writes:
+
+- `ai-docs/dashboard-snapshot.md`
+- `ai-docs/dashboard.html`
+- a dashboard SEP log in `ai-docs/.squad-log/`
+
+```text
+/claude-tech-squad:dashboard
+```
+
+The same aggregation can be run mechanically:
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli dashboard
+```
+
+### `/claude-tech-squad:from-ticket`
+
+Use when work starts from Jira, Linear, GitHub Issues, JQL, or pasted ticket text and you want the plugin to recommend the right skill. The deterministic preview command does not call external services; it normalizes known ticket fields and returns a launch context for downstream skills.
+
+```bash
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan PROJ-123
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan LIN-123 --ticket-json ticket.json
+python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan --ticket-json tickets.json --write-sep-log
+```
+
+The helper uses local source adapters for Jira, Linear, GitHub Issue, and pasted ticket content. It can consume captured MCP/API JSON and batch JSON, but it does not call external APIs directly.
+
+Python callers can use the SDK facade:
+
+```python
+from squad_cli.sdk import create_client
+
+client = create_client(project_root=".", plugin_root="plugins/claude-tech-squad")
+plan = client.ticket_plan("PROJ-123")
+plan_from_context = client.ticket_plan_from_context(plan.extracted_context)
+```
+
+See `docs/SDK.md` for SDK API versioning, `.to_json()`, examples, and SDK-specific errors.
 
 ### `/claude-tech-squad:incident-postmortem`
 

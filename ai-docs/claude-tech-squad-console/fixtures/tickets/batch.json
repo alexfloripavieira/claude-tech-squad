@@ -1,0 +1,57 @@
+[
+  {
+    "source": "github",
+    "repository": "acme/checkout",
+    "number": 42,
+    "title": "Fix checkout 500 after coupon removal",
+    "body": "Removing a coupon during checkout can leave the order total in an invalid state and returns HTTP 500.",
+    "issue_type": "Bug",
+    "priority": "High",
+    "labels": [
+      { "name": "bug" },
+      { "name": "checkout" }
+    ],
+    "acceptance_criteria": [
+      "Removing the final coupon does not return HTTP 500",
+      "Order totals are recalculated before payment authorization"
+    ]
+  },
+  {
+    "source": "jira",
+    "key": "OPS-7",
+    "fields": {
+      "summary": "Audit Terraform state access",
+      "description": "Review infrastructure state access after the platform account split.",
+      "issuetype": { "name": "Task" },
+      "priority": { "name": "Medium" },
+      "labels": ["infra", "terraform"]
+    },
+    "acceptance_criteria": [
+      "State backends and IAM policies are reviewed",
+      "Risky access patterns are documented"
+    ]
+  },
+  {
+    "source": "linear",
+    "identifier": "LIN-123",
+    "title": "Add prompt telemetry",
+    "description": "Capture prompt version, model, and eval outcome for LLM requests.",
+    "type": "Story",
+    "priorityLabel": "High",
+    "labels": {
+      "nodes": [
+        { "name": "llm" },
+        { "name": "observability" }
+      ]
+    },
+    "children": [
+      { "title": "Add schema fields" },
+      { "title": "Expose dashboard metric" },
+      { "title": "Document rollout" }
+    ],
+    "acceptance_criteria": [
+      "Prompt version is attached to each request",
+      "Eval outcome is queryable from dashboard"
+    ]
+  }
+]

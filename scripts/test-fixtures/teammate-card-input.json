@@ -1,0 +1,11 @@
+{
+  "agent": "prd-author",
+  "status": "done",
+  "tokens_input": 12400,
+  "tokens_output": 3100,
+  "estimated_cost_usd": 0.0483,
+  "total_duration_ms": 18200,
+  "confidence": "high",
+  "gaps_count": 0,
+  "artifacts_count": 1
+}

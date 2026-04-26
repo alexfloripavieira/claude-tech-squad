@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "default_template": "templates/claude-md/base.md",
+  "ai_llm_section": "templates/claude-md/ai-llm-section.md",
+  "profiles": {
+    "django": {
+      "label": "Django",
+      "signals": ["manage.py", "django in requirements.txt or pyproject.toml"],
+      "template": "templates/claude-md/stacks/django.md",
+      "specialists": ["django-pm", "tech-lead", "django-backend", "django-frontend", "code-reviewer", "qa-tester"],
+      "recommended_first_command": "/claude-tech-squad:discovery",
+      "required_health_checks": ["python manage.py check", "python manage.py test"]
+    },
+    "react": {
+      "label": "React",
+      "signals": ["package.json dependency: react", "package.json dependency: next"],
+      "template": "templates/claude-md/stacks/react.md",
+      "specialists": ["pm", "techlead", "backend-dev", "react-developer", "reviewer", "qa-tester"],
+      "recommended_first_command": "/claude-tech-squad:discovery",
+      "required_health_checks": ["npm test", "npm run lint", "npm run build"]
+    },
+    "vue": {
+      "label": "Vue",
+      "signals": ["package.json dependency: vue", "package.json dependency: nuxt"],
+      "template": "templates/claude-md/stacks/vue.md",
+      "specialists": ["pm", "techlead", "backend-dev", "vue-developer", "reviewer", "qa-tester"],
+      "recommended_first_command": "/claude-tech-squad:discovery",
+      "required_health_checks": ["npm test", "npm run lint", "npm run build"]
+    },
+    "typescript": {
+      "label": "TypeScript",
+      "signals": ["tsconfig.json", "package.json dependency: typescript"],
+      "template": "templates/claude-md/stacks/typescript.md",
+      "specialists": ["pm", "techlead", "backend-dev", "typescript-developer", "reviewer", "qa-tester"],
+      "recommended_first_command": "/claude-tech-squad:discovery",
+      "required_health_checks": ["npm test", "npm run lint", "npm run build"]
+    },
+    "javascript": {
+      "label": "JavaScript",
+      "signals": ["package.json"],
+      "template": "templates/claude-md/stacks/javascript.md",
+      "specialists": ["pm", "techlead", "backend-dev", "javascript-developer", "reviewer", "qa-tester"],
+      "recommended_first_command": "/claude-tech-squad:discovery",
+      "required_health_checks": ["npm test", "npm run lint", "npm run build"]
+    },
+    "python": {
+      "label": "Python",
+      "signals": ["pyproject.toml", "requirements.txt", "Pipfile"],
+      "template": "templates/claude-md/stacks/python.md",
+      "specialists": ["pm", "techlead", "python-developer", "frontend-dev", "reviewer", "qa"],
+      "recommended_first_command": "/claude-tech-squad:discovery",
+      "required_health_checks": ["pytest", "ruff check ."]
+    },
+    "generic": {
+      "label": "Generic",
+      "signals": ["no stronger stack signal detected"],
+      "template": "templates/claude-md/stacks/generic.md",
+      "specialists": ["pm", "techlead", "backend-dev", "frontend-dev", "reviewer", "qa"],
+      "recommended_first_command": "/claude-tech-squad:discovery",
+      "required_health_checks": []
+    }
+  }
+}
