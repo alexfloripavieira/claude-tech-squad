@@ -34,8 +34,8 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 
 - one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
-- 80 specialist agents for software delivery (each with Reasoning Sandwich: plan → execute → verify)
-- 27 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
+- 81 specialist agents for software delivery (each with Reasoning Sandwich: plan → execute → verify)
+- 28 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
 - one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml` (retry, fallback, cost, doom loop, auto-advance, entropy, tool allowlists, observability)
 - deterministic dashboard snapshots from SEP logs: `ai-docs/dashboard-snapshot.md` and `ai-docs/dashboard.html`
 - a lightweight Python SDK for onboarding, dashboard, and ticket planning contracts
@@ -539,7 +539,7 @@ This plugin is built on the **Harness Engineering** framework — the discipline
 | **Tool Orchestration** | `tool_allowlist` per agent, namespace enforcement, complete fallback matrix |
 | **Guardrails** | PreToolUse hooks (`pre-tool-guard.sh`), token budget circuit breaker, Global Safety Contract |
 | **Error Recovery** | Doom loop detection (3 patterns), gate consolidation, Reasoning Sandwich (self-verification) |
-| **Observability** | Token tracking in all 27 skills, 16 trace line types, live dashboard, SEP logs |
+| **Observability** | Token tracking in all 28 skills, 16 trace line types, live dashboard, SEP logs |
 | **Human-in-the-Loop** | Auto-advance for high-confidence gates, mandatory gates for UAT/release/deploy |
 
 | Concept | Implementation |

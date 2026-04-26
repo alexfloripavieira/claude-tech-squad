@@ -492,6 +492,23 @@ fallback_matrix:
   hotfix:
     work-item-mapper:
       - claude-tech-squad:jira-confluence-specialist
+  pentest-deep:
+    ethical-hacker:
+      - claude-tech-squad:security-reviewer
+      - claude-tech-squad:llm-safety-reviewer
+    security-reviewer:
+      - claude-tech-squad:compliance-reviewer
+      - claude-tech-squad:security-engineer
+    privacy-reviewer:
+      - claude-tech-squad:compliance-reviewer
+      - claude-tech-squad:security-reviewer
+    llm-safety-reviewer:
+      - claude-tech-squad:security-reviewer
+      - claude-tech-squad:ai-engineer
+    dba:
+      - claude-tech-squad:data-architect
+    security-engineer:
+      - claude-tech-squad:security-reviewer
 
 checkpoint_resume:
   write_to_sep_log: true
