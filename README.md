@@ -4,7 +4,7 @@ Installable Claude Code plugin for a complete software delivery squad.
 
 ![claude-tech-squad demo](docs/assets/demo.gif)
 
-This repository is the execution layer. It provides the specialist team and workflows that run inside a real repository.
+This repository is the execution layer. It is not a general config pack; it provides the specialist team and workflows that run inside a real repository.
 
 ## Use This Repository For
 
