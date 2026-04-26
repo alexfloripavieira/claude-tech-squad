@@ -38,6 +38,18 @@ If any operation requires one of these actions, STOP and surface the decision to
 - A new service is being introduced that other services will depend on
 - When the user says: "feature em multiplos servicos", "multi-service", "mudanca cross-service", "coordenar servicos", "feature distribuida", "multi-repo feature"
 
+## Checkpoint / Resume Rules
+
+Multi-service runs have higher abandonment risk because cross-repo state is harder to reconstruct. Checkpoints recorded in the SEP log:
+
+- `service-inventory-confirmed` — list of services in scope locked
+- `contract-tests-defined` — pact/openapi/protobuf contract tests authored per service
+- `service-N-implemented` — per service (one checkpoint per repo touched)
+- `staging-deployed` — all services deployed together to staging
+- `production-rollout-confirmed` — production deploy completed in declared order
+
+**Resume rule:** if restarted, read the highest completed checkpoint from the SEP log and skip prior steps unless the operator explicitly requests a re-validation. Cross-repo state (current branch per repo, pending PRs, deployed versions) MUST be re-read from each repo at resume time — do not trust cached values older than 1h.
+
 ## Execution
 
 ## Teammate Failure Protocol

@@ -120,8 +120,8 @@ Agent fails
 | Trace lines (18 types) | Every SKILL.md | `[Teammate Spawned]`, `[Gate]`, `[Doom Loop]`, etc. — visible proof of execution |
 | SEP logs | `ai-docs/.squad-log/` | Structured YAML with tokens, duration, retries, fallbacks per run |
 | Token tracking per teammate | SEP log `teammate_token_breakdown` | Know which agent costs the most |
-| Live dashboard | `dashboard/live.html` | Real-time browser dashboard with auto-refresh every 2s |
-| Health check signals | `[Health Check]` trace line | Per-teammate health status visible in dashboard |
+| Post-run dashboard | `/dashboard` skill | Aggregates SEP logs into Markdown + HTML snapshots (`ai-docs/dashboard-snapshot.md`, `ai-docs/dashboard.html`) |
+| Health check signals | `[Health Check]` trace line | Per-teammate health status fed into the SEP log for retrospective analysis |
 | Factory retrospective | `/factory-retrospective` skill | Deep analysis of patterns across multiple runs |
 | Developer feedback | SEP log `developer_feedback` | 1-4 satisfaction score correlated with metrics |
 | Preflight chain validation | `/implement` preflight | Checks that upstream discovery SEP log exists |

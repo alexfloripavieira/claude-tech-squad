@@ -111,7 +111,7 @@ bash scripts/dogfood-report.sh
 │   ├── .squad-log/                          # SEP logs from real runs (gitignored, .gitkeep tracked)
 │   └── dogfood-runs/                        # captured golden runs (gitignored, .gitkeep tracked)
 ├── templates/                               # RFC, service readiness review, golden run scorecard
-├── scripts/                                 # validate, smoke-test, dogfood, release, open-dashboard
+├── scripts/                                 # validate, smoke-test, dogfood, release, build-release-bundle
 └── docs/                                    # operator and contributor documentation
 ```
 

@@ -123,10 +123,6 @@ If `metrics` is missing, treat the run as incomplete and retry once before escal
 - Resume: if restarted and the techspec file exists and validates, skip the teammate and emit `[Resume From] inception | checkpoint=techspec-produced`.
 - The SEP log is written on every successful completion or user-abort; partial runs preserve `last_updated_at` so `stale_in_flight` detection works.
 
-## Live Status Protocol
-
-Write `ai-docs/.live-status.json` before and after the teammate runs, using the schema defined in `runtime-policy.yaml` under `observability.live_dashboard`. Include `current_artifact: techspec.md` during the run.
-
 ## Visual Reporting Contract
 
 - After `inception-author` returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card. Respect `observability.teammate_cards.format` (ascii | compact | silent).

@@ -480,17 +480,19 @@ For LLM-specific workflows outside of full squad runs:
 /claude-tech-squad:security-audit  # includes llm-safety-reviewer
 ```
 
-## Live Pipeline Dashboard
+## Post-Run Dashboard
 
-Monitor your squad execution in real time. The dashboard auto-updates every 2 seconds while teammates are running.
+After any skill finishes, aggregate the SEP logs into Markdown and HTML snapshots:
 
 ```bash
-# Open the dashboard in your browser (once)
-bash scripts/open-dashboard.sh
+# From the project that ran the squad skill
+python3 plugins/claude-tech-squad/bin/squad-cli dashboard
 
-# Then run skills normally in Claude Code — the dashboard updates live
-/claude-tech-squad:squad
+# Or invoke the skill (same effect, plus operator gates):
+/claude-tech-squad:dashboard
 ```
+
+This produces `ai-docs/dashboard-snapshot.md` and `ai-docs/dashboard.html` with success rate, blocked gates, pending post-mortems, recurring failure patterns, and per-skill cost. There is no live-polling dashboard — observability during the run is via inline Visual Reporting cards (rendered after every teammate) and `tail -f ai-docs/.squad-log/*.md`.
 
 The dashboard shows:
 - Teammate cards with live status (running/completed/failed) and duration timers
@@ -600,7 +602,6 @@ bash scripts/validate.sh                     # 39 structural checks (contracts, 
 bash scripts/smoke-test.sh                   # full ladder: validate + dogfood + release bundle
 bash scripts/dogfood.sh                      # fixture integrity check (4 scenarios)
 bash scripts/dogfood-report.sh --schema-only # golden run schema validation
-bash scripts/open-dashboard.sh               # open live pipeline dashboard in browser
 ```
 
 - Validation workflow: [validate.yml](.github/workflows/validate.yml)

@@ -28,6 +28,23 @@ Fetches the PR diff, runs the full reviewer bench in parallel, produces structur
 - When you want specialist coverage (security, privacy, performance, accessibility) beyond a basic code review
 - When the user says: "revisar pr", "pr review", "code review da pr", "abrir threads de review", "review pull request"
 
+## Operator Visibility Contract
+
+Emit these trace lines so the operator can follow the review bench and the SEP log can capture state transitions:
+
+- `[Preflight Start] pr-review`
+- `[PR Intake] <repo> #<number> | files=<count> | additions=<N> | deletions=<N>`
+- `[Stack Detected] <stack> | reviewer=<agent>`
+- `[Team Created] pr-review-team`
+- `[Batch Spawned] reviewer-bench | Teammates: reviewer, security-reviewer, privacy-reviewer, performance-engineer, accessibility-reviewer`
+- `[Teammate Done] <role> | findings=<count>`
+- `[Teammate Retry] <role> | Reason: <failure>`
+- `[Gate] Teammate Failure | <name> failed twice` (when applicable)
+- `[Consolidation Complete] BLOCKING=<N> | MAJOR=<N> | MINOR=<N>`
+- `[Comments Posted] <count> threads on PR <url>`
+- `[Team Deleted] pr-review-team | cleanup complete` (or `[Team Cleanup Warning]` on failure)
+- `[SEP Log Written] ai-docs/.squad-log/<filename>`
+
 ## Execution
 
 ## Teammate Failure Protocol

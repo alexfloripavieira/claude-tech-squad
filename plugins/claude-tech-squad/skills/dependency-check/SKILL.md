@@ -34,6 +34,21 @@ Detects package managers, runs real vulnerability and outdated-package checks, c
 - When evaluating upgrade risk
 - When the user says: "checar dependencias", "dependency check", "atualizar pacotes", "vulnerabilidades em deps"
 
+## Operator Visibility Contract
+
+Emit these trace lines so the operator can follow the scan and the SEP log can capture state transitions:
+
+- `[Preflight Start] dependency-check`
+- `[Remediation Triage] passed | close_rate=<rate>%` (Step 0a)
+- `[Package Managers Detected] <list>`
+- `[Scan Complete] tool=<name> | findings=<count>`
+- `[Teammate Spawned] planner | pane: planner`
+- `[Teammate Done] planner | Output: <one-line summary>`
+- `[Teammate Retry] planner | Reason: <failure>` (when applicable)
+- `[Findings Categorized] critical=<N> | high=<N> | medium=<N> | low=<N>`
+- `[Report Written] ai-docs/dependency-check-<date>.md`
+- `[SEP Log Written] ai-docs/.squad-log/<filename>`
+
 ## Execution
 
 Follow these steps exactly:

@@ -32,6 +32,31 @@ If any operation requires one of these actions, STOP and surface the decision to
 - As a periodic quality check (weekly or per-sprint)
 - When the user says: "rodar evals", "avaliar llm", "checar qualidade do ai", "llm eval", "eval suite", "regressao de prompts"
 
+## Agent Result Contract (ARC)
+
+The llm-eval-specialist + prompt-engineer teammates must return:
+
+```yaml
+result_contract:
+  status: completed | needs_input | blocked | failed
+  confidence: high | medium | low
+  blockers: []                     # eval failures crossing the BLOCKING threshold
+  artifacts: []                    # eval reports, scorecards, golden-set diffs
+  findings:
+    - severity: BLOCKING|MAJOR|MINOR
+      metric: faithfulness|relevance|toxicity|bias|injection-resistance|cost
+      baseline: <prior_score>
+      current: <new_score>
+      delta: <difference>
+      evidence: <eval-output-path>
+  next_action: "..."
+verification_checklist:
+  base_checks_passed: [completeness, accuracy, contract, scope, downstream]
+  role_checks_passed: [golden_set_loaded, regression_threshold_applied, pii_masking_verified]
+```
+
+**BLOCKING thresholds (mandatory user gate):** any metric regression above `runtime-policy.yaml:eval_thresholds.<metric>_regression_max`. Defaults: faithfulness/relevance ≥ 5pp drop, toxicity any uptick, bias 3pp drop, injection-resistance any drop.
+
 ## Execution
 
 ## Teammate Failure Protocol

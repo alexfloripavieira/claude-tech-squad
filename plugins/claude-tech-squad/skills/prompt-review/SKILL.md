@@ -31,6 +31,28 @@ If any operation requires one of these actions, STOP and surface the decision to
 - Before merging a PR that changes AI behavior
 - When the user says: "revisar prompt", "review de prompt", "mudei o prompt", "checar regressao de prompt", "prompt review", "validar prompt"
 
+## Agent Result Contract (ARC)
+
+The prompt-engineer teammate must return:
+
+```yaml
+result_contract:
+  status: completed | needs_input | blocked | failed
+  confidence: high | medium | low
+  blockers: []                     # CRITICAL items: prompt injection vector, PII leak, hallucination spike
+  artifacts: []                    # eval reports, regression diffs
+  findings:
+    - severity: BLOCKING|MAJOR|MINOR
+      category: regression|injection|token-cost|jailbreak|hallucination|drift
+      evidence: <file:line or eval-output reference>
+  next_action: "..."
+verification_checklist:
+  base_checks_passed: [completeness, accuracy, contract, scope, downstream]
+  role_checks_passed: [regression_baseline_compared, injection_scan_run, token_budget_checked]
+```
+
+**BLOCKING thresholds (mandatory user gate):** any prompt-injection vector, PII leak in prompt template, or regression rate above `runtime-policy.yaml:eval_thresholds.prompt_regression_max` (default 5%).
+
 ## Execution
 
 ## Teammate Failure Protocol
