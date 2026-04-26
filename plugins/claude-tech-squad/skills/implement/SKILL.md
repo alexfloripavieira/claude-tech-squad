@@ -437,7 +437,7 @@ Spawn implementation agents in parallel based on the TechLead's workstream plan.
 Only spawn agents for workstreams that apply to this task.
 
 ```
-# Spawn relevant implementation agents in parallel using routing table from Step 0.5
+# Spawn relevant implementation agents in parallel using routing table from the Preflight Gate
 Agent(team_name=<team>, name="backend-dev",  subagent_type="claude-tech-squad:{{backend_agent}}",  prompt=...)
 Agent(team_name=<team>, name="frontend-dev", subagent_type="claude-tech-squad:{{frontend_agent}}", prompt=...)
 Agent(team_name=<team>, name="platform-dev", subagent_type="claude-tech-squad:platform-dev",       prompt=...)
@@ -460,11 +460,10 @@ Each implementation agent prompt must include:
 - Failing test files from TDD Specialist (full — they implement against these)
 - Relevant specialist notes for their domain only (full)
 - Blueprint context (digest — not the full discovery document)
-- Detected project commands: `{{test_command}}`, `{{build_command}}` (from Step 0)
+- Detected project commands: `{{test_command}}`, `{{build_command}}` (from the Preflight Gate) — use these exact commands, never infer
 - Lint/static-analysis profile: `{{lint_profile}}`
 - Chosen architecture style: `{{architecture_style}}`
 - Design principles guardrails (full)
-- Project commands: `{{project_commands}}` — use these exact commands, never infer
 - Instruction: "Implement until the failing tests pass. Follow TDD. When done, return a summary of files changed and test results. Do NOT chain to other agents."
 
 **SEP Contrato 4 — Task Status Protocol:**
@@ -761,7 +760,7 @@ Emit: `[Batch Spawned] quality-bench | Teammates: <list>`
 Only spawn reviewers relevant to this project. Each receives the full implementation output.
 Instruction per reviewer: "Review from your specialist lens. Return findings as a checklist. Do NOT chain."
 
-The `code-quality` agent prompt must include the detected `{{lint_command}}` from Step 0 and the full implementation diff.
+The `code-quality` agent prompt must include the detected `{{lint_command}}` from the Preflight Gate and the full implementation diff.
 
 **Load test agent (conditional):** Spawn if the implementation adds or modifies HTTP endpoints, message queues, batch jobs, or any operation that processes variable input volume:
 
@@ -1128,6 +1127,19 @@ Options:
 
 Implementation is complete when user approves UAT or chooses [S].
 
+### Step 10a — Team Cleanup (before SEP log)
+
+Clean up the team created at Step 2 before writing the SEP log so cleanup status can be recorded:
+
+```
+TeamDelete(name="implement")
+```
+
+Capture outcome into `{{team_cleanup_status}}` (`success` or `failed: <reason>`). On failure, do not halt — emit a warning and continue:
+
+- On success: emit `[Team Deleted] implement | cleanup complete`
+- On failure: emit `[Team Cleanup Warning] implement | <reason>`
+
 ### Step 10b — Run Cost Summary and SEP Log
 
 **python3 plugins/claude-tech-squad/bin/squad-cli cost + sep-log** (preferred — uses real token counts collected during the run):
@@ -1152,7 +1164,7 @@ CURRENT=$(cat "$COUNTER_FILE" 2>/dev/null || echo "0")
 echo "$((CURRENT + 1))" > "$COUNTER_FILE"
 ```
 
-If `squad-cli` is not available: sum tokens manually, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md` with full YAML frontmatter.
+If `squad-cli` is not available: sum tokens manually, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md` with full YAML frontmatter. When writing manually, substitute every `{{...}}` placeholder with the captured value — including `{{team_cleanup_status}}` from Step 10a (use `success` or `failed: <reason>`; never leave the literal placeholder).
 
 **Required frontmatter fields (implement):**
 
@@ -1170,22 +1182,11 @@ teammate_token_breakdown: {}       # required — map {teammate_name: {tokens_in
 estimated_cost_usd: {{usd}}
 total_duration_ms: {{ms}}
 blueprint_stale_override_reason: null   # non-null only when user forced continue with stale blueprint
+team_cleanup_status: {{team_cleanup_status}}
 ---
 ```
 
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
-
-### Step 12 — Team Cleanup (mandatory epilogue)
-
-After writing the SEP log, clean up the team:
-
-```
-TeamDelete(name="implement")
-```
-
-Emit: `[Team Deleted] implement | cleanup complete`
-
-If TeamDelete fails, ignore silently.
 
 ---
 

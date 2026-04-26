@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repository is
 
-This is the source repository for the `claude-tech-squad` Claude Code plugin — a full software delivery squad of 74 specialist agents and 21 skills that replicate big tech engineering pipelines. The repository ships a marketplace manifest, the plugin itself, a validation ladder, a dogfooding pack with golden run support, and a live pipeline dashboard.
+This is the source repository for the `claude-tech-squad` Claude Code plugin — a full software delivery squad of 74 specialist agents and 23 skills that replicate big tech engineering pipelines. The repository ships a marketplace manifest, the plugin itself, a validation ladder, a dogfooding pack with golden run support, and a live pipeline dashboard.
 
 Built on **Harness Engineering** principles — the infrastructure, constraints, and feedback loops that make AI agents reliable in production. The plugin scores 10/10 across all 5 pillars (Tool Orchestration, Guardrails, Error Recovery, Observability, Human-in-the-Loop) and all 5 practical concepts (Rule Files, Progressive Disclosure, Mechanical Enforcers, Reasoning Sandwich, Entropy Management).
 
@@ -81,7 +81,7 @@ bash scripts/dogfood-report.sh
 - Pre-Execution Plan / Analysis Plan in all 74 agents
 - Progressive Disclosure in orchestrator skills
 - `hooks/pre-tool-guard.sh` exists and is executable
-- Token tracking (`tokens_input:`) in all 21 skill SEP log templates
+- Token tracking (`tokens_input:`) in all 23 skill SEP log templates
 
 ---
 
@@ -94,7 +94,7 @@ bash scripts/dogfood-report.sh
 │   ├── .claude-plugin/plugin.json           # plugin metadata and version
 │   ├── runtime-policy.yaml                  # retry, fallback, severity, checkpoints, cost, doom loop, auto-advance, entropy, tool allowlists, observability
 │   ├── agents/                              # 74 specialist agent files (one .md per agent)
-│   ├── skills/                              # 21 skill directories (each with SKILL.md)
+│   ├── skills/                              # 23 skill directories (each with SKILL.md)
 │   │   └── <skill-name>/SKILL.md
 │   ├── hooks/                               # runtime PreToolUse mechanical enforcers
 │   │   ├── pre-tool-guard.sh                # blocks destructive operations deterministically
@@ -181,6 +181,45 @@ When in doubt: if the skill SKILL.md contains `TeamCreate` + multiple `Agent(...
 
 `ai-docs/.squad-log/.retro-counter` is a plain-text file holding a single integer — runs-since-last-retrospective. Incremented by SEP-log-writing skills. Read by `runtime-policy.yaml` (`entropy_management.factory_retrospective_auto_trigger`) to auto-suggest `/factory-retrospective` after threshold (default 5). Reset to `0` in Step 9a of `/factory-retrospective`. Gitignored; only `.gitkeep` tracked. If missing or corrupt, treat as `0`.
 
+## squad-cli (Python component)
+
+`squad-cli/` is a standalone Python package that embeds the orchestrator runtime as a CLI tool. Its modules mirror the SKILL.md pipeline phases:
+
+| Module | Role |
+|---|---|
+| `cli.py` | Entrypoint and command dispatch |
+| `preflight.py` | Validates runtime-policy.yaml and fixture state before execution |
+| `policy.py` | Loads and surfaces `runtime-policy.yaml` keys |
+| `models.py` | Shared data structures (SEP log record, checkpoint state) |
+| `sep_log.py` | Writes the SEP log artifact |
+| `checkpoint.py` | Checkpoint read/write/resume logic |
+| `cost.py` | Token budget tracking and circuit breaker |
+| `doom_loop.py` | Doom-loop divergence detection |
+| `health.py` | Preflight fixture health checks |
+| `stack_detect.py` | Tech-stack fingerprinting for fixture scenarios |
+| `dry_run.py` | `--dry-run` execution path |
+| `task_memory.py` | Persistent task memory across skill invocations |
+
+The package uses a virtualenv at `squad-cli/venv/`. There is no `setup.py` or `pyproject.toml` exposed at repo root — the egg-info lives at `squad-cli/squad_cli.egg-info/`.
+
+---
+
+## Commit convention and release automation
+
+Commits must follow Conventional Commits — the release pipeline derives the next semver bump from commit subjects since the last tag:
+
+| Prefix | Version bump |
+|---|---|
+| `feat:` | minor |
+| `fix:`, `docs:`, `refactor:`, `chore:` | patch |
+| `type!:` or `BREAKING CHANGE` in body | major |
+
+After merge to `main`, GitHub Actions (`publish` workflow) auto-generates `CHANGELOG.md`, bumps the three version files, builds the release bundle, tags the commit, and creates the GitHub Release. No manual step is needed.
+
+If the workflow did not fire, run `./scripts/release.sh` as a fallback. For a full emergency manual release path, see `docs/HOW-TO-CHANGE-AND-PUBLISH.md`.
+
+---
+
 ## Files that must NOT be edited manually
 
 The release pipeline generates these automatically on merge to `main`. Editing them by hand causes version drift that will fail `validate.sh`:
@@ -212,7 +251,7 @@ See `docs/AGENT-CONTRACT.md` for the full required structure including the Reaso
 2. Include the Global Safety Contract, Operator Visibility Contract, preflight block, agent chain, gate definitions, checkpoint block, and SEP log instruction.
 3. For orchestrator skills (similar to `discovery`, `implement`, `squad`), also add `### Preflight Gate`, `## Agent Result Contract (ARC)`, `## Runtime Resilience Contract`, `### Checkpoint / Resume Rules`.
 4. Add the skill slug to `REQUIRED_SKILLS` in `scripts/validate.sh` if it should be required.
-5. Add an asserção in `scripts/smoke-test.sh` for the new skill.
+5. Add an assertion in `scripts/smoke-test.sh` for the new skill.
 6. Run `bash scripts/smoke-test.sh` to confirm.
 
 See `docs/SKILL-CONTRACT.md` for the full required structure.
