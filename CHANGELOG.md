@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.58.0] - 2026-04-26 — Automated feature release
+
+### Added
+
+- Add ethical-hacker agent and /pentest-deep skill for comprehensive security audit (#26)
 ## [5.57.1] - 2026-04-26 — Automated maintenance release
 
 ### Changed
