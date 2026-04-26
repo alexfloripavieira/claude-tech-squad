@@ -144,3 +144,39 @@ def _parse_frontmatter(path: Path) -> dict | None:
         return yaml.safe_load(match.group(1))
     except yaml.YAMLError:
         return None
+
+
+from dataclasses import dataclass
+from pathlib import Path
+
+from squad_cli.test_gate import StackFingerprint, TestInfraStatus, detect_test_infra
+
+
+@dataclass
+class TestInfraDecision:
+    action: str
+    proposal: dict | None = None
+
+
+def check_test_infra(
+    repo_root: Path,
+    stack: StackFingerprint,
+    bootstrapped: bool,
+    debt_acknowledged: bool,
+) -> TestInfraDecision:
+    status = detect_test_infra(repo_root, stack)
+    if status == TestInfraStatus.UNKNOWN:
+        return TestInfraDecision(action="human_gate_unknown")
+    if status == TestInfraStatus.PRESENT_AND_CONFIGURED:
+        return TestInfraDecision(action="proceed")
+    if not bootstrapped and not debt_acknowledged:
+        return TestInfraDecision(
+            action="human_gate",
+            proposal={
+                "stack": stack.language,
+                "framework_recommended": stack.test_framework or "pytest",
+                "structure": ["tests/unit/", "tests/integration/"],
+                "ci_step_required": True,
+            },
+        )
+    return TestInfraDecision(action="incremental_automatic")
