@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.62.2] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Merge refactor/portability-and-polish-5.61.1: fix portability + standardize agent contracts
+
+### Fixed
+
+- Portability and polish across plugin contracts
 ## [5.62.1] - 2026-04-26 — Automated maintenance release
 
 ### Fixed
