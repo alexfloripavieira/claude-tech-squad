@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.58.7] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Lean orchestrator skills via progressive disclosure (#34)
+- Dedupe redundant tools field in agent frontmatter (#33)
 ## [5.58.6] - 2026-04-26 — Automated maintenance release
 
 ### Changed
