@@ -339,3 +339,66 @@ Some agents appear to overlap. This is by design — they are **stack variants**
 | Agent without role-specific verification checks | Generic verification only; quality degraded |
 | Ownership statement too broad | Overlaps with other agents; breaks the specialist model |
 | No handoff format defined | Orchestrator cannot parse output; breaks the chain |
+
+---
+
+## Canonical routing matrix (dense clusters)
+
+Use this decision tree to pick the right agent when several look similar. Boundaries are also encoded in each agent's `description:` ("NOT for X (use Y)").
+
+### Review cluster
+
+| Trigger | Agent |
+|---|---|
+| Generic correctness, simplicity, maintainability review | `reviewer` |
+| Django backend/frontend correctness, N+1, TDL/TailwindCSS conventions | `code-reviewer` (Django-scoped) |
+| Lint config, tech debt measurement, coding standards (not a single PR) | `code-quality` |
+| Threat model, auth, authz, secret handling, unsafe integrations | `security-reviewer` |
+| Prompt injection, tool abuse, RAG injection, PII via LLM output | `llm-safety-reviewer` |
+| Data minimization, retention, masking, consent | `privacy-reviewer` |
+| Auditability, regulated-data handling, approval flows | `compliance-reviewer` |
+| Semantics, keyboard, contrast, focus, AT support | `accessibility-reviewer` |
+
+### QA cluster
+
+| Trigger | Agent |
+|---|---|
+| Unit/integration suite execution, AC validation, regression sweep | `qa` |
+| End-to-end browser validation of a running app via Playwright | `qa-tester` |
+| Cross-service contracts, environments, system-level regressions | `integration-qa` |
+| Building/refining test harnesses, fixtures, automation depth | `test-automation-engineer` |
+| Defining the test plan / mapping ACs to test layers | `test-planner` |
+
+### Product cluster
+
+| Trigger | Agent |
+|---|---|
+| Discovery, problem framing, UAT validation | `pm` |
+| Backlog ordering, scope cuts, release slicing | `po` |
+| Domain rules, workflow constraints, role interactions | `business-analyst` |
+| PRD authoring (from `prd-template.md`) | `prd-author` |
+| TechSpec authoring (from `techspec-template.md`) | `inception-author` |
+| Django-specific PM with feasibility validation via Context7 | `django-pm` |
+
+### Planning / architecture cluster
+
+| Trigger | Agent |
+|---|---|
+| Cross-stack feasibility, constraints, workstream decomposition | `planner` |
+| Lead architect: design options + sequencing across slices | `architect` |
+| Backend/frontend/cloud/data-specific design slices | `backend-architect` / `frontend-architect` / `cloud-architect` / `data-architect` |
+| Ports & Adapters / Hexagonal migration design | `hexagonal-architect` |
+| Execution sequencing + boundary assignment after design | `techlead` |
+| Decomposition of PRD+TechSpec into sequenced task list | `tasks-planner` |
+| TDD red-green-refactor cycle definition for delivery agents | `tdd-specialist` |
+
+### Observability cluster
+
+| Trigger | Agent |
+|---|---|
+| Diagnosability/on-call: structured logs, metrics, traces, alert rules | `observability-engineer` |
+| Dashboards, APM config, SLO/SLA tracking, alert tuning on platforms (Grafana/Datadog/New Relic) | `monitoring-specialist` |
+| Production reliability: SLO definition, blast radius, canary, rollback readiness | `sre` |
+| Coordinator during a live incident, post-mortem facilitation | `incident-manager` |
+
+When the trigger is genuinely ambiguous, prefer the agent whose `description:` lists the closest user-language phrase under "Trigger on".

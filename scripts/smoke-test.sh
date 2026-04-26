@@ -244,7 +244,12 @@ d = Path(sys.argv[1])
 for f in sorted(d.glob('*.md')):
     c = f.read_text()
     m = re.match(r'^---\n(.*?)\n---', c, re.DOTALL)
-    if m and '- Agent' in m.group(1):
+    if not m:
+        continue
+    fm = m.group(1)
+    has_yaml_list = '- Agent' in fm
+    has_inline = bool(re.search(r'tool_allowlist:\s*\[[^\]]*\bAgent\b', fm))
+    if has_yaml_list or has_inline:
         print(f)
 " "$AGENTS_DIR" | sort || true)
 EXPECTED_AGENT_TOOL_FILE="$AGENTS_DIR/incident-manager.md"
