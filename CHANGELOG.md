@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.58.3] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Full plugin cleanup — manifest counts, doc drift, contract gaps (#29)
 ## [5.58.2] - 2026-04-26 — Automated maintenance release
 
 ### Fixed
