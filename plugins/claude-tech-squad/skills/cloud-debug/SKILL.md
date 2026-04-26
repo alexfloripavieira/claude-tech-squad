@@ -36,6 +36,22 @@ Collects available logs, analyzes error patterns and stack traces, evaluates bla
 - Analyzing unexpected behavior in deployed environments
 - When the user says: "debug producao", "cloud debug", "investigar erro em producao", "incident", "sistema fora", "analisar logs"
 
+## Operator Visibility Contract
+
+Emit these trace lines so the operator can follow the diagnosis and the SEP log can capture state transitions:
+
+- `[Preflight Start] cloud-debug`
+- `[Symptom Captured] severity=<level> | services=<list>`
+- `[Logs Collected] sources=<count> | window=<duration>`
+- `[Team Created] cloud-debug-team`
+- `[Teammate Spawned] <role> | pane: <name>`
+- `[Teammate Done] <role> | Output: <one-line summary>`
+- `[Teammate Retry] <role> | Reason: <failure>`
+- `[Gate] Teammate Failure | <name> failed twice` (when teammate failure protocol fires)
+- `[Diagnosis Complete] root_cause_confidence=<high|medium|low> | blast_radius=<scope>`
+- `[Team Deleted] cloud-debug-team | cleanup complete` (or `[Team Cleanup Warning]` on failure)
+- `[SEP Log Written] ai-docs/.squad-log/<filename>`
+
 ## Execution
 
 Follow these steps exactly:

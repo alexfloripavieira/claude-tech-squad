@@ -34,6 +34,35 @@ If any operation requires one of these actions, STOP and surface the decision to
 - Before a production infrastructure change
 - When the user says: "revisar infraestrutura", "iac review", "checar terraform", "revisar cloudformation", "antes do terraform apply", "infra review", "revisar helm chart"
 
+## Operator Visibility Contract
+
+Emit these trace lines so the operator can follow the IaC review and the SEP log can capture state transitions:
+
+- `[Preflight Start] iac-review`
+- `[IaC Stack Detected] tools=<list> | files=<count>`
+- `[Static Analysis] tool=<name> | findings=<count>` (per scanner)
+- `[Team Created] iac-review-team`
+- `[Teammate Spawned] <role> | pane: <name>`
+- `[Teammate Done] <role> | Output: <one-line summary>`
+- `[Teammate Retry] <role> | Reason: <failure>`
+- `[Gate] Teammate Failure | <name> failed twice` (when applicable)
+- `[Blast Radius] scope=<production|staging|dev> | resources=<count>`
+- `[Apply Approval Gate] verdict=<approve|block|conditional>` (mandatory before apply)
+- `[Team Deleted] iac-review-team | cleanup complete` (or `[Team Cleanup Warning]` on failure)
+- `[SEP Log Written] ai-docs/.squad-log/<filename>`
+
+## Checkpoint / Resume Rules
+
+Long apply-plan reviews on large repos benefit from checkpoint tracking. Checkpoints recorded in the SEP log:
+
+- `iac-stack-detected` — Terraform/CFN/CDK/Pulumi/Helm/Ansible toolset locked
+- `static-analysis-complete` — tflint/checkov/cfn-lint/kubescape findings collected
+- `blast-radius-assessed` — production vs staging vs dev scope determined
+- `specialists-reviewed` — devops + cloud-architect + cost-optimizer outputs collected
+- `apply-approval-recorded` — final operator verdict captured (approve/block/conditional)
+
+**Resume rule:** if restarted, read the highest completed checkpoint from the SEP log. If `static-analysis-complete` is set, skip rerunning scanners unless the IaC files have changed since the checkpoint timestamp. Always re-validate the apply-approval gate even on resume — operator approval is not cacheable.
+
 ## Execution
 
 ## Teammate Failure Protocol

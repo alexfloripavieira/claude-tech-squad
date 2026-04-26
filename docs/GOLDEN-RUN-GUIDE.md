@@ -66,32 +66,15 @@ The `pre-tool-guard.sh` hook blocks destructive operations mechanically (DROP TA
 
 ---
 
-## Step 3 — Open the live dashboard
+## Step 3 — Post-run observability (optional)
 
-The dashboard auto-updates every 2 seconds during execution, showing teammate status, token budget, and event timeline.
+`claude-tech-squad` does not ship a live-polling dashboard. Observability is post-run:
 
-**Important:** The dashboard needs a local HTTP server to read the status file (browsers block direct `file://` access for security). Run from your project directory:
+- Every skill writes a SEP log to `ai-docs/.squad-log/` (YAML frontmatter with tokens, duration, retries, fallbacks per teammate)
+- Visual Reporting Contract renders teammate cards inline during the run via `plugins/claude-tech-squad/scripts/render-teammate-card.sh`
+- After the run, invoke `/dashboard` (or `python3 plugins/claude-tech-squad/bin/squad-cli dashboard`) to aggregate SEP logs into `ai-docs/dashboard-snapshot.md` and `ai-docs/dashboard.html`
 
-```bash
-# Option A: Use the launcher script (recommended)
-# Find the installed plugin path and run the script:
-bash $(find ~/.claude/plugins/cache -path "*/claude-tech-squad/*/scripts/open-dashboard.sh" 2>/dev/null | head -1)
-
-# Option B: Manual server (if Option A doesn't work)
-mkdir -p ai-docs
-echo '{"skill":null,"phase":"waiting","teammates":[],"events":[]}' > ai-docs/.live-status.json
-# Copy the dashboard HTML to ai-docs/
-cp $(find ~/.claude/plugins/cache -path "*/claude-tech-squad/*/dashboard/live.html" 2>/dev/null | head -1) ai-docs/dashboard.html
-# Fix the status path in the copied file
-sed -i "s|../../../ai-docs/.live-status.json|.live-status.json|g" ai-docs/dashboard.html
-# Start the server
-python3 -m http.server 3742 --bind 127.0.0.1 -d ai-docs &
-# Open in browser
-xdg-open http://localhost:3742/dashboard.html   # Linux
-open http://localhost:3742/dashboard.html        # macOS
-```
-
-Leave the dashboard open in a browser tab. It will stay on "Waiting for data..." until you run a skill.
+You can keep `tail -f ai-docs/.squad-log/*.md` running in a terminal during the run to follow trace lines as they are written.
 
 ---
 
@@ -247,7 +230,7 @@ This reads the latest SEP log and creates a golden run directory with metadata, 
 | Review cycles were excessive (3+) | Check if the reviewer's prompt is too strict or vague |
 | Blueprint was unusable | Adjust PM and Architect prompts, or add repo-specific CLAUDE.md |
 | Token cost doesn't match estimate | Update the Cost vs Scope Guide in SKILL-SELECTOR.md |
-| Dashboard didn't update | Check if `.live-status.json` was written (may need teammate mode) |
+| Trace lines not appearing | Confirm the skill is running in teammate mode and that `ai-docs/.squad-log/` is writable |
 
 ---
 

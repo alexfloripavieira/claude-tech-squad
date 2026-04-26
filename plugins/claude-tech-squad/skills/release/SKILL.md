@@ -61,6 +61,47 @@ Options:
 4. **Sequential teammates** (output feeds the next agent): [S] degrades ALL downstream teammates — warn the user explicitly before accepting skip.
 5. **Do NOT advance to the next step** until every teammate has returned valid output, been explicitly skipped, or the run has been aborted.
 
+## Operator Visibility Contract
+
+Emit these trace lines so the operator can follow the release prep and the SEP log can capture state transitions:
+
+- `[Preflight Start] release`
+- `[Release Intake] from=<base_tag> to=<target_branch> | type=<minor|patch|major>`
+- `[CI Gate] status=<green|red> | required_checks=<list>` (mandatory before tag)
+- `[Change Inventory] commits=<N> | features=<N> | fixes=<N> | breaking=<N>`
+- `[Team Created] release-team`
+- `[Teammate Spawned] <role> | pane: <name>`
+- `[Teammate Done] <role> | Output: <one-line summary>`
+- `[Teammate Retry] <role> | Reason: <failure>`
+- `[Rollback Plan] documented | path=<artifact>`
+- `[Staging Verified] deployed_at=<timestamp> | smoke_tests=<status>`
+- `[Production Gate] approved_by=<operator>` (mandatory user gate)
+- `[Tag Created] <tag>`
+- `[Team Deleted] release-team | cleanup complete` (or `[Team Cleanup Warning]` on failure)
+- `[SEP Log Written] ai-docs/.squad-log/<filename>`
+
+## Agent Result Contract (ARC)
+
+The release teammate (and any specialist invoked for change-inventory or SRE sign-off) must return:
+
+```yaml
+result_contract:
+  status: completed | needs_input | blocked | failed
+  confidence: high | medium | low
+  blockers: []                     # CRITICAL items: failing CI, missing rollback, untested staging
+  artifacts: []                    # change-inventory.md, rollback-plan.md, release-notes.md
+  findings:
+    - severity: BLOCKING|MAJOR|MINOR
+      category: ci|rollback|staging|breaking-change|migration|comms
+      evidence: <file or commit ref>
+  next_action: "..."
+verification_checklist:
+  base_checks_passed: [completeness, accuracy, contract, scope, downstream]
+  role_checks_passed: [ci_green_verified, rollback_documented, staging_smoke_passed, breaking_changes_listed]
+```
+
+**BLOCKING (mandatory user gate before tag):** failing CI on the target branch, missing rollback plan, untested staging deploy, undocumented breaking change.
+
 ## Execution
 
 ### Step 1 — Release Intake Gate
