@@ -21,7 +21,7 @@ description: |
   </commentary>
   </example>
 tool_allowlist: [Read, Write, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
-model: opus
+model: inherit
 color: cyan
 ---
 
