@@ -189,6 +189,32 @@ Emit `[Phase Done] discovery | Blueprint confirmed`.
 
 ---
 
+### Test Gate (Mandatory)
+
+This skill is in `mandatory_test_gate.skills_in_scope` (see `runtime-policy.yaml#mandatory_test_gate`).
+
+Contract:
+- `tdd-specialist` MUST be spawned before any dev agent.
+- `test-automation-engineer` MUST be spawned after dev agents and before reviewer agents.
+- After `test-automation-engineer` completes, the PostToolUse hook `hooks/test-gate.sh` evaluates the gate. A `BLOCKING` verdict halts the pipeline; the operator decides skip+debt, write manual, or abort.
+- No exemption is available for this skill. Any pipeline producing a new or modified production file without a paired test will block.
+
+Canonical pre-impl invocation:
+
+```
+Agent(team_name=<team>, name="tdd-specialist", subagent_type="claude-tech-squad:tdd-specialist",
+  prompt="Write the first failing tests for the upcoming implementation slice using red-green-refactor. Do NOT write production code.")
+```
+
+Canonical post-impl invocation:
+
+```
+Agent(team_name=<team>, name="test-automation-engineer", subagent_type="claude-tech-squad:test-automation-engineer",
+  prompt="Validate test coverage for files modified in the implementation phase. Add edge-case and regression tests. Pair every new/modified production file with a test. Report unpaired files in your Result Contract.")
+```
+
+---
+
 ### PHASE 2: IMPLEMENTATION
 
 Emit `[Phase Start] implementation`. Sequential with parallel batches:

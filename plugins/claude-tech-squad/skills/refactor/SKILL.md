@@ -180,6 +180,23 @@ Proceed with this plan? [Y/N/modify]
 
 **This is a blocking gate.** Do NOT write characterization tests until user confirms the plan.
 
+### Test Gate (Mandatory)
+
+This skill is in `mandatory_test_gate.skills_in_scope` (see `runtime-policy.yaml#mandatory_test_gate`).
+
+Refactor adapts the contract:
+- `tdd-specialist` MUST be spawned to confirm characterization tests lock all behavior the refactor will touch — this acts as the pre-impl test contract.
+- `test-automation-engineer` writes the characterization tests, runs them green on unmodified code, then re-runs after the refactor completes (post-impl validation pass).
+- After the post-impl pass, `hooks/test-gate.sh` evaluates the gate. A `BLOCKING` verdict (e.g., refactor introduced a new untested branch) halts the pipeline.
+- No exemption.
+
+### Step 4b — Spawn tdd-specialist (Behavioral Contract)
+
+```
+Agent(team_name="refactor-team", name="tdd-specialist", subagent_type="claude-tech-squad:tdd-specialist",
+  prompt="Define the behavioral contract this refactor MUST preserve. List the characterization tests that must exist before any refactor step. Hand contract to test-automation-engineer.")
+```
+
 ### Step 5 — Write characterization tests
 
 Spawn test-automation-engineer to write tests that lock current behavior:
@@ -278,6 +295,15 @@ Do NOT chain.
    - If Abort: stop here, leave code in last known-good state
 
 Emit per step: `[Refactor Step {{N}}] {{description}} — PASS`
+
+### Step 6b — Test Automation Engineer (Post-Refactor Validation)
+
+```
+Agent(team_name="refactor-team", name="test-automation-validate", subagent_type="claude-tech-squad:test-automation-engineer",
+  prompt="Re-run characterization tests against the refactored code. Add tests for any newly introduced branches. Report unpaired files in your Result Contract.")
+```
+
+Wait for completion. The PostToolUse `hooks/test-gate.sh` then evaluates the gate.
 
 ### Step 7 — Spawn reviewer for final review
 

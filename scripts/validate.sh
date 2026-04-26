@@ -647,4 +647,49 @@ grep -q '\${CLAUDE_PLUGIN_ROOT}' "$PLUGIN_DIR/hooks/settings-template.json" || {
   exit 1
 }
 
+# ── Mandatory test gate contract ────────────────────────────────────────────
+MANDATORY_TEST_GATE_SKILLS=(squad implement refactor bug-fix hotfix)
+DEV_AGENTS_RE='claude-tech-squad:(backend-dev|frontend-dev|django-backend|react-developer|vue-developer|mobile-dev|python-developer|typescript-developer|javascript-developer|shell-developer)'
+
+for skill in "${MANDATORY_TEST_GATE_SKILLS[@]}"; do
+  skill_md="$SKILLS_DIR/$skill/SKILL.md"
+  if [ ! -f "$skill_md" ]; then
+    echo "Test gate: missing $skill_md"
+    exit 1
+  fi
+  if ! grep -qE 'subagent_type[: =]+"claude-tech-squad:tdd-specialist"' "$skill_md"; then
+    echo "Test gate: $skill SKILL.md missing tdd-specialist invocation"
+    exit 1
+  fi
+  if ! grep -qE 'subagent_type[: =]+"claude-tech-squad:test-automation-engineer"' "$skill_md"; then
+    echo "Test gate: $skill SKILL.md missing test-automation-engineer invocation"
+    exit 1
+  fi
+  if [ "$skill" = "hotfix" ]; then
+    if ! grep -q '^### Test Gate Exemption Protocol' "$skill_md"; then
+      echo "Test gate: hotfix SKILL.md missing '### Test Gate Exemption Protocol' section"
+      exit 1
+    fi
+  else
+    if ! grep -q '^### Test Gate (Mandatory)' "$skill_md"; then
+      echo "Test gate: $skill SKILL.md missing '### Test Gate (Mandatory)' section"
+      exit 1
+    fi
+  fi
+  tdd_line=$(grep -nE 'claude-tech-squad:tdd-specialist' "$skill_md" | head -1 | cut -d: -f1 || true)
+  dev_line=$(grep -nE "$DEV_AGENTS_RE" "$skill_md" | head -1 | cut -d: -f1 || true)
+  tae_line=$(grep -nE 'claude-tech-squad:test-automation-engineer' "$skill_md" | tail -1 | cut -d: -f1 || true)
+  if [ -n "$tdd_line" ] && [ -n "$dev_line" ] && [ -n "$tae_line" ]; then
+    if [ "$tdd_line" -ge "$dev_line" ] || [ "$dev_line" -ge "$tae_line" ]; then
+      echo "Test gate: $skill order violation (tdd=$tdd_line dev=$dev_line tae=$tae_line); expected tdd < dev < tae"
+      exit 1
+    fi
+  fi
+done
+
+if ! grep -q '^mandatory_test_gate:' "$PLUGIN_DIR/runtime-policy.yaml"; then
+  echo "runtime-policy.yaml missing 'mandatory_test_gate' top-level key"
+  exit 1
+fi
+
 echo "claude-tech-squad validation passed (v$PLUGIN_VERSION, $AGENT_COUNT agents)"

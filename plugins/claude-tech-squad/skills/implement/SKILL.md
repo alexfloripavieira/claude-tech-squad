@@ -173,9 +173,24 @@ If any BLOCKING is missing: emit `[Gate] Blueprint Incomplete` and surface `[D]i
 
 Verify `ai-docs/prd-{{feature_slug}}/prd.md` and `techspec.md`. If missing: `[Gate] Delivery Docs Missing | Run /discovery and /inception first`. If `tasks.md` exists and validates against `templates/tasks-template.md`, reuse; else spawn `tasks-planner` (`subagent_type: claude-tech-squad:tasks-planner`). Then spawn `work-item-mapper` (`subagent_type: claude-tech-squad:work-item-mapper`) with taxonomy from `runtime-policy.yaml`. If `delivery_gates.enabled: true` and any BLOCKING finding returned, open user gate. Pipe both teammates' `metrics` JSON through `render-teammate-card.sh`. Save checkpoints `tasks-produced` and `work-items-produced`.
 
+### Test Gate (Mandatory)
+
+This skill is in `mandatory_test_gate.skills_in_scope` (see `runtime-policy.yaml#mandatory_test_gate`).
+
+Contract:
+- `tdd-specialist` MUST be spawned before any dev agent.
+- `test-automation-engineer` MUST be spawned after dev agents and before reviewer agents.
+- After `test-automation-engineer` completes, the PostToolUse hook `hooks/test-gate.sh` evaluates the gate. A `BLOCKING` verdict halts the pipeline; the operator decides skip+debt, write manual, or abort.
+- No exemption is available for this skill. Any pipeline producing a new or modified production file without a paired test will block.
+
 ### Step 3 — TDD Specialist (Failing Tests First)
 
-Spawn `tdd-specialist` (`subagent_type: claude-tech-squad:tdd-specialist`) with full TDD Delivery Plan + full Test Plan + architecture digest (max 500 tokens) + `{{architecture_style}}`. Instruction: write the first failing tests for the first delivery slice using red-green-refactor; do NOT write production code. Wait for completion; confirm failing tests are in place.
+```
+Agent(team_name=<team>, name="tdd-specialist", subagent_type="claude-tech-squad:tdd-specialist",
+  prompt="Write the first failing tests for the first delivery slice using red-green-refactor; do NOT write production code. Inputs: full TDD Delivery Plan + full Test Plan + architecture digest (max 500 tokens) + {{architecture_style}}.")
+```
+
+Wait for completion; confirm failing tests are in place.
 
 ### Step 4 — Implementation Batch (Parallel)
 
@@ -201,6 +216,15 @@ Emit `[Batch Spawned] implementation | Teammates: <list>`. Each prompt includes:
 ```
 
 Wait for all impl teammates to complete. Per-teammate digest rules in `references/teammate-roster.md`.
+
+### Step 4b — Test Automation Engineer (Post-Impl)
+
+```
+Agent(team_name=<team>, name="test-automation-engineer", subagent_type="claude-tech-squad:test-automation-engineer",
+  prompt="Validate test coverage for files modified in this implementation phase. Add edge-case tests for any new branches. Pair every new/modified production file with a test. Report unpaired files in your Result Contract.")
+```
+
+Wait for completion. The PostToolUse `hooks/test-gate.sh` then evaluates the gate.
 
 ### Step 5 — Reviewer
 

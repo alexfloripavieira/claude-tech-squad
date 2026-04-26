@@ -228,6 +228,30 @@ Proceed with this fix? [Y/N/modify]
 
 **This is a blocking gate.** Do NOT implement until user confirms.
 
+### Test Gate Exemption Protocol
+
+This skill is in `mandatory_test_gate.skills_in_scope` and is the only skill with an exemption (`runtime-policy.yaml#mandatory_test_gate.exemption_protocols.hotfix`).
+
+Default behavior:
+- `tdd-specialist` MUST be spawned to propose a rapid test reproducing the production break, even in emergencies.
+- `test-automation-engineer` MUST be spawned after the patch unless the operator invokes the exemption.
+
+Exemption (`--skip-tests` flag):
+- Operator must approve a visible proposal showing what test would be written and why skipping is justified now.
+- Skip is registered in SEP log as `tech_debt: hotfix_without_test:<file>` and persisted to `task_memory`.
+- An automatic follow-up task is created with a `auto_followup_days: 7` deadline.
+- A scheduled remote agent is registered (via `/schedule`) to reopen the case if not addressed within the deadline.
+- Silent skip is forbidden — `hooks/test-gate.sh` blocks the pipeline if the exemption was not declared in the run state.
+
+### Step 5b — Spawn tdd-specialist (Rapid Test Proposal)
+
+Unless `--skip-tests` is approved by the operator:
+
+```
+Agent(team_name="hotfix-team", name="tdd-specialist", subagent_type="claude-tech-squad:tdd-specialist",
+  prompt="Write a rapid failing test that reproduces the production break described above. Keep scope minimal — just enough to lock the regression. Do NOT implement the fix.")
+```
+
 ### Step 6 — Spawn backend-dev or frontend-dev for minimal patch
 
 Based on scope, spawn the appropriate implementation agent:
@@ -278,6 +302,17 @@ Return:
 ```
 
 Emit: `[Teammate Spawned] hotfix-impl | pane: hotfix-impl`
+
+### Step 6b — Test Automation Engineer (Post-Patch)
+
+Unless `--skip-tests` was approved (in which case register the exemption per the Exemption Protocol above):
+
+```
+Agent(team_name="hotfix-team", name="test-automation-engineer", subagent_type="claude-tech-squad:test-automation-engineer",
+  prompt="The hotfix is applied. Validate the rapid test now passes and add minimal regression coverage for the touched code paths. Report unpaired files in your Result Contract.")
+```
+
+Wait for completion. The PostToolUse `hooks/test-gate.sh` then evaluates the gate.
 
 ### Step 7 — Reviewer gate
 

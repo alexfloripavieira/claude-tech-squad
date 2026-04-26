@@ -226,6 +226,16 @@ Do NOT chain to other agents.
 
 If techlead outputs ESCALATE: stop and tell the user to use `/squad` instead.
 
+### Test Gate (Mandatory)
+
+This skill is in `mandatory_test_gate.skills_in_scope` (see `runtime-policy.yaml#mandatory_test_gate`).
+
+Contract:
+- `tdd-specialist` MUST write a failing test reproducing the bug before the dev agent fixes it (pre-existing pattern).
+- `test-automation-engineer` MUST run after the fix to add regression and edge-case tests for the touched code paths.
+- After `test-automation-engineer` completes, `hooks/test-gate.sh` evaluates the gate. A `BLOCKING` verdict halts the pipeline.
+- No exemption.
+
 ### Step 3 — Write Failing Test
 
 Invoke the Agent tool with `subagent_type: "claude-tech-squad:tdd-specialist"`, `team_name: "bug-fix-team"`, `name: "tdd-specialist"`.
@@ -293,6 +303,15 @@ Safety constraints (non-negotiable):
 
 Output: list of changed files with a one-line description of each change.
 ```
+
+### Step 4b — Test Automation Engineer (Regression + Edge Cases)
+
+```
+Agent(team_name="bug-fix-team", name="test-automation-engineer", subagent_type="claude-tech-squad:test-automation-engineer",
+  prompt="The bug is now fixed. Add regression tests covering the fix and edge cases adjacent to the touched code paths. Pair every modified production file with a test. Report unpaired files in your Result Contract.")
+```
+
+Wait for completion. The PostToolUse `hooks/test-gate.sh` then evaluates the gate.
 
 ### Step 5 — Validate Fix (Real Tool Execution)
 
