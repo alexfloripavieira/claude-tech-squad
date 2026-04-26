@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.62.0] - 2026-04-26 — Automated feature release
+
+### Added
+
+- Add command aliases and shift template-author agents to inherit (#39)
 ## [5.61.0] - 2026-04-26 — Automated feature release
 
 ### Added
