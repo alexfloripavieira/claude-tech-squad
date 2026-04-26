@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.62.4] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Merge pull request #41 from alexfloripavieira/chore/plugin-validator-review-fixes
+- Address plugin-validator and agent-creator review findings
 ## [5.62.3] - 2026-04-26 — Automated maintenance release
 
 ### Changed
