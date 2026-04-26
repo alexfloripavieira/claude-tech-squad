@@ -94,4 +94,4 @@ Validation rules:
 - Runtime retry/fallback rules: `references/runtime-resilience.md`
 - Gate catalog (which gates use which ARC fields): `references/gates-catalog.md`
 - Visual reporting (consumes `metrics`): `references/visual-reporting.md`
-- Policy file: `plugins/claude-tech-squad/runtime-policy.yaml`
+- Policy file: `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml`

@@ -21,7 +21,7 @@ description: |
   </commentary>
   </example>
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
-model: sonnet
+model: inherit
 color: yellow
 ---
 

@@ -35,7 +35,7 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 - one Claude Code marketplace manifest
 - one installable plugin: `claude-tech-squad`
 - 81 specialist agents for software delivery (each with Reasoning Sandwich: plan → execute → verify)
-- 28 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
+- 29 skills covering discovery, implementation, LLM evals, security, distributed systems, and more
 - one central runtime policy: `plugins/claude-tech-squad/runtime-policy.yaml` (retry, fallback, cost, doom loop, auto-advance, entropy, tool allowlists, observability)
 - deterministic dashboard snapshots from SEP logs: `ai-docs/dashboard-snapshot.md` and `ai-docs/dashboard.html`
 - a lightweight Python SDK for onboarding, dashboard, and ticket planning contracts
@@ -360,7 +360,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 Django stack:
 
 - `django-pm` — Product Manager for Django web projects. Shapes the problem, writes user stories, validates delivered features with UAT (Context7 + Playwright).
-- `tech-lead` — Technical lead for Django projects. Defines the approach, decomposes work into agent slices, validates technology choices via Context7. Does not write production code.
+- `django-tech-lead` — Technical lead for Django projects. Defines the approach, decomposes work into agent slices, validates technology choices via Context7. Does not write production code.
 - `django-backend` — Implements Django models, views, forms, URLs, admin, migrations, ORM queries, and API endpoints. Context7 for all Django/DRF lookups. TDD-first.
 - `django-frontend` — Implements Django Template Language templates and TailwindCSS layouts. Context7 for DTL/Tailwind lookups. Playwright for visual verification.
 - `code-reviewer` — Reviews Django backend and frontend code for correctness, N+1 queries, auth gaps, CSRF, TDD compliance, and lint. Returns APPROVED or CHANGES REQUESTED.
@@ -389,7 +389,7 @@ Shell / Automation stack:
 | Agent | Context7 | Playwright |
 |---|---|---|
 | django-pm | ✅ | ✅ (UAT) |
-| tech-lead | ✅ | — |
+| django-tech-lead | ✅ | — |
 | django-backend | ✅ | — |
 | django-frontend | ✅ | ✅ (visual verification) |
 | code-reviewer | — | — |
@@ -415,7 +415,7 @@ Skills that use this routing: `/squad`, `/implement`, `/discovery`, `/bug-fix`, 
 **Recommended delivery order for a full Django feature:**
 
 ```
-django-pm → tech-lead → django-backend → django-frontend → code-reviewer → qa-tester
+django-pm → django-tech-lead → django-backend → django-frontend → code-reviewer → qa-tester
 ```
 
 Testing split:
@@ -545,7 +545,7 @@ This plugin is built on the **Harness Engineering** framework — the discipline
 | **Tool Orchestration** | `tool_allowlist` per agent, namespace enforcement, complete fallback matrix |
 | **Guardrails** | PreToolUse hooks (`pre-tool-guard.sh`), token budget circuit breaker, Global Safety Contract |
 | **Error Recovery** | Doom loop detection (3 patterns), gate consolidation, Reasoning Sandwich (self-verification) |
-| **Observability** | Token tracking in all 28 skills, 16 trace line types, live dashboard, SEP logs |
+| **Observability** | Token tracking in all 29 skills, 16 trace line types, live dashboard, SEP logs |
 | **Human-in-the-Loop** | Auto-advance for high-confidence gates, mandatory gates for UAT/release/deploy |
 
 | Concept | Implementation |

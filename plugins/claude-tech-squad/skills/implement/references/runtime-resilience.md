@@ -22,8 +22,8 @@ When a primary teammate exhausts its retry budget, the orchestrator invokes the 
 
 | Primary             | Fallback                       |
 |---------------------|--------------------------------|
-| backend-dev         | tech-lead in pair-programming  |
-| frontend-dev        | tech-lead in pair-programming  |
+| backend-dev         | django-tech-lead in pair-programming  |
+| frontend-dev        | django-tech-lead in pair-programming  |
 | reviewer            | code-reviewer                  |
 | qa                  | qa-tester (Playwright path)    |
 | docs-writer         | tech-writer                    |
@@ -97,7 +97,7 @@ After every `[Teammate Done]`, run the 6-signal health check:
 5. `low_confidence_chain`
 6. `blocking_findings_accumulating`
 
-Preferred: `python3 plugins/claude-tech-squad/bin/squad-cli health` (deterministic, saves ~2 K tokens per teammate). Returns JSON with `signals_triggered`, `context_enrichment` (text to prepend to next teammate), `budget_percent`, `is_critical`.
+Preferred: `python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli health` (deterministic, saves ~2 K tokens per teammate). Returns JSON with `signals_triggered`, `context_enrichment` (text to prepend to next teammate), `budget_percent`, `is_critical`.
 
 Fallback: evaluate the 6 signals manually from the teammate's `result_contract`.
 

@@ -56,6 +56,23 @@ The `tool_allowlist` field declares which tools the agent is permitted to use at
 
 If `tool_allowlist` is omitted, the agent inherits the default allowlist for its category. The `tools` field (legacy) is treated as equivalent to `tool_allowlist` for backward compatibility.
 
+### Model Choice
+
+The `model:` frontmatter field selects which Claude model executes the agent. Use this rubric — `inherit` is the default; only deviate when the role demands a specific capability profile.
+
+| Choice | When to use | Examples |
+|---|---|---|
+| `inherit` | **Default for every new agent.** Inherits the orchestrator's model, so cost and quality scale with the run, not the agent. | `prd-author`, `tasks-planner`, `inception-author`, `cost-optimizer`, `analytics-engineer`, `code-quality`, `llm-cost-analyst` |
+| `opus` | Long-horizon reasoning, multi-document synthesis, security/safety-critical analysis, or roles where mistakes cascade across the pipeline. Worth the cost only when the failure mode is severe. | `architect`, `tdd-specialist`, `ethical-hacker`, `llm-safety-reviewer`, `tech-debt-analyst`, `planner`, `incident-manager`, `cloud-architect` |
+| `sonnet` | Balanced default for execution-heavy roles where Sonnet handles 95% of cases at a fraction of the cost. The current majority. | `backend-dev`, `frontend-dev`, `react-developer`, `vue-developer`, `python-developer`, `ai-engineer`, `prompt-engineer`, `monitoring-specialist` |
+| `haiku` | Mechanical, low-judgment tasks: ticket creation, doc rewrites, summarization, structured ports. Use when the role does not need to reason about tradeoffs. | `docs-writer`, `tech-writer`, `developer-relations`, `work-item-mapper`, `jira-confluence-specialist`, `context-summarizer` |
+
+**Rules:**
+- New agents must justify any model other than `inherit` in their PR description.
+- AI/LLM cluster (`ai-engineer`, `ml-engineer`, `rag-engineer`, `prompt-engineer`, `llm-eval-specialist`, `llm-cost-analyst`, `llm-safety-reviewer`) — `opus` is reserved for safety-critical reasoning (`llm-safety-reviewer`, `llm-eval-specialist`); the rest are `sonnet` or `inherit`.
+- Reviewer cluster (`reviewer`, `code-reviewer`, `code-quality`) — `code-reviewer` and `reviewer` are `opus` (highest cost of a missed bug); `code-quality` is `inherit` (signal aggregation, not deep reasoning).
+- Architect cluster (`architect`, `backend-architect`, `frontend-architect`, `data-architect`, `cloud-architect`, `hexagonal-architect`) — all `opus` because architectural mistakes are expensive to reverse.
+
 ---
 
 ## Required sections
@@ -278,7 +295,7 @@ Some agents appear to overlap. This is by design — they are **stack variants**
 | Generic agent | Stack variant | When the variant is used |
 |---|---|---|
 | `pm` | `django-pm` | Django projects — PM with Django/DRF domain knowledge |
-| `techlead` | `tech-lead` | Django projects — TechLead with Django-specific patterns |
+| `techlead` | `django-tech-lead` | Django projects — TechLead with Django-specific patterns |
 | `backend-dev` | `django-backend`, `python-developer` | Django → django-backend; Python (no Django) → python-developer |
 | `frontend-dev` | `django-frontend`, `react-developer`, `vue-developer`, `typescript-developer`, `javascript-developer` | One is selected based on detected frontend stack |
 | `reviewer` | `code-reviewer` | Django → code-reviewer (Django-specific review checks) |

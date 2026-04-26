@@ -23,10 +23,10 @@ In order of emission:
 
 ## Save mechanism
 
-Preferred: `python3 plugins/claude-tech-squad/bin/squad-cli checkpoint`.
+Preferred: `python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli checkpoint`.
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli checkpoint save \
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli checkpoint save \
   --run-id {{feature_slug}} --cursor <checkpoint> \
   --state-dir .squad-state
 ```

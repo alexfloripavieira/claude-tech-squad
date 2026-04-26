@@ -5,7 +5,7 @@
 After every teammate returns, pipe its Result Contract `metrics` JSON to:
 
 ```
-plugins/claude-tech-squad/scripts/render-teammate-card.sh
+${CLAUDE_PLUGIN_ROOT}/scripts/render-teammate-card.sh
 ```
 
 Print the rendered card inline in the orchestrator output. Respect `observability.teammate_cards.format` (`ascii | compact | silent`) from `runtime-policy.yaml`.
@@ -15,7 +15,7 @@ Print the rendered card inline in the orchestrator output. Respect `observabilit
 Immediately before writing the SEP log (Step 13c), assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe it to:
 
 ```
-plugins/claude-tech-squad/scripts/render-pipeline-board.sh
+${CLAUDE_PLUGIN_ROOT}/scripts/render-pipeline-board.sh
 ```
 
 Respect `observability.pipeline_board.enabled`.

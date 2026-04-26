@@ -1,6 +1,6 @@
 # Runtime Resilience Contract — Full Detail
 
-Load `plugins/claude-tech-squad/runtime-policy.yaml` before repository recon or team creation. This file is the source of truth for:
+Load `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml` before repository recon or team creation. This file is the source of truth for:
 
 - retry budgets
 - fallback matrix
@@ -47,7 +47,7 @@ For every teammate spawned — without exception:
      - Skip the retry and go directly to step 3 (fallback) — retrying the same agent will waste tokens.
    - If no doom loop detected: Emit `[Teammate Retry] <name> | Reason: silent failure — re-spawning` and re-spawn the teammate once with the identical prompt.
 3. If the second attempt also fails (or doom loop was detected in step 2):
-   - Read `plugins/claude-tech-squad/runtime-policy.yaml` and consult `fallback_matrix.squad.<name>`.
+   - Read `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml` and consult `fallback_matrix.squad.<name>`.
    - If a fallback subagent is listed:
      - Emit: `[Fallback Invoked] <name> -> <fallback-subagent> | Reason: primary failed twice`
      - Spawn the fallback once with the same context and an explicit instruction that it is acting as a surrogate for `<name>`.
@@ -74,12 +74,12 @@ Options:
 After every `[Teammate Done]`, run the health check. This evaluates 6 signals: retry_detected, fallback_used, doom_loop_short_circuit, token_budget_pressure, low_confidence_chain, blocking_findings_accumulating.
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli health \
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli health \
   --run-id {{feature_slug}} --teammate <name> \
   --tokens-in <N> --tokens-out <N> \
   --status <completed|failed|blocked> --confidence <high|medium|low> \
   --retries <N> --findings-blocking <N> --duration-ms <N> \
-  --policy plugins/claude-tech-squad/runtime-policy.yaml \
+  --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml \
   --state-dir .squad-state
 ```
 

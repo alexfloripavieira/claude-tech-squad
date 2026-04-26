@@ -21,7 +21,7 @@ description: |
   </commentary>
   </example>
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
-model: sonnet
+model: inherit
 color: cyan
 ---
 

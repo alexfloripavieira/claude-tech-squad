@@ -68,4 +68,4 @@ Validation rules:
 
 - Implementation-class ARC: `../../implement/references/arc-schema.md`
 - Templates: `templates/prd-template.md`, `templates/techspec-template.md`
-- Policy: `plugins/claude-tech-squad/runtime-policy.yaml`
+- Policy: `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml`

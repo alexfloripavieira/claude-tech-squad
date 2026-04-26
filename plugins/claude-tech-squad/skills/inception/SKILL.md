@@ -51,7 +51,7 @@ Emit for every teammate action:
 - `[Teammate Spawned] inception-author | pane: inception-author`
 - `[Teammate Done] inception-author | Output: techspec at ai-docs/prd-<slug>/techspec.md`
 - `[Teammate Retry] inception-author | Reason: <failure>`
-- `[Fallback Invoked] inception-author -> tech-lead | Reason: <summary>`
+- `[Fallback Invoked] inception-author -> django-tech-lead | Reason: <summary>`
 - `[Resume From] inception | checkpoint=techspec-produced`
 - `[Checkpoint Saved] inception | cursor=techspec-produced`
 - `[Gate] inception-confidence | Waiting for user input`
@@ -60,7 +60,7 @@ Emit for every teammate action:
 
 Before spawning teammates:
 
-1. Read `plugins/claude-tech-squad/runtime-policy.yaml`. Confirm `work_item_taxonomy`, `delivery_gates`, `observability.teammate_cards`, `observability.pipeline_board` are present.
+1. Read `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml`. Confirm `work_item_taxonomy`, `delivery_gates`, `observability.teammate_cards`, `observability.pipeline_board` are present.
 2. Verify `ai-docs/prd-<slug>/prd.md` exists. If missing: block with a clear message telling the operator to run `/claude-tech-squad:discovery` first.
 3. If `ai-docs/prd-<slug>/techspec.md` exists and validates against `templates/techspec-template.md`, note reuse intent in the preflight line.
 4. Emit `[Preflight Passed] inception | runtime_policy=<version> | slug=<slug>`.
@@ -69,7 +69,7 @@ Before spawning teammates:
 
 This skill has a single teammate. No digest compression is needed between phases. The PRD is passed by reference (path), not inlined, keeping prompt size bounded.
 
-**Digest format (if passed to fallback tech-lead):**
+**Digest format (if passed to fallback django-tech-lead):**
 
 ```markdown
 ## Context Digest — inception-author (technical-refinement)
@@ -114,7 +114,7 @@ If `metrics` is missing, treat the run as incomplete and retry once before escal
 ## Runtime Resilience Contract
 
 - Retries: up to `retry_budgets.inception.max_retries` (default 2 from runtime-policy).
-- Fallback: after retries exhaust, invoke `claude-tech-squad:tech-lead` with expanded context once.
+- Fallback: after retries exhaust, invoke `claude-tech-squad:django-tech-lead` with expanded context once.
 - Doom-loop check: identical blocker message on consecutive retries triggers a short-circuit to the user gate.
 - Cost guardrail: if cumulative tokens exceed the per-skill budget in `cost_guardrails`, halt and open a user gate.
 
@@ -126,8 +126,8 @@ If `metrics` is missing, treat the run as incomplete and retry once before escal
 
 ## Visual Reporting Contract
 
-- After `inception-author` returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card. Respect `observability.teammate_cards.format` (ascii | compact | silent).
-- Before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- After `inception-author` returns, pipe its Result Contract `metrics` JSON to `${CLAUDE_PLUGIN_ROOT}/scripts/render-teammate-card.sh` and print the card. Respect `observability.teammate_cards.format` (ascii | compact | silent).
+- Before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `${CLAUDE_PLUGIN_ROOT}/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
 - On render-script non-zero exit, log a WARNING in the SEP log; never fail the pipeline on a renderer error.
 
 ## SEP Log

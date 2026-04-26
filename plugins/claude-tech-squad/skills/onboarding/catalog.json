@@ -7,7 +7,7 @@
       "label": "Django",
       "signals": ["manage.py", "django in requirements.txt or pyproject.toml"],
       "template": "templates/claude-md/stacks/django.md",
-      "specialists": ["django-pm", "tech-lead", "django-backend", "django-frontend", "code-reviewer", "qa-tester"],
+      "specialists": ["django-pm", "django-tech-lead", "django-backend", "django-frontend", "code-reviewer", "qa-tester"],
       "recommended_first_command": "/claude-tech-squad:discovery",
       "required_health_checks": ["python manage.py check", "python manage.py test"]
     },

@@ -77,7 +77,7 @@ This is the inline ARC for `/hotfix` (whitelisted for inline emergency execution
 ## Runtime Resilience Contract
 
 - **Retry budget:** at most 2 retries per teammate (per `runtime-policy.yaml.failure_handling`); emergency mode reduces this to 1 for dev/reviewer to keep MTTR low.
-- **Fallback:** on dev failure, fall back to tech-lead-led pair-programming inline; on reviewer failure, escalate to user.
+- **Fallback:** on dev failure, fall back to django-tech-lead-led pair-programming inline; on reviewer failure, escalate to user.
 - **Doom loop guard:** halt if root cause confidence stays `low` after 2 attempts; escalate to incident-manager.
 - **Cost guardrail:** warn at 75 % of skill budget, halt at 100 %.
 
@@ -116,10 +116,10 @@ Options:
 
 ### Step 0 — Preflight
 
-**python3 plugins/claude-tech-squad/bin/squad-cli accelerated preflight** (preferred):
+**python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli accelerated preflight** (preferred):
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli preflight --skill hotfix --policy plugins/claude-tech-squad/runtime-policy.yaml --project-root .
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli preflight --skill hotfix --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml --project-root .
 ```
 
 Returns JSON with `stack`, `routing` (resolves `{{impl_agent}}`, `{{reviewer_agent}}`), `lint_profile`, and `token_budget_max`. Use these values for agent routing in Steps 4-8.
@@ -460,16 +460,16 @@ After the deploy checklist gate, before writing the SEP log:
 
 ## Visual Reporting Contract
 
-- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
-- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `${CLAUDE_PLUGIN_ROOT}/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `${CLAUDE_PLUGIN_ROOT}/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
 - Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
 
 ### Step 12 — Write SEP log (SEP Contrato 1)
 
-**python3 plugins/claude-tech-squad/bin/squad-cli sep-log** (preferred — if run was initialized with `python3 plugins/claude-tech-squad/bin/squad-cli init`):
+**python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli sep-log** (preferred — if run was initialized with `python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli init`):
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli sep-log --run-id {{run_id}} --output-dir ai-docs/.squad-log --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli sep-log --run-id {{run_id}} --output-dir ai-docs/.squad-log --state-dir .squad-state
 ```
 
 If `squad-cli` is not available or `init` was not called, write the SEP log manually:
