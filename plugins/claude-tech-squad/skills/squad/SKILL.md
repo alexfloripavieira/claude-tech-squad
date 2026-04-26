@@ -608,7 +608,7 @@ Emit: `[Phase Done] release | SRE sign-off received`
 
 ---
 
-## Step 3 — Team Cleanup (before SEP log)
+## Team Cleanup (before SEP log)
 
 Clean up the team created at Step 2 before writing the SEP log so cleanup status can be recorded:
 
@@ -623,7 +623,7 @@ Capture outcome into `{{team_cleanup_status}}` (`success` or `failed: <reason>`)
 
 ---
 
-## Step 4 — Write Execution Log (SEP Runtime Resilience)
+## Write Execution Log (SEP Runtime Resilience)
 
 ### Run Cost Summary and SEP Log
 
@@ -644,7 +644,7 @@ The `cost` command returns `tokens_in`, `tokens_out`, `estimated_cost_usd`, `bud
 
 The `sep-log` command generates the complete SEP log file with YAML frontmatter from the state collected during the run (all teammate data, checkpoints, health signals, fallbacks, doom loops).
 
-If `squad-cli` is not available: sum tokens manually across all teammates, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-squad-{{run_id}}.md` with full YAML frontmatter. When writing manually, substitute every `{{...}}` placeholder with the captured value — including `{{team_cleanup_status}}` from Step 3 (use `success` or `failed: <reason>`; never leave the literal placeholder).
+If `squad-cli` is not available: sum tokens manually across all teammates, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-squad-{{run_id}}.md` with full YAML frontmatter. When writing manually, substitute every `{{...}}` placeholder with the captured value — including `{{team_cleanup_status}}` from the Team Cleanup section (use `success` or `failed: <reason>`; never leave the literal placeholder).
 
 **Required frontmatter fields (squad):**
 
