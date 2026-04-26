@@ -69,3 +69,16 @@ Add new patterns by appending `grep -qE` blocks to `pre-tool-guard.sh`. Each blo
 1. Match a specific dangerous pattern
 2. Print a descriptive error to stderr
 3. Exit with code 2
+
+### test-gate.sh (PostToolUse)
+
+Fires after every `Agent` tool call. Acts only when:
+- the tool was `Agent`,
+- the `subagent_type` is `claude-tech-squad:test-automation-engineer`,
+- the active skill is in `mandatory_test_gate.skills_in_scope`.
+
+Calls `squad-cli test-gate evaluate` and propagates the verdict via exit code:
+- `0` — PASS or WARNING (continue)
+- `2` — BLOCKING (halt pipeline)
+
+See `runtime-policy.yaml#mandatory_test_gate` and `docs/superpowers/specs/2026-04-26-mandatory-test-automation-design.md`.
