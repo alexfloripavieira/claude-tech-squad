@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.61.0] - 2026-04-26 — Automated feature release
+
+### Added
+
+- Bootstrap detection + /test-bootstrap skill (Pillar C) (#38)
 ## [5.60.0] - 2026-04-26 — Automated feature release
 
 ### Added
