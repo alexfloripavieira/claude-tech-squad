@@ -386,3 +386,13 @@ Skills that handle long-running session state across `/clear` boundaries: `rollo
 | Session-management | Global Safety + Operator Visibility + SEP log | All teammate-coordination sections |
 
 `validate.sh` enforces the orchestrator contract only on `discovery`, `implement`, `squad`. Adding a new skill to that enforcement list automatically promotes it to full-orchestrator class.
+
+## Test Gate Contract
+
+For any skill listed in `runtime-policy.yaml#mandatory_test_gate.skills_in_scope`, the SKILL.md MUST include:
+
+1. An invocation of `subagent_type: "claude-tech-squad:tdd-specialist"` before any dev agent (`backend-dev`, `frontend-dev`, `django-backend`, `react-developer`, `vue-developer`, `mobile-dev`, `python-developer`, `typescript-developer`, `javascript-developer`, `shell-developer`).
+2. An invocation of `subagent_type: "claude-tech-squad:test-automation-engineer"` after dev agents and before reviewer agents.
+3. A `### Test Gate (Mandatory)` section referencing `runtime-policy.yaml#mandatory_test_gate`. The only exception is skills that declare an exemption — they use `### Test Gate Exemption Protocol` instead, documenting the proposal/registration/followup flow.
+
+`scripts/validate.sh` enforces these rules mechanically via the mandatory_test_gate contract block. Skills outside the `skills_in_scope` list are unaffected.
