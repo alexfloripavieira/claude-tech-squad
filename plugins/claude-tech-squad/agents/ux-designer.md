@@ -2,6 +2,8 @@
 name: ux-designer
 description: UX specialist for user flows, states, friction, and interaction quality. Defines flows, field behavior, microcopy needs, empty/error/loading states, and usability tradeoffs.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: sonnet
+color: blue
 ---
 
 # UX Designer Agent

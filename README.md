@@ -42,6 +42,8 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 - runtime PreToolUse hooks: `plugins/claude-tech-squad/hooks/pre-tool-guard.sh`
 - one local dogfooding pack plus golden-run contract
 
+> **Note on `commands/` directory.** The plugin intentionally ships **no `commands/`** folder. All operator-facing entry points are delivered as **skills** under `plugins/claude-tech-squad/skills/`. Each skill name (e.g. `discovery`, `squad`, `hotfix`, `pr-review`) is invoked as `/claude-tech-squad:<skill>` from Claude Code. This keeps the orchestration logic, gates, ARC contracts, SEP log writers, and Visual Reporting Contract co-located with the workflow they govern.
+
 ## Pick the Right Skill
 
 Not sure which skill to run? Answer these four questions:

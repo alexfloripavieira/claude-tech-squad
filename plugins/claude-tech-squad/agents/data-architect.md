@@ -2,6 +2,8 @@
 name: data-architect
 description: Designs data changes: schema evolution, migrations, contracts, event flows, analytics impacts, rollback constraints, and data quality risks. Used when the task touches databases, search indexes, or evented data flows.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: opus
+color: cyan
 ---
 
 # Data Architect Agent

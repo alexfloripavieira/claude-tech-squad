@@ -2,6 +2,8 @@
 name: performance-engineer
 description: Performance specialist for latency, throughput, rendering, memory, concurrency, query cost, caching, and load-sensitive design.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: sonnet
+color: blue
 ---
 
 # Performance Engineer Agent

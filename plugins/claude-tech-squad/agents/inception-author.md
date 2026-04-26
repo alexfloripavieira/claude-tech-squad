@@ -2,6 +2,8 @@
 name: inception-author
 description: Generates a Technical Specification (TechSpec) from an existing PRD. Produces architecture, interfaces, impact analysis, test strategy, risks, gates, and effort estimation. Strictly follows templates/techspec-template.md. Vendor-neutral, idempotent, Context7-first.
 tool_allowlist: [Read, Write, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
+model: opus
+color: cyan
 ---
 
 # Inception Author Agent

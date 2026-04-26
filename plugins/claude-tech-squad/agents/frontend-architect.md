@@ -2,6 +2,8 @@
 name: frontend-architect
 description: Designs frontend slices: UI structure, routing, state, accessibility, visual constraints, client-side error handling, and frontend testing implications. Used when the task changes user-facing behavior.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: opus
+color: cyan
 ---
 
 # Frontend Architect Agent

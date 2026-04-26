@@ -6,6 +6,8 @@ tools:
   - Glob
   - Grep
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: sonnet
+color: cyan
 ---
 
 # Analytics Engineer Agent

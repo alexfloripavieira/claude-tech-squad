@@ -2,6 +2,8 @@
 name: ml-engineer
 description: Machine learning engineer. Owns model fine-tuning, training pipelines, MLOps, feature engineering, model registry, deployment, and production model monitoring including drift detection.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: opus
+color: green
 ---
 
 # ML Engineer Agent

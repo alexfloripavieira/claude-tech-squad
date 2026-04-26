@@ -2,6 +2,8 @@
 name: business-analyst
 description: Domain and process analyst. Extracts business rules, workflow constraints, role interactions, and operational edge cases that shape the implementation.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: sonnet
+color: cyan
 ---
 
 # Business Analyst Agent

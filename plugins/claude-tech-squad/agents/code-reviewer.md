@@ -6,7 +6,9 @@ tools:
   - Glob
   - Grep
   - Bash
-tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+tool_allowlist: [Read, Glob, Grep, Bash, WebSearch, WebFetch]
+model: opus
+color: yellow
 ---
 
 # Code Reviewer Agent

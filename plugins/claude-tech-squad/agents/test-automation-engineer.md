@@ -2,6 +2,8 @@
 name: test-automation-engineer
 description: Builds and refines automated test suites, harnesses, fixtures, test utilities, and quality gates. Owns automation depth and maintainability.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: sonnet
+color: yellow
 ---
 
 # Test Automation Engineer Agent

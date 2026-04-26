@@ -6,7 +6,9 @@ tools:
   - Read
   - Glob
   - Grep
-tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+tool_allowlist: [Bash, Read, Glob, Grep, Edit, Write]
+model: sonnet
+color: magenta
 ---
 
 # DevOps Agent

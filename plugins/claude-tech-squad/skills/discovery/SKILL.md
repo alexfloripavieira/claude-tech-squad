@@ -60,6 +60,11 @@ Emit these lines for every teammate action:
 
 ## Progressive Disclosure — Context Digest Protocol
 
+Detailed reference docs that would bloat this SKILL.md live under `references/`:
+
+- `references/arc-schema.md` — ARC schema for analysis-class teammates
+- `references/gates-catalog.md` — every discovery gate and auto-advance rules
+
 Do not forward full upstream agent output to every downstream agent. Instead, produce a **context digest** (max 500 tokens) between sequential phases.
 
 **Digest format:**

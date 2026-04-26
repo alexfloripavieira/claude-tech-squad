@@ -2,6 +2,8 @@
 name: agent-architect
 description: Multi-agent systems architect. Owns orchestration patterns, MCP (Model Context Protocol), tool use design, agent loops, handoff protocols, Claude Agent SDK, and frameworks like LangChain, LlamaIndex, AutoGen, and CrewAI.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: opus
+color: cyan
 ---
 
 # Agent Architect Agent

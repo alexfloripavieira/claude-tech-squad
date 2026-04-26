@@ -2,6 +2,8 @@
 name: backend-dev
 description: Implements backend changes following the agreed architecture. Owns APIs, services, auth, persistence, queues, and backend unit tests. Verifies every library API against current docs before using it.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: sonnet
+color: green
 ---
 
 # Backend Dev Agent

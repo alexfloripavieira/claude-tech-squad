@@ -2,6 +2,8 @@
 name: cloud-architect
 description: Cloud architecture specialist. Designs cloud topology, networking (VPC, subnets, DNS), IAM strategy, multi-region HA, disaster recovery, and well-architected framework compliance across AWS, GCP, and Azure.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: opus
+color: cyan
 ---
 
 # Cloud Architect Agent

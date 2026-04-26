@@ -2,6 +2,8 @@
 name: work-item-mapper
 description: Maps a PRD/TechSpec/Tasks set (or a bug report) into the configured vendor-neutral work-item taxonomy defined in runtime-policy.yaml. Emits a structured work-items.md file and enforces opt-in delivery_gates rules. Handles defect vs bug classification for fixes.
 tool_allowlist: [Read, Write, Glob, Grep]
+model: haiku
+color: magenta
 ---
 
 # Work Item Mapper Agent

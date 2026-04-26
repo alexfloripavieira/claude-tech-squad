@@ -39,8 +39,8 @@ This skill reads conversation context only. No Agent tool calls. No TeamCreate. 
 Extract the user's task from the conversation. If the user hasn't described a task, ask:
 
 ```
-What do you want to build, fix, review, or audit?
-Describe in one sentence — I'll recommend the right skill and estimate the cost.
+What is the task to build, fix, review, or audit?
+Describe in one sentence — the skill recommends the right command and estimates the cost.
 ```
 
 **Deduplication guard:** Before proceeding, compute a `task_hash` by normalizing the task description (lowercase, strip punctuation, collapse whitespace) and comparing it against the `task_summary` field of the last 10 SEP logs in `ai-docs/.squad-log/` that have `skill: cost-estimate`. If a matching hash is found in a log written within the last 10 minutes, emit:
@@ -102,7 +102,7 @@ If multiple signals are present, use the **highest** tier detected.
 {{alternative_2}} — {{cost}} ({{when_to_use}})
 
 ### Savings vs /squad
-If you ran /squad instead: ~$15-30 (3M-5M tokens)
+Running /squad instead would cost: ~$15-30 (3M-5M tokens)
 Recommended path saves: ~${{savings}}
 
 ### Next step

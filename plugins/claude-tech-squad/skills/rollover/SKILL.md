@@ -27,9 +27,9 @@ See `docs/architecture/0001-context-rollover.md` for the decision record.
 ## When to Use
 
 - Before a planned break (lunch, end of day) in the middle of a long run.
-- When `[Context Advisory]` has been emitted and you want to rollover before the hard gate fires.
-- When you suspect output quality has started degrading but no gate has fired.
-- After a large phase completes and you know the next phase will be expensive.
+- When `[Context Advisory]` has been emitted and the operator wants to rollover before the hard gate fires.
+- When output quality appears to be degrading even though no gate has fired.
+- After a large phase completes and the next phase is expected to be expensive.
 - When the user says: "rollover now", "fazer rollover", "consolidar contexto", "preparar para /clear".
 
 **Do not use** if a teammate is currently running. Wait for `[Teammate Done]` or `[Phase Done]` first. Rollover between teammates is safe; rollover mid-teammate loses work.

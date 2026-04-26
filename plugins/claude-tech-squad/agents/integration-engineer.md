@@ -2,6 +2,8 @@
 name: integration-engineer
 description: Specialist for third-party and inter-service integrations. Designs and implements contracts, retries, idempotency, failure handling, and integration validation.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: sonnet
+color: green
 ---
 
 # Integration Engineer Agent

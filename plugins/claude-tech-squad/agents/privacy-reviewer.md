@@ -2,6 +2,8 @@
 name: privacy-reviewer
 description: Privacy specialist for data minimization, retention, masking, consent, user data exposure, and cross-boundary data handling.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: opus
+color: red
 ---
 
 # Privacy Reviewer Agent

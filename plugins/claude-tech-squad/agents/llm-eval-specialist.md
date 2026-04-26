@@ -2,6 +2,8 @@
 name: llm-eval-specialist
 description: LLM evaluation specialist. Owns evaluation frameworks, quality metrics, hallucination detection, retrieval quality assessment, regression testing for AI outputs, and production monitoring of model behavior.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: opus
+color: blue
 ---
 
 # LLM Eval Specialist Agent

@@ -15,7 +15,9 @@ tools:
   - mcp__plugin_playwright_playwright__browser_resize
   - mcp__plugin_playwright_playwright__browser_evaluate
   - mcp__plugin_playwright_playwright__browser_console_messages
-tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+tool_allowlist: [Read, Write, Edit, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_console_messages, Bash]
+model: sonnet
+color: green
 ---
 
 # Django Frontend Agent

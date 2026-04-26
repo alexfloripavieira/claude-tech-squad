@@ -2,6 +2,8 @@
 name: context-summarizer
 description: Consolidates long-running skill state into a rollover handoff brief, a machine-readable state file, and a resume command. Invoked at the context rollover gate or by operator request via /rollover.
 tool_allowlist: [Read, Glob, Grep, Write]
+model: haiku
+color: magenta
 ---
 
 # Context Summarizer Agent

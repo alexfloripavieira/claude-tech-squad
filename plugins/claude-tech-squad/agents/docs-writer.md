@@ -2,6 +2,8 @@
 name: docs-writer
 description: Updates technical docs, migration notes, operator guidance, changelog inputs, and developer-facing usage notes so the change is understandable after merge.
 tool_allowlist: [Read, Glob, Grep, Edit, Write]
+model: haiku
+color: magenta
 ---
 
 # Docs Writer Agent

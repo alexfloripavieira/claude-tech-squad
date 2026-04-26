@@ -2,6 +2,8 @@
 name: solutions-architect
 description: Customer-facing technical architect. Designs integration architectures for enterprise clients, leads technical pre-sales, responds to RFPs, builds PoCs, and translates product capabilities into client-specific technical solutions.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: opus
+color: cyan
 ---
 
 # Solutions Architect Agent

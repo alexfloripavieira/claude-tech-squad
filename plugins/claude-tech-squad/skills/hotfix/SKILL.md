@@ -50,6 +50,41 @@ Emit these trace lines so the operator can follow the emergency response and the
 - `[Team Deleted] hotfix-team | cleanup complete` (or `[Team Cleanup Warning]` on failure)
 - `[SEP Log Written] ai-docs/.squad-log/<filename>`
 
+## Agent Result Contract (ARC)
+
+Every spawned teammate (techlead, dev, reviewer, security-reviewer) MUST return both blocks below. Outputs missing either block are treated as a silent failure (see Teammate Failure Protocol).
+
+```yaml
+result_contract:
+  status: PASS | FAIL | NEEDS_HUMAN
+  confidence: low | medium | high
+  files_touched: [<paths>]
+  evidence:
+    test_command: "<exact command run>"
+    test_output_path: "<artifact path or inline excerpt>"
+  blockers: [<short list, empty if none>]
+  next_action: "<one-line handoff>"
+verification_checklist:
+  - "[x|FAIL] Root cause confirmed before patch (Step 5)"
+  - "[x|FAIL] Patch is minimal (no scope creep)"
+  - "[x|FAIL] Tests added covering the regression"
+  - "[x|FAIL] Reviewer + security spot-check passed"
+  - "[x|FAIL] Hotfix branch + PR created (no force-push to main)"
+```
+
+This is the inline ARC for `/hotfix` (whitelisted for inline emergency execution per CLAUDE.md). For multi-gate ARC see `/implement` and `/squad`.
+
+## Runtime Resilience Contract
+
+- **Retry budget:** at most 2 retries per teammate (per `runtime-policy.yaml.failure_handling`); emergency mode reduces this to 1 for dev/reviewer to keep MTTR low.
+- **Fallback:** on dev failure, fall back to tech-lead-led pair-programming inline; on reviewer failure, escalate to user.
+- **Doom loop guard:** halt if root cause confidence stays `low` after 2 attempts; escalate to incident-manager.
+- **Cost guardrail:** warn at 75 % of skill budget, halt at 100 %.
+
+### Checkpoint / Resume Rules
+
+- Checkpoint after Step 5 (root-cause confirmed) and Step 11 (deploy checklist accepted). On resume, re-read `ai-docs/.squad-log/.last-hotfix-checkpoint.json`; if state is stale (>1 h), restart from Step 0 to re-validate the incident is still active.
+
 ## Execution
 
 ## Teammate Failure Protocol
