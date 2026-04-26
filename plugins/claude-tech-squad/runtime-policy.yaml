@@ -625,6 +625,23 @@ observability:
         in the SEP log under the failed teammate's entry. agent_duration_ms captures how
         long the primary ran before failing. last_tool_before_failure identifies the tool
         call that preceded the silent exit (e.g. Read for mid-turn reviewer stops).
+    test_gate_block:
+      applies_to_skills: [squad, implement, refactor, bug-fix, hotfix]
+      fields:
+        - verdict
+        - enforce_level
+        - unpaired_files
+        - coverage_before
+        - coverage_after
+        - coverage_delta
+        - exemptions_applied
+        - tech_debt_registered
+        - gate_duration_ms
+      description: >
+        Runs of in-scope skills SHOULD include a top-level test_gate block summarizing
+        the PostToolUse gate evaluation. verdict is one of pass | warning | blocking.
+        unpaired_files lists production files lacking paired tests (path + reason).
+        Coverage fields are skipped when no coverage tooling is configured.
     trace_lines:
       - "[Preflight Start]"
       - "[Preflight Warning]"
