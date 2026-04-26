@@ -20,11 +20,6 @@ description: |
   Code-health reporting and debt scoring is in scope.
   </commentary>
   </example>
-tools:
-  - Bash
-  - Read
-  - Glob
-  - Grep
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: cyan

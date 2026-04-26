@@ -20,13 +20,6 @@ description: |
   Boundary assignment across stacks is in scope.
   </commentary>
   </example>
-tools:
-  - Read
-  - Glob
-  - Grep
-  - Bash
-  - mcp__plugin_context7_context7__resolve-library-id
-  - mcp__plugin_context7_context7__query-docs
 tool_allowlist: [Read, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, WebSearch, WebFetch]
 model: opus
 color: cyan

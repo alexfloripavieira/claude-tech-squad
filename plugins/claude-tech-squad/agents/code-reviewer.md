@@ -20,11 +20,6 @@ description: |
   Tailwind anti-patterns and TDD violation detection are explicitly in scope.
   </commentary>
   </example>
-tools:
-  - Read
-  - Glob
-  - Grep
-  - Bash
 tool_allowlist: [Read, Glob, Grep, Bash, WebSearch, WebFetch]
 model: opus
 color: yellow

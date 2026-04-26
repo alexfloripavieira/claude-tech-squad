@@ -20,11 +20,6 @@ description: |
   Prompt compression, caching, and model downgrade fall under llm-cost-analyst.
   </commentary>
   </example>
-tools:
-  - Bash
-  - Read
-  - Glob
-  - Grep
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: blue

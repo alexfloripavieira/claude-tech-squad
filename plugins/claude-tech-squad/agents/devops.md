@@ -20,13 +20,6 @@ description: |
   Disaster recovery and backup strategy are devops responsibilities, not platform application code.
   </commentary>
   </example>
-tools:
-  - Bash
-  - Read
-  - Glob
-  - Grep
-  - Edit
-  - Write
 tool_allowlist: [Bash, Read, Glob, Grep, Edit, Write]
 model: sonnet
 color: magenta

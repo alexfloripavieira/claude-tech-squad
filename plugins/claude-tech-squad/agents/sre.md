@@ -20,10 +20,6 @@ description: |
   SLO definition is in scope.
   </commentary>
   </example>
-tools:
-  - Read
-  - Glob
-  - Grep
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: blue

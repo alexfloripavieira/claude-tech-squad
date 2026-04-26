@@ -20,18 +20,6 @@ description: |
   This is a type-system and module-design task, which implicitly separates it from React or Vue component work.
   </commentary>
   </example>
-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Glob
-  - Grep
-  - mcp__plugin_context7_context7__resolve-library-id
-  - mcp__plugin_context7_context7__query-docs
-  - mcp__plugin_playwright_playwright__browser_navigate
-  - mcp__plugin_playwright_playwright__browser_snapshot
-  - mcp__plugin_playwright_playwright__browser_console_messages
 tool_allowlist: [Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_console_messages]
 model: sonnet
 color: green
