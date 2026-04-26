@@ -180,7 +180,7 @@ squad-cli detects the project stack automatically from signal files (manage.py, 
 
 | Stack | Signal | Specialist routing |
 |---|---|---|
-| Django | manage.py + django in requirements | django-pm, tech-lead, django-backend, django-frontend, code-reviewer |
+| Django | manage.py + django in requirements | django-pm, django-tech-lead, django-backend, django-frontend, code-reviewer |
 | React | package.json with react | react-developer, qa-tester |
 | Vue | package.json with vue | vue-developer, qa-tester |
 | TypeScript | tsconfig.json | typescript-developer |

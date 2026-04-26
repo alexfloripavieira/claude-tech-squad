@@ -166,7 +166,7 @@ REQUIRED_AGENTS=(
   shell-developer
   ethical-hacker
   tech-debt-analyst
-  tech-lead
+  django-tech-lead
   typescript-developer
   vue-developer
   prd-author
@@ -698,5 +698,25 @@ for key in first_contact subsequent unknown_stack; do
     exit 1
   fi
 done
+
+# ── Portability: skills must use ${CLAUDE_PLUGIN_ROOT}, never repo-relative bin/ paths ─
+PORTABILITY_VIOLATIONS=$(grep -rEn 'plugins/claude-tech-squad/(bin|scripts|runtime-policy\.yaml)' \
+  "$PLUGIN_DIR/skills" "$PLUGIN_DIR/hooks" "$PLUGIN_DIR/commands" 2>/dev/null \
+  | grep -v 'CLAUDE_PLUGIN_ROOT' || true)
+if [ -n "$PORTABILITY_VIOLATIONS" ]; then
+  echo "Portability: skills/hooks/commands must use \${CLAUDE_PLUGIN_ROOT} instead of repo-relative paths:"
+  echo "$PORTABILITY_VIOLATIONS"
+  exit 1
+fi
+
+# ── Namespace: every subagent_type in skills (including references/) must use claude-tech-squad: prefix ─
+NAMESPACE_VIOLATIONS=$(grep -rEn 'subagent_type[: =]+`?[a-z]' "$PLUGIN_DIR/skills" 2>/dev/null \
+  | grep -v 'claude-tech-squad:' \
+  | grep -v '{{' || true)
+if [ -n "$NAMESPACE_VIOLATIONS" ]; then
+  echo "Namespace: subagent_type values must use claude-tech-squad: prefix:"
+  echo "$NAMESPACE_VIOLATIONS"
+  exit 1
+fi
 
 echo "claude-tech-squad validation passed (v$PLUGIN_VERSION, $AGENT_COUNT agents)"

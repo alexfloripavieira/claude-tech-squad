@@ -22,7 +22,7 @@ description: |
   </example>
 tool_allowlist: [Bash, Read, Glob, Grep, Edit, Write]
 model: sonnet
-color: magenta
+color: green
 ---
 
 # DevOps Agent

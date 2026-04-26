@@ -1,6 +1,6 @@
 # Runtime Resilience Contract — `/discovery`
 
-This file expands the contract referenced from `SKILL.md`. The orchestrator MUST load `plugins/claude-tech-squad/runtime-policy.yaml` before creating the discovery team. That file is the source of truth for retry budgets, fallback matrix, severity policy, checkpoint/resume rules, and reliability metrics recorded in SEP logs.
+This file expands the contract referenced from `SKILL.md`. The orchestrator MUST load `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml` before creating the discovery team. That file is the source of truth for retry budgets, fallback matrix, severity policy, checkpoint/resume rules, and reliability metrics recorded in SEP logs.
 
 If `runtime-policy.yaml` is missing or unreadable: stop the run and surface `[Gate] Runtime Policy Missing`. Do not silently continue with hardcoded defaults.
 
@@ -17,7 +17,7 @@ For every teammate spawned — without exception:
      - Skip the retry and go directly to step 3 (fallback) — retrying the same agent will waste tokens.
    - If no doom loop detected: emit `[Teammate Retry] <name> | Reason: silent failure — re-spawning` and re-spawn the teammate once with the identical prompt.
 3. If the second attempt also fails (or doom loop was detected in step 2):
-   - Read `plugins/claude-tech-squad/runtime-policy.yaml` and consult `fallback_matrix.discovery.<name>`.
+   - Read `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml` and consult `fallback_matrix.discovery.<name>`.
    - If a fallback subagent is listed:
      - Emit: `[Fallback Invoked] <name> -> <fallback-subagent> | Reason: primary failed twice`
      - Spawn the fallback once with the same context and an explicit instruction that it is acting as a surrogate for `<name>`.
@@ -44,12 +44,12 @@ Options:
 After every `[Teammate Done]`, run the health check (6 signals). Preferred deterministic path saves ~2K tokens per teammate:
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli health \
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli health \
   --run-id {{feature_slug}} --teammate <name> \
   --tokens-in <N> --tokens-out <N> \
   --status <completed|failed|blocked> --confidence <high|medium|low> \
   --retries <N> --findings-blocking <N> --duration-ms <N> \
-  --policy plugins/claude-tech-squad/runtime-policy.yaml \
+  --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml \
   --state-dir .squad-state
 ```
 
@@ -80,7 +80,7 @@ Discovery checkpoints (in order): `preflight-passed`, `gate-1-approved`, `gate-2
 Preferred path (deterministic, persists to `.squad-state/`):
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli checkpoint save \
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli checkpoint save \
   --run-id {{feature_slug}} --cursor <checkpoint> --state-dir .squad-state
 ```
 

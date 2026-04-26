@@ -20,7 +20,7 @@ description: |
   Auth and integration boundaries on the server side are owned here.
   </commentary>
   </example>
-tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+tool_allowlist: [Read, Glob, Grep]
 model: opus
 color: cyan
 ---

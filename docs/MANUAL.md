@@ -931,7 +931,7 @@ Django stack (Context7 + Playwright for browser verification agents):
 | Agent | Specialty | Context7 | Playwright |
 |---|---|---|---|
 | `django-pm` | Problem shaping, user stories, UAT for Django projects | ✅ | ✅ |
-| `tech-lead` | Technical lead for Django projects — planning, decomposition | ✅ | — |
+| `django-tech-lead` | Technical lead for Django projects — planning, decomposition | ✅ | — |
 | `django-backend` | Django models, views, forms, admin, ORM, migrations, API endpoints | ✅ | — |
 | `django-frontend` | Django Template Language + TailwindCSS — templates, layouts, components | ✅ | ✅ |
 | `code-reviewer` | Django backend/frontend code review — correctness, security, N+1, TDD | — | — |

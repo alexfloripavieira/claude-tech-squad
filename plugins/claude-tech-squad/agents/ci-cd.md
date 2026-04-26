@@ -22,7 +22,7 @@ description: |
   </example>
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
-color: magenta
+color: green
 ---
 
 # CI/CD Agent

@@ -4,10 +4,10 @@
 
 ```bash
 # Get cost summary
-python3 plugins/claude-tech-squad/bin/squad-cli cost --run-id {{feature_slug}} --policy plugins/claude-tech-squad/runtime-policy.yaml --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli cost --run-id {{feature_slug}} --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml --state-dir .squad-state
 
 # Generate SEP log from collected state
-python3 plugins/claude-tech-squad/bin/squad-cli sep-log --run-id {{feature_slug}} --output-dir ai-docs/.squad-log --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli sep-log --run-id {{feature_slug}} --output-dir ai-docs/.squad-log --state-dir .squad-state
 ```
 
 The `cost` command returns `tokens_in`, `tokens_out`, `estimated_cost_usd`, `budget_percent`, and `per_teammate` breakdown. Emit:

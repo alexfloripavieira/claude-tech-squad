@@ -20,7 +20,7 @@ description: |
   Data contracts and analytics side effects are distinguishing signals for this role over general architecture work.
   </commentary>
   </example>
-tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
+tool_allowlist: [Read, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: opus
 color: cyan
 ---

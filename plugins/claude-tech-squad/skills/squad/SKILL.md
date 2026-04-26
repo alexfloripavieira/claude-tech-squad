@@ -90,7 +90,7 @@ A teammate has failed silently if it returns empty, an error, or output that doe
 
 ## Inline Health Check
 
-After every `[Teammate Done]`, run `python3 plugins/claude-tech-squad/bin/squad-cli health` (preferred) and inject the returned `context_enrichment` text into the next teammate's prompt. Emit `[Health Check] <name> | signals: ...`. Critical signals trigger a `[Health Warning]` and may surface to the user. Cross-phase health is carried from discovery into implementation.
+After every `[Teammate Done]`, run `python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli health` (preferred) and inject the returned `context_enrichment` text into the next teammate's prompt. Emit `[Health Check] <name> | signals: ...`. Critical signals trigger a `[Health Warning]` and may surface to the user. Cross-phase health is carried from discovery into implementation.
 
 > See `references/runtime-resilience.md` for the 6 signals, full CLI invocation, and manual fallback evaluation.
 
@@ -102,13 +102,13 @@ A teammate response is structurally valid only when it contains the role-specifi
 
 ## Visual Reporting Contract
 
-After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh`. Before writing the SEP log, assemble the pipeline summary JSON and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Renderer failures are non-fatal — log a WARNING and continue. Respect `observability.teammate_cards.format` and `observability.pipeline_board.enabled` in `runtime-policy.yaml`.
+After every teammate returns, pipe its Result Contract `metrics` JSON to `${CLAUDE_PLUGIN_ROOT}/scripts/render-teammate-card.sh`. Before writing the SEP log, assemble the pipeline summary JSON and pipe to `${CLAUDE_PLUGIN_ROOT}/scripts/render-pipeline-board.sh`. Renderer failures are non-fatal — log a WARNING and continue. Respect `observability.teammate_cards.format` and `observability.pipeline_board.enabled` in `runtime-policy.yaml`.
 
 > See `references/visual-reporting.md` for the full contract.
 
 ## Runtime Resilience Contract
 
-Load `plugins/claude-tech-squad/runtime-policy.yaml` before repository recon or team creation. It is the source of truth for retry budgets, fallback matrix, severity policy, checkpoint/resume rules, and reliability metrics in SEP logs. If the file is missing or unreadable, halt and surface `[Gate] Runtime Policy Missing` — never silently use hardcoded defaults.
+Load `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml` before repository recon or team creation. It is the source of truth for retry budgets, fallback matrix, severity policy, checkpoint/resume rules, and reliability metrics in SEP logs. If the file is missing or unreadable, halt and surface `[Gate] Runtime Policy Missing` — never silently use hardcoded defaults.
 
 > See `references/runtime-resilience.md` for the full operator visibility list, failure protocol, health check, and rollover gate.
 
@@ -121,8 +121,8 @@ Load `plugins/claude-tech-squad/runtime-policy.yaml` before repository recon or 
 Before recon and team creation, validate the run contract. Emit `[Preflight Start] squad`.
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli preflight --skill squad --policy plugins/claude-tech-squad/runtime-policy.yaml --project-root .
-python3 plugins/claude-tech-squad/bin/squad-cli init --run-id {{feature_slug}} --skill squad --policy plugins/claude-tech-squad/runtime-policy.yaml --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli preflight --skill squad --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml --project-root .
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli init --run-id {{feature_slug}} --skill squad --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml --state-dir .squad-state
 ```
 
 The first call returns JSON with `stack`, `ai_feature`, `routing`, `lint_profile`, `docs_lookup_mode`, `policy_version`, `token_budget_max`, `orphaned_discoveries`, `retro_counter`, `resume_from`, and `warnings`. Use those values to set every `{{variable}}`. If `squad-cli` is unavailable, fall back to manual preflight (read `runtime-policy.yaml`, detect stack from signal files, resolve routing, check orphans, read retro counter).
@@ -136,8 +136,8 @@ Emit all preflight warnings, then `[Preflight Passed] squad | execution_mode=<mo
 Save checkpoints at `preflight-passed`, `discovery-confirmed`, `implementation-complete`, `release-signed-off`:
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli checkpoint save --run-id {{feature_slug}} --cursor <checkpoint> --state-dir .squad-state
-python3 plugins/claude-tech-squad/bin/squad-cli checkpoint resume --skill squad --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli checkpoint save --run-id {{feature_slug}} --cursor <checkpoint> --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli checkpoint resume --skill squad --state-dir .squad-state
 ```
 
 Without `squad-cli`: emit `[Checkpoint Saved] squad | cursor=<checkpoint>` and inspect the latest `ai-docs/.squad-log/*-squad-*.md` for resume.
@@ -225,9 +225,9 @@ Emit `[Phase Start] implementation`. Sequential with parallel batches:
 4. `qa` — max 2 QA cycles, then fallback, then `[Gate] QA Limit Reached`.
 5. `techlead-audit` — Conformance Gate; max 2 cycles, then fallback, then `[Gate] Conformance Limit Reached`.
 6. Quality bench in parallel after CONFORMANT: `security-rev`, `privacy-rev`, `perf-eng`, `access-rev`, `integ-qa`, `code-quality` (+ `llm-safety-reviewer` and `llm-eval-specialist` if `ai_feature: true`). Classify findings BLOCKING vs WARNING; max 2 fix cycles.
-6b. **CodeRabbit Final Review Gate** — `bash plugins/claude-tech-squad/bin/coderabbit_gate.sh`; on exit 2 re-spawn `reviewer` with `{{coderabbit_findings}}` (max 2 remediation cycles); on exit 1 surface `[Gate Error] CodeRabbit Final Review`.
+6b. **CodeRabbit Final Review Gate** — `bash ${CLAUDE_PLUGIN_ROOT}/bin/coderabbit_gate.sh`; on exit 2 re-spawn `reviewer` with `{{coderabbit_findings}}` (max 2 remediation cycles); on exit 1 surface `[Gate Error] CodeRabbit Final Review`.
 7. `docs-writer`.
-8. `jira-confluence` (subagent_type `jira-confluence-specialist`).
+8. `jira-confluence` (subagent_type `claude-tech-squad:jira-confluence-specialist`).
 9. `pm-uat` — Gate 6 UAT Approval; max 2 UAT cycles, then fallback, then `[Gate] UAT Limit Reached`.
 
 > See `references/gates-catalog.md` for the full reviewer output contract, severity classifications, fallback semantics, and CodeRabbit gate handling. See `references/teammate-roster.md` for every `name → subagent_type` mapping.
@@ -267,8 +267,8 @@ Call `TeamDelete(name="squad")`. Capture `{{team_cleanup_status}}` (`success` or
 ## Write Execution Log (SEP Runtime Resilience)
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli cost --run-id {{feature_slug}} --policy plugins/claude-tech-squad/runtime-policy.yaml --state-dir .squad-state
-python3 plugins/claude-tech-squad/bin/squad-cli sep-log --run-id {{feature_slug}} --output-dir ai-docs/.squad-log --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli cost --run-id {{feature_slug}} --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli sep-log --run-id {{feature_slug}} --output-dir ai-docs/.squad-log --state-dir .squad-state
 ```
 
 Emit `[Run Summary] /squad | teammates: {{N}} | tokens: {{total_input}}K in / {{total_output}}K out | est. cost: ~${{usd}} | duration: {{elapsed}}` and `[SEP Log Written] ai-docs/.squad-log/{{filename}}`.

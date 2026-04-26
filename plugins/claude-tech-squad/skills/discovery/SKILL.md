@@ -84,7 +84,7 @@ A teammate response is structurally valid only when it contains the role-specifi
 
 ## Runtime Resilience Contract
 
-Load `plugins/claude-tech-squad/runtime-policy.yaml` before creating the team — it is the source of truth for retry budgets, fallback matrix, severity policy, checkpoint/resume rules, and reliability metrics. If the file is missing or unreadable, stop the run and surface `[Gate] Runtime Policy Missing`. Do not silently continue with hardcoded defaults.
+Load `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml` before creating the team — it is the source of truth for retry budgets, fallback matrix, severity policy, checkpoint/resume rules, and reliability metrics. If the file is missing or unreadable, stop the run and surface `[Gate] Runtime Policy Missing`. Do not silently continue with hardcoded defaults.
 
 The contract covers: Teammate Failure Protocol (silent-failure detection, doom-loop check, single retry, fallback matrix lookup, user gate `[R|S|X]`), Inline Health Check after every `[Teammate Done]`, and the Context Rollover Gate at 100k/140k token thresholds.
 
@@ -92,7 +92,7 @@ The contract covers: Teammate Failure Protocol (silent-failure detection, doom-l
 
 ## Visual Reporting Contract
 
-After every teammate returns, the orchestrator pipes the Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and prints the card inline (respecting `observability.teammate_cards.format`). Immediately before writing the SEP log (Step 13c), it assembles the pipeline summary JSON and pipes it to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh` (respecting `observability.pipeline_board.enabled`). Renderer failures are non-fatal — log a WARNING in the SEP log and continue.
+After every teammate returns, the orchestrator pipes the Result Contract `metrics` JSON to `${CLAUDE_PLUGIN_ROOT}/scripts/render-teammate-card.sh` and prints the card inline (respecting `observability.teammate_cards.format`). Immediately before writing the SEP log (Step 13c), it assembles the pipeline summary JSON and pipes it to `${CLAUDE_PLUGIN_ROOT}/scripts/render-pipeline-board.sh` (respecting `observability.pipeline_board.enabled`). Renderer failures are non-fatal — log a WARNING in the SEP log and continue.
 
 > See `references/visual-reporting.md` for full templates, schemas, and the operator visibility line catalog.
 
@@ -105,8 +105,8 @@ After every teammate returns, the orchestrator pipes the Result Contract `metric
 Emit `[Preflight Start] discovery`. Preferred (saves ~5K tokens):
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli preflight --skill discovery --policy plugins/claude-tech-squad/runtime-policy.yaml --project-root .
-python3 plugins/claude-tech-squad/bin/squad-cli init --run-id {{feature_slug}} --skill discovery --policy plugins/claude-tech-squad/runtime-policy.yaml --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli preflight --skill discovery --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml --project-root .
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli init --run-id {{feature_slug}} --skill discovery --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml --state-dir .squad-state
 ```
 
 Returns JSON with `stack`, `ai_feature`, `routing` (`pm_agent`, `techlead_agent`, etc.), `lint_profile`, `token_budget_max`, `resume_from`, `warnings`. If `squad-cli` is unavailable, fall back to manual preflight (read `runtime-policy.yaml`, detect stack from signal files, resolve routing, check resumable prior runs).
@@ -122,7 +122,7 @@ Discovery checkpoints in order: `preflight-passed`, `gate-1-approved`, `gate-2-a
 Preferred:
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli checkpoint save --run-id {{feature_slug}} --cursor <checkpoint> --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli checkpoint save --run-id {{feature_slug}} --cursor <checkpoint> --state-dir .squad-state
 ```
 
 Manual fallback: emit `[Checkpoint Saved] discovery | cursor=<checkpoint>` and track state in run notes.
@@ -242,8 +242,8 @@ Write one file per decision to `ai-docs/{{feature_slug}}/adr/ADR-NNN-{{slug}}.md
 Preferred (uses real token counts):
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli cost --run-id {{feature_slug}} --policy plugins/claude-tech-squad/runtime-policy.yaml --state-dir .squad-state
-python3 plugins/claude-tech-squad/bin/squad-cli sep-log --run-id {{feature_slug}} --output-dir ai-docs/.squad-log --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli cost --run-id {{feature_slug}} --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml --state-dir .squad-state
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli sep-log --run-id {{feature_slug}} --output-dir ai-docs/.squad-log --state-dir .squad-state
 ```
 
 Emit: `[Run Summary] /discovery | teammates: {{N}} | tokens: {{total_input}}K in / {{total_output}}K out | est. cost: ~${{usd}} | duration: {{elapsed}}`.

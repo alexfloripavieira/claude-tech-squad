@@ -1,5 +1,5 @@
 ---
-name: tech-lead
+name: django-tech-lead
 description: |
   Django-focused technical planning lead. PROACTIVELY use when a Django web project needs architectural decisions, technology choices, task decomposition, and delivery sequencing before coding starts. Trigger on "Django technical plan", "how should we build this in Django", "decompose the work", or "choose the approach". NOT for cross-stack execution authority during /squad or /implement (use techlead) — and NOT for pure architecture ideation detached from delivery (use architect/backend-architect).
 

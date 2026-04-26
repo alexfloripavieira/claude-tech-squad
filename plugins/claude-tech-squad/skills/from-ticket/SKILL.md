@@ -22,9 +22,9 @@ Read a project management ticket and route to the right skill. The ticket become
 The local helper command can preview routing without calling external MCP tools:
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan PROJ-123
-python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan LIN-123 --ticket-json ticket.json
-python3 plugins/claude-tech-squad/bin/squad-cli ticket-plan --ticket-json tickets.json --write-sep-log
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli ticket-plan PROJ-123
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli ticket-plan LIN-123 --ticket-json ticket.json
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli ticket-plan --ticket-json tickets.json --write-sep-log
 ```
 
 This helper is intentionally vendor-neutral. It uses local source adapters for Jira, Linear, GitHub Issue, JQL, and pasted ticket context, then normalizes each item into the same launch context used by downstream skills. The adapters accept captured MCP/API JSON, but the helper itself does not call external APIs.

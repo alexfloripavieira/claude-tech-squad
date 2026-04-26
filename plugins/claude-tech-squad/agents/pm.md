@@ -22,7 +22,7 @@ description: |
   </example>
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: sonnet
-color: magenta
+color: cyan
 ---
 
 # PM Agent

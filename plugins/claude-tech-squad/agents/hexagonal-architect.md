@@ -20,7 +20,7 @@ description: |
   Evaluation of Hexagonal fit is in scope for hexagonal-architect.
   </commentary>
   </example>
-tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+tool_allowlist: [Read, Glob, Grep]
 model: opus
 color: cyan
 ---

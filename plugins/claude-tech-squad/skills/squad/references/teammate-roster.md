@@ -13,7 +13,7 @@ Core discovery chain (stack-aware — use routing variables from Step 1):
 | `po` | `po` |
 | `planner` | `planner` |
 | `architect` | `architect` |
-| `techlead` | `{{techlead_agent}}` (e.g. `tech-lead` for Django, `techlead` otherwise) |
+| `techlead` | `{{techlead_agent}}` (e.g. `django-tech-lead` for Django, `techlead` otherwise) |
 | `design-principles` | `design-principles-specialist` |
 | `test-planner` | `test-planner` |
 | `tdd-specialist` | `tdd-specialist` |

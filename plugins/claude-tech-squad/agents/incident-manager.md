@@ -31,6 +31,7 @@ tools:
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write, Agent]
 model: opus
 color: red
+# WHY: incident-manager is the ONLY agent allowed to spawn other agents (subagent_type) — enforced by scripts/validate.sh. It coordinates specialists during a live incident response and must dispatch security-engineer, sre, observability-engineer, etc. in parallel. Removing the Agent tool would break /incident-postmortem.
 ---
 
 # Incident Manager

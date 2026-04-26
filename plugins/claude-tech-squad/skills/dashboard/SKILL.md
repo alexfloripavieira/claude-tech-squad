@@ -24,7 +24,7 @@ Reads the last 30 SEP logs and produces a structured health summary of the squad
 Preferred mechanical path:
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli dashboard \
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli dashboard \
   --log-dir ai-docs/.squad-log \
   --output-md ai-docs/dashboard-snapshot.md \
   --output-html ai-docs/dashboard.html

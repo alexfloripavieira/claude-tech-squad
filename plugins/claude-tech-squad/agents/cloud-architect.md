@@ -20,7 +20,7 @@ description: |
   IAM strategy and well-architected compliance fall under cloud architecture.
   </commentary>
   </example>
-tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+tool_allowlist: [Read, Glob, Grep]
 model: opus
 color: cyan
 ---

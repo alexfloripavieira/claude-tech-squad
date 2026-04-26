@@ -24,7 +24,7 @@ Sequential chain with gates:
 
 Sequential with parallel batches:
 
-1. Spawn `tdd-impl` (subagent_type: `tdd-specialist`) — write first failing tests.
+1. Spawn `tdd-impl` (subagent_type: `claude-tech-squad:tdd-specialist`) — write first failing tests.
 2. Spawn implementation batch in parallel (only relevant workstreams): `backend-dev`, `frontend-dev`, `platform-dev`.
 3. Spawn `reviewer` — review implementation. Reviewer prompt must include the implementation diff and this output contract:
 
@@ -68,7 +68,7 @@ Sequential with parallel batches:
    - If only WARNINGS: surface summary → `[A]ccept and advance / [F]ix before advancing`.
 
 6b. **CodeRabbit Final Review Gate** (deterministic, tool-based — complementar ao LLM reviewer):
-   - Run `bash plugins/claude-tech-squad/bin/coderabbit_gate.sh` and capture exit code.
+   - Run `bash ${CLAUDE_PLUGIN_ROOT}/bin/coderabbit_gate.sh` and capture exit code.
    - Exit `0`: emit `[Gate] CodeRabbit Final Review | clean or skipped` → advance to Step 7.
    - Exit `2` (findings detected):
      - Re-spawn `reviewer` (subagent_type: `{{reviewer_agent}}`) with the CodeRabbit output as `{{coderabbit_findings}}` and instruction: "Resolva cada finding, aplique apenas o minimo necessario, retorne disposicao por finding (fixed / false-positive-ignored-because-<reason>)."
@@ -78,8 +78,8 @@ Sequential with parallel batches:
    - Exit `1` (CLI error/auth): emit `[Gate Error] CodeRabbit Final Review | <reason>` → surface `[R]etry / [S]kip gate (document as risk) / [X]Abort`.
 
 7. Spawn `docs-writer`.
-8. Spawn `jira-confluence` (subagent_type: `jira-confluence-specialist`).
-9. Spawn `pm-uat` (subagent_type: `pm`) → **Gate 6: UAT Approval**.
+8. Spawn `jira-confluence` (subagent_type: `claude-tech-squad:jira-confluence-specialist`).
+9. Spawn `pm-uat` (subagent_type: `claude-tech-squad:pm`) → **Gate 6: UAT Approval**.
    - If REJECTED: fix gaps and re-run reviewer → QA → techlead-audit → quality bench → UAT — **max 2 UAT cycles**.
    - If the 2nd UAT cycle still fails: consult `fallback_matrix.squad.pm` and run one fallback product acceptance pass before surfacing the gate.
    - After fallback failure: emit `[Gate] UAT Limit Reached` and surface to user: `[A]ccept as-is / [X]Abort`.

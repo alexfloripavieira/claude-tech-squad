@@ -56,7 +56,7 @@ Emit: `[Rollover Requested] run=<run_id> | reason=operator_requested`
 Save a checkpoint with cursor `rollover-pending` so the summarizer sees a consistent state:
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli checkpoint save \
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli checkpoint save \
   --run-id <run_id> \
   --cursor rollover-pending \
   --state-dir .squad-state
@@ -72,7 +72,7 @@ Spawn `context-summarizer` as a teammate, not an inline subagent, so the operato
 
 ```
 TeamCreate if no active team
-Agent with subagent_type=context-summarizer, team_name=<current>, name=summarizer
+Agent with subagent_type=claude-tech-squad:context-summarizer, team_name=<current>, name=summarizer
 ```
 
 Prompt the teammate with:

@@ -73,7 +73,7 @@ Do not attempt to repair the artifact.
 If `checkpoint_cursor` is non-null, restore it:
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli checkpoint resume \
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli checkpoint resume \
   --skill <skill-from-json> \
   --state-dir .squad-state
 ```

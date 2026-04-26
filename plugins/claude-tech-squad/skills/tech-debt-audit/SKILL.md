@@ -73,8 +73,8 @@ Options:
 
 ## Visual Reporting Contract
 
-- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
-- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `${CLAUDE_PLUGIN_ROOT}/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `${CLAUDE_PLUGIN_ROOT}/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
 - Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
 
 ### Step 0a — Remediation Triage Checkpoint (blocking)
@@ -113,10 +113,10 @@ Emit: `[Remediation Triage] passed | close_rate={{rate}}% | action={{continued|o
 
 Emit `[Preflight Start] tech-debt-audit`
 
-**python3 plugins/claude-tech-squad/bin/squad-cli accelerated preflight** (preferred — saves ~5K tokens):
+**python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli accelerated preflight** (preferred — saves ~5K tokens):
 
 ```bash
-python3 plugins/claude-tech-squad/bin/squad-cli preflight --skill tech-debt-audit --policy plugins/claude-tech-squad/runtime-policy.yaml --project-root .
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli preflight --skill tech-debt-audit --policy ${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml --project-root .
 ```
 
 If `squad-cli` is not available, fall back to manual preflight: read `runtime-policy.yaml`, detect stack from signal files, check the retro counter.

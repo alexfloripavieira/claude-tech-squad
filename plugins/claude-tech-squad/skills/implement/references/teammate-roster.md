@@ -73,7 +73,7 @@ Each returns a structured checklist. Findings classified as BLOCKING / WARNING /
 
 ## Phase 7 — CodeRabbit Final Review Gate
 
-Shell-based, not an agent: `bash plugins/claude-tech-squad/bin/coderabbit_gate.sh`.
+Shell-based, not an agent: `bash ${CLAUDE_PLUGIN_ROOT}/bin/coderabbit_gate.sh`.
 
 | Exit code | Action |
 |---|---|

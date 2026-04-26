@@ -8,6 +8,6 @@ Supplementary documentation for the `/squad` end-to-end orchestrator. Core workf
 | Gate catalog (impl phase)   | `../../implement/references/gates-catalog.md`                |
 | Discovery gates             | `../../discovery/references/gates-catalog.md`                |
 | Runtime resilience          | `../../implement/references/runtime-resilience.md`           |
-| Runtime policy (canonical)  | `plugins/claude-tech-squad/runtime-policy.yaml`              |
+| Runtime policy (canonical)  | `${CLAUDE_PLUGIN_ROOT}/runtime-policy.yaml`              |
 
 `/squad` is a composition of `/discovery` + `/implement` + release prep, so its reference surface is intentionally derived from those skills.

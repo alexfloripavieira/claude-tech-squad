@@ -195,7 +195,7 @@ tool_allowlists:
   categories:
     analysis:
       tools: [Read, Glob, Grep, WebSearch, WebFetch]
-      agents: [pm, po, business-analyst, planner, architect, techlead, tech-lead,
+      agents: [pm, po, business-analyst, planner, architect, techlead, django-tech-lead,
                reviewer, code-reviewer, security-reviewer, privacy-reviewer,
                compliance-reviewer, accessibility-reviewer, code-quality,
                performance-engineer, observability-engineer, monitoring-specialist,
@@ -425,7 +425,7 @@ fallback_matrix:
     prd-author:
       - claude-tech-squad:pm
     inception-author:
-      - claude-tech-squad:tech-lead
+      - claude-tech-squad:django-tech-lead
     tasks-planner:
       - claude-tech-squad:planner
     work-item-mapper:
@@ -487,7 +487,7 @@ fallback_matrix:
       - claude-tech-squad:security-engineer
   inception:
     inception-author:
-      - claude-tech-squad:tech-lead
+      - claude-tech-squad:django-tech-lead
   bug-fix:
     work-item-mapper:
       - claude-tech-squad:jira-confluence-specialist

@@ -15,7 +15,8 @@ case "$SKILL" in
 esac
 
 REPO_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
-SQUAD_CLI="${REPO_ROOT}/plugins/claude-tech-squad/bin/squad-cli"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${REPO_ROOT}/plugins/claude-tech-squad}"
+SQUAD_CLI="${PLUGIN_ROOT}/bin/squad-cli"
 
 if [[ ! -x "$SQUAD_CLI" ]]; then
     echo "test-gate: squad-cli not found at $SQUAD_CLI" >&2
