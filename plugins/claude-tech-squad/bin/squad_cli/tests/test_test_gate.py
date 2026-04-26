@@ -115,3 +115,58 @@ def test_infra_partial_when_dir_only(tmp_path: Path):
 def test_infra_unknown_for_unsupported_stack(tmp_path: Path):
     status = detect_test_infra(tmp_path, StackFingerprint(language="ruby"))
     assert status == TestInfraStatus.UNKNOWN
+
+
+AUTO_GLOBS = [
+    "**/migrations/*.py",
+    "**/dist/**",
+    "**/build/**",
+    "*.generated.*",
+    "**/__pycache__/**",
+]
+
+
+def test_auto_generated_django_migration_skipped(tmp_path: Path):
+    diff = ["src/orders/migrations/0001_initial.py"]
+    result = check_paired_tests(diff, make_stack(), repo_root=tmp_path, auto_generated_paths=AUTO_GLOBS)
+    assert result == []
+
+
+def test_auto_generated_dist_skipped(tmp_path: Path):
+    diff = ["dist/foo.js", "packages/web/dist/main.js"]
+    result = check_paired_tests(diff, make_stack(), repo_root=tmp_path, auto_generated_paths=AUTO_GLOBS)
+    assert result == []
+
+
+def test_auto_generated_build_skipped(tmp_path: Path):
+    diff = ["build/main.bundle.js"]
+    result = check_paired_tests(diff, make_stack(), repo_root=tmp_path, auto_generated_paths=AUTO_GLOBS)
+    assert result == []
+
+
+def test_generated_extension_skipped(tmp_path: Path):
+    diff = ["src/proto/api.generated.ts"]
+    result = check_paired_tests(diff, make_stack(language="typescript"), repo_root=tmp_path, auto_generated_paths=AUTO_GLOBS)
+    assert result == []
+
+
+def test_pycache_skipped(tmp_path: Path):
+    diff = ["src/__pycache__/foo.cpython-312.pyc"]
+    result = check_paired_tests(diff, make_stack(), repo_root=tmp_path, auto_generated_paths=AUTO_GLOBS)
+    assert result == []
+
+
+def test_empty_init_py_skipped(tmp_path: Path):
+    (tmp_path / "src" / "pkg").mkdir(parents=True)
+    (tmp_path / "src" / "pkg" / "__init__.py").write_text("")
+    diff = ["src/pkg/__init__.py"]
+    result = check_paired_tests(diff, make_stack(), repo_root=tmp_path)
+    assert result == []
+
+
+def test_non_empty_init_py_still_requires_test(tmp_path: Path):
+    (tmp_path / "src" / "pkg").mkdir(parents=True)
+    (tmp_path / "src" / "pkg" / "__init__.py").write_text("def public_api(): pass\n")
+    diff = ["src/pkg/__init__.py"]
+    result = check_paired_tests(diff, make_stack(), repo_root=tmp_path)
+    assert len(result) == 1
