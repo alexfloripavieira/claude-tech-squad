@@ -20,11 +20,6 @@ description: |
   Unsafe integration review is in scope.
   </commentary>
   </example>
-tools:
-  - Bash
-  - Read
-  - Glob
-  - Grep
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: red

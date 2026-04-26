@@ -20,11 +20,6 @@ description: |
   Cross-dimension data leak with attack chains is the ethical-hacker scope.
   </commentary>
   </example>
-tools:
-  - Bash
-  - Read
-  - Glob
-  - Grep
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: red

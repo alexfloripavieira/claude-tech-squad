@@ -20,10 +20,6 @@ description: |
   Product event schemas and adoption dashboards are owned here.
   </commentary>
   </example>
-tools:
-  - Read
-  - Glob
-  - Grep
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: cyan

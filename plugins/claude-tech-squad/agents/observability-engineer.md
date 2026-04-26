@@ -20,10 +20,6 @@ description: |
   Structured logging design and rollout is in scope.
   </commentary>
   </example>
-tools:
-  - Read
-  - Glob
-  - Grep
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: blue

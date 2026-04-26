@@ -20,11 +20,6 @@ description: |
   Indirect prompt injection via retrieval is in scope for AI safety review.
   </commentary>
   </example>
-tools:
-  - Bash
-  - Read
-  - Glob
-  - Grep
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: red

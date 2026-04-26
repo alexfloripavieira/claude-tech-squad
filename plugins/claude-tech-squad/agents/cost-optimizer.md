@@ -20,11 +20,6 @@ description: |
   Model/API spend reduction without harming SLAs is in scope.
   </commentary>
   </example>
-tools:
-  - Bash
-  - Read
-  - Glob
-  - Grep
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: blue
