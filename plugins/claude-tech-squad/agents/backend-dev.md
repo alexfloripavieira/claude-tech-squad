@@ -1,7 +1,7 @@
 ---
 name: backend-dev
 description: |
-  Implements backend changes following the agreed architecture. Owns APIs, services, auth, persistence, queues, and backend unit tests. Verifies every library API against current docs before using it.
+  PROACTIVELY use when implementing approved backend designs with APIs, services, persistence, queues, and unit tests. Implements backend changes following the agreed architecture. Owns APIs, services, auth, persistence, queues, and backend unit tests. Verifies every library API against current docs before using it. NOT for Django-specific work (use django-backend), pure architecture (use backend-architect/tech-lead), or DevOps work (use devops).
 
   <example>
   Context: Architecture is approved for a new orders endpoint and the implementation needs to begin.

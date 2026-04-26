@@ -1,7 +1,7 @@
 ---
 name: frontend-dev
 description: |
-  Implements frontend changes following the agreed architecture. Owns UI, client state, accessibility, visual states, and frontend tests. Verifies every library API against current docs before using it.
+  PROACTIVELY use when implementing approved frontend designs with UI, client state, accessibility, and frontend tests. Implements frontend changes following the agreed architecture. Owns UI, client state, accessibility, visual states, and frontend tests. Verifies every library API against current docs before using it. NOT for React-specific work (use react-developer), Vue (use vue-developer), Django Templates (use django-frontend), or pure architecture (use frontend-architect).
 
   <example>
   Context: An approved frontend design must be implemented in React with accessibility tests.
@@ -20,24 +20,6 @@ description: |
   Library API verification before code change is part of frontend-dev's contract.
   </commentary>
   </example>
-tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - Bash
-  - mcp__plugin_context7_context7__resolve-library-id
-  - mcp__plugin_context7_context7__query-docs
-  - mcp__plugin_playwright_playwright__browser_navigate
-  - mcp__plugin_playwright_playwright__browser_snapshot
-  - mcp__plugin_playwright_playwright__browser_take_screenshot
-  - mcp__plugin_playwright_playwright__browser_click
-  - mcp__plugin_playwright_playwright__browser_fill_form
-  - mcp__plugin_playwright_playwright__browser_wait_for
-  - mcp__plugin_playwright_playwright__browser_resize
-  - mcp__plugin_playwright_playwright__browser_console_messages
-  - mcp__plugin_playwright_playwright__browser_evaluate
 tool_allowlist: [Read, Write, Edit, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_wait_for, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_evaluate]
 model: sonnet
 color: green

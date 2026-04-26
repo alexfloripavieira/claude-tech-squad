@@ -443,6 +443,8 @@ fallback_matrix:
     qa:
       - claude-tech-squad:integration-qa
       - claude-tech-squad:test-automation-engineer
+    test-automation-engineer:
+      - claude-tech-squad:qa-tester
     techlead-audit:
       - claude-tech-squad:architect
     release:
@@ -696,6 +698,32 @@ delivery_gates:
     - id: qa_required_for_stories
       severity: INFO
       description: Stories should include a QA step in the flow
+
+mandatory_test_gate:
+  enabled: true
+  enforce_level: warning  # warning (shadow) | blocking — flipped after PR-B shadow release
+  skills_in_scope: [squad, implement, refactor, bug-fix, hotfix]
+  required_agents:
+    pre_impl: tdd-specialist
+    post_impl: test-automation-engineer
+  non_code_extensions: [.md, .yaml, .yml, .json, .toml, .txt, .lock]
+  auto_generated_paths:
+    - "**/migrations/*.py"
+    - "**/dist/**"
+    - "**/build/**"
+    - "*.generated.*"
+    - "**/__pycache__/**"
+  coverage_warning_threshold: 0.02
+  exemption_protocols:
+    hotfix:
+      flag: "--skip-tests"
+      requires_proposal: true
+      requires_followup_task: true
+      auto_followup_days: 7
+  bootstrap_policy:
+    first_contact: human_gate_with_proposal
+    subsequent: incremental_automatic
+    unknown_stack: human_gate_default_no
 
 # ── Context rollover management (ADR 0001) ──────────────────────────────────
 context_management:

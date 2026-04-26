@@ -1,6 +1,6 @@
 {
   "name": "claude-tech-squad",
-  "description": "Complete software delivery squad \u2014 81 specialist agents and 28 skills covering the full pipeline (discovery, implementation, review, security, release). Stack-aware routing for Django, React, Vue, TypeScript, JavaScript, Python, Go, Rust, Java, Ruby, PHP, .NET, Elixir. Embedded squad-cli orchestrator with preflight, doom-loop detection, checkpoints, cost guardrails, SEP logs (~80% token reduction). Dedicated LLM/AI bench and audit-class skills covering 16 security dimensions (LGPD/GDPR/PCI/SOC2). See README for the full skill catalog.",
+  "description": "Software delivery squad \u2014 81 agents and 28 skills covering discovery, implementation, review, security, and release. Stack-aware routing for Django, React, Vue, TypeScript, Python, Go, Rust, Java, Ruby, PHP, .NET, Elixir. Embedded squad-cli with preflight, doom-loop detection, checkpoints, cost guardrails, SEP logs. Dedicated LLM/AI bench and audit skills (LGPD/GDPR/PCI/SOC2). See README for the full catalog.",
   "version": "5.58.7",
   "license": "MIT",
   "homepage": "https://github.com/alexfloripavieira/claude-tech-squad",

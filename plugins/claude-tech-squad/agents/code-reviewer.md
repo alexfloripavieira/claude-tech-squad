@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: |
-  Reviews Django backend and frontend code for correctness, security, performance, and adherence to project conventions. Flags bugs, N+1 queries, XSS risks, TDD violations, and TailwindCSS anti-patterns before QA runs.
+  PROACTIVELY use when reviewing Django backend/frontend code for correctness, performance, and convention drift before QA. Reviews Django backend and frontend code for correctness, security, performance, and adherence to project conventions. Flags bugs, N+1 queries, XSS risks, TDD violations, and TailwindCSS anti-patterns before QA runs. NOT for security-only review (use security-reviewer), privacy review (use privacy-reviewer), or full PR pipeline review (use /pr-review skill).
 
   <example>
   Context: A PR adds a new Django view that joins multiple models inside a loop.

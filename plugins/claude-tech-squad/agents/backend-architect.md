@@ -1,7 +1,7 @@
 ---
 name: backend-architect
 description: |
-  Designs backend slices: APIs, services, jobs, auth, storage, integration boundaries, and backend testing implications. Used when the task changes server-side behavior.
+  PROACTIVELY use when designing backend slices that change server-side behavior. Designs backend slices: APIs, services, jobs, auth, storage, integration boundaries, and backend testing implications. NOT for full-system architecture (use architect) or backend implementation (use backend-dev/django-backend).
 
   <example>
   Context: A feature requires a new background job, persistence changes, and an internal API.
