@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.59.0] - 2026-04-26 — Automated feature release
+
+### Added
+
+- Enforce mandatory test agents in 5 implementation skills (Pillar A) (#36)
 ## [5.58.8] - 2026-04-26 — Automated maintenance release
 
 ### Changed
