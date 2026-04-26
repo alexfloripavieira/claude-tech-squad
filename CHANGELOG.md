@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.58.2] - 2026-04-26 — Automated maintenance release
+
+### Fixed
+
+- Tech-debt-audit doom-loop regex bug and audit-class polish (#28)
 ## [5.58.1] - 2026-04-26 — Automated maintenance release
 
 ### Changed

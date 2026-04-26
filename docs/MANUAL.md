@@ -1,6 +1,6 @@
 # Claude Tech Squad — Technical Manual
 
-**Version:** 5.58.1
+**Version:** 5.58.2
 **Plugin:** `claude-tech-squad`
 
 ---
