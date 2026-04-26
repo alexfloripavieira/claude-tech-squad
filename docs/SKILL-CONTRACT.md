@@ -95,10 +95,10 @@ After every `[Teammate Done]`, `[Teammate Retry]`, or `[Fallback Invoked]`, the 
 
 **Rules:**
 - Emit `[Health Check] <role> | signals: <list_or_ok>` after every teammate
-- If any critical signal triggers: emit `[Health Warning] <description>` and update the live dashboard
+- If any critical signal triggers: emit `[Health Warning] <description>` so the operator and downstream teammate prompts can react
 - Health check context is prepended to the next teammate's prompt (not replacing, enriching)
 - The health check itself costs zero tokens — it reads the `result_contract` and execution metadata only
-- Write health signals to `.live-status.json` so the live dashboard shows them in real time
+- Health signals also feed the SEP log so `/factory-retrospective` and `/dashboard` can correlate them post-run
 
 ### 3. Preflight block
 
@@ -281,69 +281,16 @@ Minimum fields required in the SEP log:
 - `timestamp`
 - `developer_feedback` (score + comment, or `skipped`)
 
-### 10. Live Status Protocol (for orchestrator skills)
+### 10. Visual Reporting Contract (orchestrator and audit-class skills)
 
-Orchestrator skills (those that spawn teammates) must write a live status file to `ai-docs/.live-status.json` after every trace event. This enables the live dashboard (`plugins/claude-tech-squad/dashboard/live.html`) to show real-time teammate status, token budget, and event timeline.
+Skills that produce trace output must integrate with the deterministic rendering scripts under `plugins/claude-tech-squad/scripts/`:
 
-**Update trigger:** Every time the orchestrator emits a trace line (`[Teammate Spawned]`, `[Teammate Done]`, `[Gate]`, etc.), it must also write the current state to `.live-status.json`.
+**Required behaviors:**
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (`ascii` | `compact` | `silent`) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
 
-**Required JSON schema:**
-
-```json
-{
-  "skill": "implement",
-  "run_id": "abc123",
-  "phase": "quality-bench",
-  "started_at": "2026-04-12T10:30:00Z",
-  "checkpoint_cursor": "qa-pass",
-  "checkpoints": ["preflight-passed", "commands-confirmed", "..."],
-  "completed_checkpoints": ["preflight-passed", "commands-confirmed"],
-  "tokens_used": 1250000,
-  "tokens_max": 4000000,
-  "current_gate": null,
-  "teammates": [
-    {
-      "name": "tdd-specialist",
-      "subagent_type": "claude-tech-squad:tdd-specialist",
-      "status": "completed",
-      "started_at": "2026-04-12T10:30:05Z",
-      "duration_ms": 45000,
-      "tokens_input": 12000,
-      "tokens_output": 8000,
-      "output_summary": "failing tests written for user-auth",
-      "retry_count": 0,
-      "fallback_from": null,
-      "doom_loop": null
-    },
-    {
-      "name": "backend-dev",
-      "subagent_type": "claude-tech-squad:backend-dev",
-      "status": "running",
-      "started_at": "2026-04-12T10:31:00Z",
-      "duration_ms": null,
-      "tokens_input": null,
-      "tokens_output": null,
-      "output_summary": null,
-      "retry_count": 0,
-      "fallback_from": null,
-      "doom_loop": null
-    }
-  ],
-  "events": [
-    {"time": "10:30:00", "line": "[Preflight Passed] implement | execution_mode=inline | ..."},
-    {"time": "10:30:05", "line": "[Teammate Spawned] tdd-specialist | pane: tdd-specialist"},
-    {"time": "10:30:50", "line": "[Teammate Done] tdd-specialist | Output: failing tests written"},
-    {"time": "10:31:00", "line": "[Teammate Spawned] backend-dev | pane: backend-dev"}
-  ]
-}
-```
-
-**Rules:**
-- Write the file atomically (write to a temp file, then rename) to prevent the dashboard from reading a partial JSON
-- On `[Gate]` events, set `current_gate` to the gate description; clear it when the gate resolves
-- On `[Teammate Done]`, update the teammate's `status`, `duration_ms`, `tokens_input`, `tokens_output`, and `output_summary`
-- On `[SEP Log Written]`, set phase to "completed" — the dashboard shows the final state
-- The dev opens the dashboard with: `bash scripts/open-dashboard.sh`
+Post-run observability is achieved by `/dashboard`, which aggregates SEP logs into Markdown and HTML snapshots (`ai-docs/dashboard-snapshot.md` and `ai-docs/dashboard.html`). There is no live-polling dashboard — observability is post-run via SEP logs and Visual Reporting cards.
 
 ---
 
@@ -412,7 +359,7 @@ Not every skill needs every section above. The contract enforced by `validate.sh
 
 ### Full orchestrator (enforced by `validate.sh` for `discovery`, `implement`, `squad`)
 
-These three skills run multi-phase pipelines with parallel and sequential teammate batches, several gates, and explicit checkpoints. They MUST declare every section: Preflight Gate, Agent Result Contract (ARC), Runtime Resilience Contract, Checkpoint / Resume Rules, Progressive Disclosure, Live Status Protocol, plus all common contracts (Global Safety, Operator Visibility, Visual Reporting, Teammate Failure Protocol, SEP log).
+These three skills run multi-phase pipelines with parallel and sequential teammate batches, several gates, and explicit checkpoints. They MUST declare every section: Preflight Gate, Agent Result Contract (ARC), Runtime Resilience Contract, Checkpoint / Resume Rules, Progressive Disclosure, plus all common contracts (Global Safety, Operator Visibility, Visual Reporting, Teammate Failure Protocol, SEP log).
 
 ### Audit-class skills (read-only, single-pass)
 

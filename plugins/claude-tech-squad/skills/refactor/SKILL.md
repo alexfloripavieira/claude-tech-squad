@@ -39,6 +39,27 @@ Test-guarded refactoring workflow. Prevents big-bang refactors that break behavi
 - The scope touches more than 15 files
 - The refactor involves changing a public API contract
 
+## Operator Visibility Contract
+
+Emit these trace lines so the operator can follow the test-guarded refactor and the SEP log can capture state transitions:
+
+- `[Preflight Start] refactor`
+- `[Stack Detected] <stack> | impl=<agent> | reviewer=<agent>`
+- `[Refactor Plan Confirmed] <N> steps | <total_files> files`
+- `[Characterization Tests Locked] <test_command> | <N> tests passing`
+- `[Refactor Step <N>/<total>] <description> — PASS` (after each green step)
+- `[Refactor Step <N>/<total>] <description> — FAIL — reverting` (rollback path)
+- `[Quality Bench] code-quality=<status> | reviewer=<status>`
+- `[Team Created] refactor-team`
+- `[Team Deleted] refactor-team | cleanup complete` (or `[Team Cleanup Warning]` on failure)
+- `[SEP Log Written] ai-docs/.squad-log/<filename>`
+
+## Visual Reporting Contract
+
+- After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.
+- Immediately before writing the SEP log, assemble the pipeline summary JSON (schema identical to `scripts/test-fixtures/pipeline-board-input.json`) and pipe to `plugins/claude-tech-squad/scripts/render-pipeline-board.sh`. Respect `observability.pipeline_board.enabled`.
+- Renderer failures are non-fatal: log a WARNING in the SEP log and continue.
+
 ## Execution
 
 ## Teammate Failure Protocol

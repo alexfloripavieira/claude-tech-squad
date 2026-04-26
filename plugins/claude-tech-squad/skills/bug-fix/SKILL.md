@@ -37,6 +37,22 @@ Lightweight defect resolution workflow. Faster than `/squad` for isolated bugs â
 - Fix requires changes to more than 5 files
 - The bug exposes a design flaw that requires refactoring
 
+## Operator Visibility Contract
+
+Emit these trace lines so the operator can follow the run and the SEP log can capture state transitions:
+
+- `[Preflight Start] bug-fix`
+- `[Ticket Read] <source> | <ticket_id> | type=<issue_type> | priority=<priority>` (when applicable)
+- `[Stack Detected] <stack> | backend=<agent> | frontend=<agent> | reviewer=<agent> | qa=<agent>`
+- `[Team Created] bug-fix-team`
+- `[Teammate Spawned] <role> | pane: <name>`
+- `[Teammate Done] <role> | Output: <one-line summary>`
+- `[Teammate Retry] <role> | Reason: <failure>`
+- `[Gate] Teammate Failure | <name> failed twice` (when teammate failure protocol fires)
+- `[Team Deleted] bug-fix-team | cleanup complete` (or `[Team Cleanup Warning]` on failure)
+- `[Temp Files Cleaned] bug-fix | N files removed` (when applicable)
+- `[SEP Log Written] ai-docs/.squad-log/<filename>`
+
 ## Execution
 
 ## Teammate Failure Protocol

@@ -38,6 +38,38 @@ Detects package managers, runs real vulnerability and outdated-package checks, c
 
 Follow these steps exactly:
 
+### Step 0a — Remediation Triage Checkpoint (blocking)
+
+Before scanning, compute the close-rate across prior `ai-docs/dependency-remediation-*.md` files to detect a stagnant CVE backlog:
+
+```bash
+TOTAL_OPEN=$(grep -h "^- \[ \].*CRITICAL\|^- \[ \].*\[CRIT\|^- \[ \].*HIGH\|^- \[ \].*\[HIGH" ai-docs/dependency-remediation-*.md 2>/dev/null | wc -l)
+TOTAL_CLOSED=$(grep -h "^- \[x\].*CRITICAL\|^- \[x\].*\[CRIT\|^- \[x\].*HIGH\|^- \[x\].*\[HIGH" ai-docs/dependency-remediation-*.md 2>/dev/null | wc -l)
+TOTAL=$((TOTAL_OPEN + TOTAL_CLOSED))
+if [ "$TOTAL" -gt 0 ]; then
+  CLOSE_RATE=$((TOTAL_CLOSED * 100 / TOTAL))
+else
+  CLOSE_RATE=100
+fi
+echo "close_rate=${CLOSE_RATE}% open=${TOTAL_OPEN} closed=${TOTAL_CLOSED}"
+```
+
+**If close-rate < 40%:** the dependency backlog is stagnant. Emit:
+
+```
+[Gate] Dependency Doom Loop Detected | close_rate={{rate}}% | open_critical_high={{open}}
+A new check would add findings without closing the backlog. This run is BLOCKED until:
+- [Q] Invoke /claude-tech-squad:squad on the recurring CRITICAL/HIGH CVEs (mandatory recommendation)
+- [O] Override — provide explicit reason to be recorded in SEP log under `doom_loop_override_reason`
+- [X] Abort this check
+```
+
+If [Q]: exit cleanly and instruct the user to run `/claude-tech-squad:squad "Address recurring CRITICAL/HIGH dependency CVEs"`. If [O]: record `doom_loop_override_reason` in the SEP log and continue. If [X]: abort.
+
+If no prior remediation file exists, skip this gate silently and continue.
+
+Emit: `[Remediation Triage] passed | close_rate={{rate}}% | action={{continued|overridden|aborted}}`
+
 ### Step 1 — Detect package managers
 
 Read the following files to determine which package managers are in use:
