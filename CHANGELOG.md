@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.62.6] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Merge pull request #43 from alexfloripavieira/fix-version-branch
+- Merge pull request #42 from alexfloripavieira/fix/stale-tech-lead-refs
+- Merge remote-tracking branch 'refs/remotes/origin/fix/stale-tech-lead-refs' into fix/stale-tech-lead-refs
+- Merge branch 'main' into fix/stale-tech-lead-refs
+
+### Fixed
+
+- Some  fixes
+- Update version to 5.62.5 in plugin.json, MANUAL.md, and CHANGELOG.md
+- Update version to 5.62.4 in plugin.json
+- Revert version to 5.62.4 in marketplace.json
+- Update version to 5.62.5 in marketplace.json
 ## [5.62.5] - 2026-04-26 — Plugin manifest fix
 
 ### Fixed
