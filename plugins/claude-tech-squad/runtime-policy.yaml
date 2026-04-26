@@ -443,6 +443,8 @@ fallback_matrix:
     qa:
       - claude-tech-squad:integration-qa
       - claude-tech-squad:test-automation-engineer
+    test-automation-engineer:
+      - claude-tech-squad:qa-tester
     techlead-audit:
       - claude-tech-squad:architect
     release:
