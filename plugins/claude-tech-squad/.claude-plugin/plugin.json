@@ -4,10 +4,7 @@
   "version": "5.62.4",
   "license": "MIT",
   "homepage": "https://github.com/alexfloripavieira/claude-tech-squad",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/alexfloripavieira/claude-tech-squad.git"
-  },
+  "repository": "https://github.com/alexfloripavieira/claude-tech-squad.git",
   "keywords": [
     "claude-code",
     "plugin",

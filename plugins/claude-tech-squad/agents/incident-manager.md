@@ -20,14 +20,6 @@ description: |
   Runbook preparation for incident response is in scope.
   </commentary>
   </example>
-tools:
-  - Read
-  - Glob
-  - Grep
-  - Bash
-  - Edit
-  - Write
-  - Agent
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write, Agent]
 model: opus
 color: red
