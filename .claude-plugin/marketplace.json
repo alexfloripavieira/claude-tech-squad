@@ -8,7 +8,7 @@
     {
       "name": "claude-tech-squad",
       "description": "81-agent / 28-skill software delivery squad: stack-aware routing (Django/React/Vue/TypeScript/Python/Go/Rust), LLM/AI specialist bench, TDD-first implementation, three audit-class skills (security-audit, tech-debt-audit, pentest-deep with 16-dimension ethical-hacker coverage), automated release pipeline.",
-      "version": "5.58.3",
+      "version": "5.58.4",
       "source": "./plugins/claude-tech-squad"
     }
   ]

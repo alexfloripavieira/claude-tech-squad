@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.58.4] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Full plugin consolidation v5.58.3 — purge phantoms, add visibility headers, ARC blocks (#30)
 ## [5.58.3] - 2026-04-26 — Automated maintenance release
 
 ### Changed
