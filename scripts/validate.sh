@@ -676,9 +676,9 @@ for skill in "${MANDATORY_TEST_GATE_SKILLS[@]}"; do
       exit 1
     fi
   fi
-  tdd_line=$(grep -nE 'claude-tech-squad:tdd-specialist' "$skill_md" | head -1 | cut -d: -f1)
-  dev_line=$(grep -nE "$DEV_AGENTS_RE" "$skill_md" | head -1 | cut -d: -f1)
-  tae_line=$(grep -nE 'claude-tech-squad:test-automation-engineer' "$skill_md" | tail -1 | cut -d: -f1)
+  tdd_line=$(grep -nE 'claude-tech-squad:tdd-specialist' "$skill_md" | head -1 | cut -d: -f1 || true)
+  dev_line=$(grep -nE "$DEV_AGENTS_RE" "$skill_md" | head -1 | cut -d: -f1 || true)
+  tae_line=$(grep -nE 'claude-tech-squad:test-automation-engineer' "$skill_md" | tail -1 | cut -d: -f1 || true)
   if [ -n "$tdd_line" ] && [ -n "$dev_line" ] && [ -n "$tae_line" ]; then
     if [ "$tdd_line" -ge "$dev_line" ] || [ "$dev_line" -ge "$tae_line" ]; then
       echo "Test gate: $skill order violation (tdd=$tdd_line dev=$dev_line tae=$tae_line); expected tdd < dev < tae"
