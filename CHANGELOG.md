@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.58.8] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Final frontmatter polish per re-evaluation (#35)
 ## [5.58.7] - 2026-04-26 — Automated maintenance release
 
 ### Changed
