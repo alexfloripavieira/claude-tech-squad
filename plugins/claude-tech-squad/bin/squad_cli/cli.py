@@ -480,7 +480,8 @@ def test_gate_evaluate(skill: str, run_id: str, repo_root: str):
     except Exception:
         pass
 
-    unpaired = check_paired_tests(diff, stack, repo)
+    auto_generated_paths = mtg.get("auto_generated_paths", []) or []
+    unpaired = check_paired_tests(diff, stack, repo, auto_generated_paths=auto_generated_paths)
     policy = GatePolicy(
         enforce_level=mtg.get("enforce_level", "warning"),
         coverage_warning_threshold=float(mtg.get("coverage_warning_threshold", 0.02)),

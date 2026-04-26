@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -57,6 +58,40 @@ def _is_non_code(path: str) -> bool:
     return Path(path).suffix in NON_CODE_EXTENSIONS
 
 
+def _glob_to_regex(pattern: str) -> re.Pattern:
+    parts: list[str] = []
+    i = 0
+    while i < len(pattern):
+        c = pattern[i]
+        if c == "*":
+            if i + 1 < len(pattern) and pattern[i + 1] == "*":
+                parts.append(".*")
+                i += 2
+                if i < len(pattern) and pattern[i] == "/":
+                    i += 1
+            else:
+                parts.append("[^/]*")
+                i += 1
+        elif c == "?":
+            parts.append("[^/]")
+            i += 1
+        else:
+            parts.append(re.escape(c))
+            i += 1
+    return re.compile("^" + "".join(parts) + "$")
+
+
+def _matches_any_glob(path: str, patterns: Iterable[str]) -> bool:
+    basename = Path(path).name
+    for pat in patterns:
+        regex = _glob_to_regex(pat)
+        if regex.match(path):
+            return True
+        if "/" not in pat and regex.match(basename):
+            return True
+    return False
+
+
 def _candidate_test_paths(prod_path: str, language: str) -> list[str]:
     p = Path(prod_path)
     stem = p.stem
@@ -84,11 +119,19 @@ def check_paired_tests(
     diff_files: Iterable[str],
     stack: StackFingerprint,
     repo_root: Path,
+    auto_generated_paths: Iterable[str] | None = None,
 ) -> list[UnpairedFile]:
+    auto_globs = list(auto_generated_paths or [])
     unpaired: list[UnpairedFile] = []
     for f in diff_files:
         if _is_non_code(f) or _is_test_file(f, stack.language):
             continue
+        if auto_globs and _matches_any_glob(f, auto_globs):
+            continue
+        if stack.language == "python" and Path(f).name == "__init__.py":
+            full = repo_root / f
+            if not full.exists() or full.read_text().strip() == "":
+                continue
         candidates = _candidate_test_paths(f, stack.language)
         if not any((repo_root / c).exists() for c in candidates):
             unpaired.append(UnpairedFile(path=f))
