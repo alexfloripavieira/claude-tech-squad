@@ -1111,7 +1111,7 @@ CURRENT=$(cat "$COUNTER_FILE" 2>/dev/null || echo "0")
 echo "$((CURRENT + 1))" > "$COUNTER_FILE"
 ```
 
-If `squad-cli` is not available: sum tokens manually, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md` with full YAML frontmatter.
+If `squad-cli` is not available: sum tokens manually, estimate cost at input x $15/M + output x $75/M, and write the SEP log manually to `ai-docs/.squad-log/{{YYYY-MM-DD}}T{{HH-MM-SS}}-implement-{{run_id}}.md` with full YAML frontmatter. When writing manually, substitute every `{{...}}` placeholder with the captured value — including `{{team_cleanup_status}}` from Step 10a (use `success` or `failed: <reason>`; never leave the literal placeholder).
 
 **Required frontmatter fields (implement):**
 

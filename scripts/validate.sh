@@ -463,4 +463,13 @@ test -x "$PLUGIN_DIR/hooks/pre-tool-guard.sh" || {
   exit 1
 }
 
+test -f "$PLUGIN_DIR/hooks/settings-template.json" || {
+  echo "Missing runtime hook template: hooks/settings-template.json"
+  exit 1
+}
+grep -q '\${CLAUDE_PLUGIN_ROOT}' "$PLUGIN_DIR/hooks/settings-template.json" || {
+  echo "hooks/settings-template.json must use \${CLAUDE_PLUGIN_ROOT} for portability across consumer projects"
+  exit 1
+}
+
 echo "claude-tech-squad validation passed (v$PLUGIN_VERSION, $AGENT_COUNT agents)"

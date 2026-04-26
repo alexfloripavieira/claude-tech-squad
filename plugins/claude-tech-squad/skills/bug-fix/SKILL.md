@@ -349,7 +349,7 @@ Capture outcome into `{{team_cleanup_status}}` (`success` or `failed: <reason>`)
 python3 plugins/claude-tech-squad/bin/squad-cli sep-log --run-id {{run_id}} --output-dir ai-docs/.squad-log --state-dir .squad-state
 ```
 
-If `squad-cli` is not available or `init` was not called, write manually:
+If `squad-cli` is not available or `init` was not called, write manually. When writing manually, substitute every `{{...}}` placeholder with the captured value — including `{{team_cleanup_status}}` from Step 6a (use `success` or `failed: <reason>`; never leave the literal placeholder):
 
 ```bash
 mkdir -p ai-docs/.squad-log
