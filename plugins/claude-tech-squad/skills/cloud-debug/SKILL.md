@@ -1,6 +1,6 @@
 ---
 name: cloud-debug
-description: Debugs production or staging incidents by collecting logs, analyzing stack traces, evaluating blast radius, and producing a structured diagnosis with action plan. Trigger with "debug producao", "cloud debug", "investigar erro em producao", "incident", "sistema fora", "analisar logs".
+description: This skill should be used when debugging production or staging incidents through logs, stack traces, blast-radius analysis, and a structured diagnosis with action plan. Trigger with "debug producao", "cloud debug", "investigar erro em producao", "incident", "sistema fora", "analisar logs". NOT for after-action analysis once the incident is over (use /incident-postmortem).
 user-invocable: true
 ---
 

@@ -1,6 +1,25 @@
 ---
 name: llm-cost-analyst
-description: LLM token cost specialist. Owns token spend attribution per user, per feature, and per prompt template; identifies prompt compression and caching opportunities; recommends model downgrading where quality allows; and detects cost anomalies in AI pipelines. Distinct from cost-optimizer who covers cloud infrastructure spend.
+description: |
+  LLM token cost specialist. Owns token spend attribution per user, per feature, and per prompt template; identifies prompt compression and caching opportunities; recommends model downgrading where quality allows; and detects cost anomalies in AI pipelines. Distinct from cost-optimizer who covers cloud infrastructure spend.
+
+  <example>
+  Context: LLM bill spiked 3x last month and the team needs attribution.
+  user: "Nossa fatura da OpenAI triplicou — preciso saber qual feature esta consumindo"
+  assistant: "I'll use the llm-cost-analyst agent to attribute token spend per feature and prompt template and surface the anomaly drivers."
+  <commentary>
+  LLM token spend attribution and anomaly detection is the llm-cost-analyst scope.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A RAG feature is too expensive and the team wants compression and caching options.
+  user: "Our RAG chatbot costs are too high — can we compress prompts or downgrade?"
+  assistant: "I'll use the llm-cost-analyst agent to identify compression, caching opportunities, and a safe model-downgrade recommendation."
+  <commentary>
+  Prompt compression, caching, and model downgrade fall under llm-cost-analyst.
+  </commentary>
+  </example>
 tools:
   - Bash
   - Read

@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Reviews a pull request with the full specialist bench (reviewer, security, privacy, performance, accessibility), produces structured inline comments, and opens threads on GitHub via the API. Trigger with "revisar pr", "pr review", "code review da pr", "abrir threads de review", "review pull request".
+description: This skill should be used when a pull request needs a structured multi-lens review across correctness, security, privacy, performance, and accessibility, with review threads opened on GitHub. Trigger with "revisar pr", "pr review", "code review da pr", "abrir threads de review", "review pull request". NOT for implementing fixes directly before review.
 user-invocable: true
 ---
 

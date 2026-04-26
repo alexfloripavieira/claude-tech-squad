@@ -1,6 +1,25 @@
 ---
 name: monitoring-specialist
-description: Production monitoring specialist. Owns dashboards, APM configuration, SLO/SLA tracking, alert tuning, incident correlation, and business metrics visibility across Grafana, New Relic, Datadog, and similar platforms.
+description: |
+  Monitoring specialist. PROACTIVELY use when tuning alerts, configuring APM, building dashboards, tracking SLO/SLA health, or correlating incidents across Grafana, Datadog, New Relic, and similar tools. Trigger on "monitoring", "alert noise", "APM", "dashboard", or "SLO tracking". NOT for implementation of logs/traces in code (use observability-engineer) or product analytics instrumentation (use analytics-engineer).
+
+  <example>
+  Context: On-call team is drowning in noisy alerts.
+  user: "Nossos alertas no Datadog estao virando ruido, ninguem responde mais"
+  assistant: "I'll use the monitoring-specialist agent to retune thresholds and remove noisy/duplicate alerts."
+  <commentary>
+  Alert noise tuning is the agent's core remit.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A new service needs an SLO dashboard.
+  user: "Build a Grafana SLO dashboard for the payments API"
+  assistant: "I'll use the monitoring-specialist agent to design the SLO panels and burn-rate alerts."
+  <commentary>
+  Dashboard authoring and SLO tracking is in scope.
+  </commentary>
+  </example>
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: blue

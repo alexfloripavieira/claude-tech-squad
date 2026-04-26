@@ -1,6 +1,6 @@
 ---
 name: from-ticket
-description: Read a Jira, Linear, or GitHub Issue ticket and route to the right skill automatically. Extracts title, description, acceptance criteria, priority, and subtasks — then recommends and optionally launches the best skill. Trigger with "/from-ticket PROJ-123", "from ticket", "do PROJ-123", "implement PROJ-123", "fix PROJ-456".
+description: This skill should be used when a Jira, Linear, or GitHub issue needs to be parsed and routed automatically to the most appropriate squad skill. Trigger with "/from-ticket PROJ-123", "from ticket", "do PROJ-123", "implement PROJ-123", "fix PROJ-456". NOT for direct implementation when the right workflow is already known.
 user-invocable: true
 ---
 

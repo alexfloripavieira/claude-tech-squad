@@ -1,6 +1,6 @@
 ---
 name: security-audit
-description: Runs a full security audit on the project, detecting the stack (Python/JS), executing static analysis tools (bandit, pip-audit, npm audit), scanning for hardcoded secrets, and producing a structured severity report. Trigger with "auditar seguranca", "security audit", "checar vulnerabilidades", "scan de seguranca".
+description: This skill should be used when the team wants a stack-aware project security audit with static analyzers, dependency checks, secret scanning, and a structured severity report. Trigger with "auditar seguranca", "security audit", "checar vulnerabilidades", "scan de seguranca". NOT for deep multi-lens offensive analysis (use /pentest-deep).
 user-invocable: true
 ---
 

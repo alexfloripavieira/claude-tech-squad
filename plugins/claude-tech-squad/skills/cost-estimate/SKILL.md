@@ -1,6 +1,6 @@
 ---
 name: cost-estimate
-description: Analyze a task description and recommend the most cost-effective skill. Classifies complexity, estimates token cost, and prevents using /squad for a 5-line fix. Zero agents spawned — instant response. Trigger with "cost estimate", "which skill", "quanto custa", "qual skill usar", "estimate cost".
+description: This skill should be used when deciding which squad skill is the most cost-effective for a task, estimating complexity and token spend before launching the workflow. Trigger with "cost estimate", "which skill", "quanto custa", "qual skill usar", "estimate cost". NOT for performing the work itself.
 user-invocable: true
 ---
 

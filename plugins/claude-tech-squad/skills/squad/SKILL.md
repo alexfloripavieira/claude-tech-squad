@@ -1,6 +1,7 @@
 ---
 name: squad
-description: Run the full technology squad workflow end-to-end with the full specialist bench: discovery, blueprint, design-principles and TDD-first implementation, quality, documentation, Jira/Confluence, reliability, and release preparation.
+description: This skill should be used when delivering an end-to-end feature or epic that needs the full pipeline (discovery → blueprint → TDD implementation → quality → docs → reliability → release). Trigger with "rodar squad completa", "feature completa", "/squad", "epic delivery", "full pipeline", "tech squad workflow", "end-to-end delivery", "rodar a esteira completa", "entrega completa". Uses every specialist as independent teammate with reviewer/QA/conformance/UAT gates and SEP log capture. NOT for planning-only (use /discovery), build-only (use /implement), or single-file fixes (use /bug-fix).
+user-invocable: true
 ---
 
 # /squad — Full Technology Squad

@@ -1,6 +1,6 @@
 ---
 name: bug-fix
-description: Focused bug resolution workflow. Takes a bug report (error message, stack trace, reproduction steps), investigates root cause, writes a failing test that proves the bug, implements the fix, and validates with real tool execution. Trigger with "corrigir bug", "fix bug", "investigar erro", "resolver issue", "bug fix".
+description: This skill should be used when a contained bug with reproduction details needs focused root-cause analysis, a failing test, a fix, and real validation without the overhead of the full squad pipeline. Trigger with "corrigir bug", "fix bug", "investigar erro", "resolver issue", "bug fix". NOT for urgent production emergencies (use /hotfix) or broad feature delivery (use /implement or /squad).
 user-invocable: true
 ---
 

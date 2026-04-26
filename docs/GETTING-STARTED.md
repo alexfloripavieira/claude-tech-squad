@@ -19,7 +19,7 @@ Use it for:
 
 - discovery and scope clarification
 - architecture, TDD-first implementation planning, and implementation coordination
-- multi-specialist delivery across 61 specialist agents
+- multi-specialist delivery across 81 specialist agents
 - test, review, documentation, Jira/Confluence, and release follow-through
 
 If you need baseline commands, skills, rules, and templates, use `claude-config`.
@@ -430,7 +430,7 @@ mcp__plugin_context7_context7__resolve-library-id("library-name")
 mcp__plugin_context7_context7__query-docs(libraryId, topic="specific feature")
 ```
 
-If Context7 is unavailable or does not have documentation for the library, the agent declares it explicitly and flags assumptions in the output. This applies to all 61 agents.
+If Context7 is unavailable or does not have documentation for the library, the agent declares it explicitly and flags assumptions in the output. This applies to all 81 agents.
 
 ---
 
@@ -451,7 +451,7 @@ If Context7 is unavailable or does not have documentation for the library, the a
 | Docs / DX | docs-writer, tech-writer, devex-engineer, developer-relations, jira-confluence-specialist |
 | Operations | release, sre, cost-optimizer, incident-manager |
 
-Total: 61 specialists.
+Total: 81 specialists.
 
 ---
 
@@ -460,16 +460,16 @@ Total: 61 specialists.
 Run this after installing to confirm the plugin is active and reachable:
 
 ```bash
-# List all loaded skills — you should see 20 claude-tech-squad skills
+# List all loaded skills — you should see 28 claude-tech-squad skills
 claude /list-skills 2>/dev/null | grep claude-tech-squad | wc -l
 ```
 
-Expected output: `20`
+Expected output: `28`
 
 If you have the repository cloned locally, run the structural validation:
 
 ```bash
-# Confirms all 61 agents, 20 skills, and contracts are intact
+# Confirms all 81 agents, 28 skills, and contracts are intact
 bash scripts/validate.sh
 
 # Confirms schema-level SEP log compliance

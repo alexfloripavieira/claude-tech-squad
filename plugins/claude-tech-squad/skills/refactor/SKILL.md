@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: Safe, test-guarded incremental refactoring workflow. Writes characterization tests to lock current behavior, plans the refactor in small steps, implements incrementally, and verifies behavior is preserved at each step. Trigger with "refatorar", "refactor", "limpar código", "remover débito técnico", "reorganizar", "melhorar design".
+description: This skill should be used when improving existing code structure safely through characterization tests, incremental refactoring steps, and continuous behavior verification. Trigger with "refatorar", "refactor", "limpar código", "remover débito técnico", "reorganizar", "melhorar design". NOT for greenfield implementation (use /implement) or isolated bug fixes (use /bug-fix).
 user-invocable: true
 ---
 

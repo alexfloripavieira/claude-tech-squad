@@ -1,6 +1,6 @@
 ---
 name: iac-review
-description: Reviews Infrastructure as Code changes before apply. Detects IaC stack (Terraform, Pulumi, CloudFormation, CDK, Ansible, Helm), runs static analysis, assesses blast radius, reviews security posture, estimates cost impact, and produces a safe apply sequence with rollback plan. Trigger with "revisar infraestrutura", "iac review", "checar terraform", "revisar cloudformation", "antes do terraform apply", "infra review", "revisar helm chart".
+description: This skill should be used when Infrastructure as Code changes need review before apply, including static analysis, blast radius, security posture, cost impact, and safe sequencing with rollback. Trigger with "revisar infraestrutura", "iac review", "checar terraform", "revisar cloudformation", "antes do terraform apply", "infra review", "revisar helm chart". NOT for application-runtime incident debugging (use /cloud-debug).
 user-invocable: true
 ---
 

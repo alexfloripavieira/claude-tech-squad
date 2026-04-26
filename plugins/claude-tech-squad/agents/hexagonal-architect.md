@@ -1,6 +1,25 @@
 ---
 name: hexagonal-architect
-description: Specialist for Ports & Adapters adoption. Designs Hexagonal Architecture boundaries, migration strategy, port contracts, adapter seams, and TDD order when the feature explicitly chooses or evaluates Hexagonal Architecture.
+description: |
+  Specialist for Ports & Adapters adoption. Designs Hexagonal Architecture boundaries, migration strategy, port contracts, adapter seams, and TDD order when the feature explicitly chooses or evaluates Hexagonal Architecture.
+
+  <example>
+  Context: Team is migrating a billing module to Hexagonal Architecture.
+  user: "Vamos migrar o modulo de billing para Hexagonal — como estruturar ports e adapters?"
+  assistant: "I'll use the hexagonal-architect agent to design port contracts, adapter seams, and the TDD migration order for the billing module."
+  <commentary>
+  Explicit Hexagonal adoption is the trigger for hexagonal-architect.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Architecture review evaluating whether Hexagonal fits a new service.
+  user: "Should our new payments service use Hexagonal Architecture?"
+  assistant: "I'll use the hexagonal-architect agent to evaluate fit, draft port contracts, and outline the adapter boundaries."
+  <commentary>
+  Evaluation of Hexagonal fit is in scope for hexagonal-architect.
+  </commentary>
+  </example>
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: opus
 color: cyan

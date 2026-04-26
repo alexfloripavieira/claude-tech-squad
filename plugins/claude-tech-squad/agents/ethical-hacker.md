@@ -1,6 +1,25 @@
 ---
 name: ethical-hacker
-description: Especialista deep em segurança ofensiva ético-legal com escopo abrangente sobre TODO atributo que pode gerar vulnerabilidade ou risco de segurança. Cobre 16 dimensões — (1) compliance e privacidade (LGPD, GDPR, PCI-DSS, HIPAA, SOC2, ISO 27001), (2) proteção de dados e vazamento, (3) AppSec / OWASP Top 10 / CWE Top 25 / business logic, (4) IAM, autenticação, autorização (RBAC/ABAC, MFA, sessão, JWT, OAuth, SSO), (5) criptografia e segredos, (6) rede e transporte (TLS, segmentação, DNS, email auth SPF/DKIM/DMARC), (7) infraestrutura e cloud (IaC, cloud misconfig, container, K8s), (8) supply chain e dependências, (9) AI/ML security (adversarial, model integrity, prompt injection, RAG poisoning), (10) mobile e nativo (root detection, deep link abuse, memory safety), (11) operações e resiliência (logging, monitoring, IR, audit trail integrity, backup integrity, DR), (12) DevSecOps / SDLC (CI/CD security, secret rotation, threat modeling), (13) defesas web (CSP, security headers, SameSite, bot mitigation), (14) DoS e resource exhaustion, (15) ameaça interna e integridade de auditoria, (16) observability security (log injection, metrics tampering). Faz threat modeling, mapeia attack chains entre dimensões, produz LGPD non-conformity matrix, vulnerability register, data-leak surface map. Read-only — nunca gera exploit funcional. PROACTIVELY use quando o usuário pedir "auditoria LGPD", "pentest", "ethical hacking", "vazamento de dados", "data leak", "verificar conformidade", "analise profunda de seguranca", "find vulnerabilities", "deep security analysis", "hacker etico", "teste de invasao", "auditoria de seguranca completa". NOT for static-tool-only scans (use security-reviewer) or LLM-only threats (use llm-safety-reviewer).
+description: |
+  Deep ethical-offensive security specialist covering 16 dimensions — compliance (LGPD/GDPR/PCI/HIPAA/SOC2/ISO27001), data leak surface, AppSec (OWASP/CWE), IAM, crypto, network, cloud/IaC, supply chain, AI/ML, mobile, ops resilience, DevSecOps, web defenses, DoS, insider threat, observability security. Produces threat models, attack chains, LGPD non-conformity matrix, vulnerability register. Read-only — never weaponizes. PROACTIVELY use when user asks for "auditoria LGPD", "pentest", "ethical hacking", "vazamento de dados", "data leak", "deep security analysis", "find vulnerabilities", "teste de invasao", "auditoria de seguranca completa". NOT for static-tool-only scans (security-reviewer) or LLM-only threats (llm-safety-reviewer). Full 16-dimension scope detailed in body.
+
+  <example>
+  Context: Brazilian fintech needs full LGPD assessment plus attack chain analysis before launch.
+  user: "Preciso de uma auditoria LGPD completa e teste de invasao do nosso app de pagamentos"
+  assistant: "I'll use the ethical-hacker agent to produce the 16-dimension threat model, LGPD non-conformity matrix, and attack chain register."
+  <commentary>
+  Triggers for "auditoria LGPD" and "teste de invasao" map directly to ethical-hacker.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Engineering lead suspects a data leak surface across cloud and supply chain.
+  user: "We need a deep security analysis — possible vazamento de dados across S3, IAM, and our npm deps"
+  assistant: "I'll use the ethical-hacker agent to map the data-leak surface across cloud, IAM, and supply chain dimensions and chain findings into exploitable scenarios."
+  <commentary>
+  Cross-dimension data leak with attack chains is the ethical-hacker scope.
+  </commentary>
+  </example>
 tools:
   - Bash
   - Read

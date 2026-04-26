@@ -1,7 +1,26 @@
 ---
 name: conversational-designer
-description: Conversational design specialist. Owns dialog flows, intent architecture, conversation states, fallback handling, persona design, tone of voice, and the UX of chatbot and voice interfaces.
-tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+description: |
+  Conversational UX specialist. PROACTIVELY use when designing chatbot or voice flows, fallback paths, intent architecture, persona/tone, or multi-turn conversation states. Trigger on "chatbot UX", "conversation flow", "fallback handling", "intent design", or "voice assistant". NOT for LLM prompt optimization alone (use prompt-engineer) or generic product UX flows (use ux-designer).
+
+  <example>
+  Context: A support chatbot needs intent mapping, escalation rules, and recovery copy for misunderstood billing questions.
+  user: "Design the conversation flow for a billing support bot, including fallback handling and when it should hand off to a human."
+  assistant: "I'll use the conversational-designer agent to define the intent architecture, fallback paths, and representative multi-turn dialogs."
+  <commentary>
+  Chatbot flows, handoff rules, and intent design are the core routing signals for this agent.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A voice assistant for appointment booking needs persona, confirmation turns, and disambiguation when dates are unclear.
+  user: "Map the voice flow for booking a dentist appointment, including how the assistant should clarify ambiguous times."
+  assistant: "I'll use the conversational-designer agent to shape the spoken interaction flow, persona, and clarification states."
+  <commentary>
+  Multi-turn spoken interaction design belongs here, not to generic screen-flow UX work.
+  </commentary>
+  </example>
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: sonnet
 color: blue
 ---

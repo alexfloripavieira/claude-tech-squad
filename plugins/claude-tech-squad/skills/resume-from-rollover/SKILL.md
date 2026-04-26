@@ -1,6 +1,6 @@
 ---
 name: resume-from-rollover
-description: Resume a long-running skill from a rollover handoff artifact. Reads the machine state JSON, re-emits the invariants, confirms with the operator, and hands control back to the original skill at the next action. Trigger with "/resume-from-rollover <run_id>", "resumir rollover", "retomar run".
+description: This skill should be used when resuming a long-running workflow from a rollover handoff artifact, restoring invariants and returning control to the original skill. Trigger with "/resume-from-rollover <run_id>", "resumir rollover", "retomar run". NOT for creating the rollover artifact in the first place (use /rollover).
 user-invocable: true
 ---
 

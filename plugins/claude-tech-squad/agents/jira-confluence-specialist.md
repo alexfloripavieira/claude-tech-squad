@@ -1,6 +1,25 @@
 ---
 name: jira-confluence-specialist
-description: Specialist for Jira and Confluence delivery artifacts. Structures epics, stories, subtasks, acceptance criteria, implementation updates, release notes, ADR summaries, and knowledge-base pages.
+description: |
+  Specialist for Jira and Confluence delivery artifacts. Structures epics, stories, subtasks, acceptance criteria, implementation updates, release notes, ADR summaries, and knowledge-base pages.
+
+  <example>
+  Context: A delivered feature needs Jira closeout and a Confluence release note page.
+  user: "Fechei o epic de notificacoes — precisa atualizar Jira e publicar release notes no Confluence"
+  assistant: "I'll use the jira-confluence-specialist agent to update Jira issues, post implementation updates, and publish the Confluence release notes page."
+  <commentary>
+  Jira+Confluence closeout artifacts are the specialist's scope.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A new initiative needs an epic broken down into stories with acceptance criteria.
+  user: "Break down our SSO initiative into a Jira epic with stories"
+  assistant: "I'll use the jira-confluence-specialist agent to structure the epic, stories, subtasks, and acceptance criteria in Jira."
+  <commentary>
+  Backlog structuring in Jira is in scope.
+  </commentary>
+  </example>
 tools:
   - mcp__plugin_atlassian_atlassian__createJiraIssue
   - mcp__plugin_atlassian_atlassian__editJiraIssue

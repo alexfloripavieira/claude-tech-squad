@@ -1,6 +1,6 @@
 ---
 name: dependency-check
-description: Checks project dependencies for vulnerabilities and outdated packages, categorizes findings by severity, and produces an upgrade plan. Trigger with "checar dependencias", "dependency check", "atualizar pacotes", "vulnerabilidades em deps".
+description: This skill should be used when dependencies need vulnerability checking, outdated-package review, and an upgrade plan categorized by severity and effort. Trigger with "checar dependencias", "dependency check", "atualizar pacotes", "vulnerabilidades em deps". NOT for broader application-code security auditing (use /security-audit).
 user-invocable: true
 ---
 

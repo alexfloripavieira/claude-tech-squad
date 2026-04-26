@@ -1,6 +1,25 @@
 ---
 name: javascript-developer
-description: Implements vanilla JavaScript modules, browser scripts, Node.js utilities, and integrations in projects that do not use TypeScript. Uses Context7 for JavaScript and Web API lookups. Verifies browser behavior with Playwright.
+description: |
+  Implements vanilla JavaScript modules, browser scripts, Node.js utilities, and integrations in projects that do not use TypeScript. Uses Context7 for JavaScript and Web API lookups. Verifies browser behavior with Playwright. Trigger phrases: "vanilla js", "javascript puro", "node script", "browser script", "no typescript". NOT for TypeScript projects (use frontend-dev or a TS-aware agent) and NOT for React/Vue/Angular component work (use frontend-dev).
+
+  <example>
+  Context: Legacy project without a build step needs a Node CLI utility.
+  user: "Preciso de um script Node.js puro pra processar CSV — sem TypeScript"
+  assistant: "I'll use the javascript-developer agent to implement the Node.js CLI in vanilla JS with tests."
+  <commentary>
+  Plain Node.js without TS is exactly the javascript-developer scope.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A legacy admin page needs a vanilla JS dropdown enhancement.
+  user: "Add a debounced search input to our legacy admin page (no framework)"
+  assistant: "I'll use the javascript-developer agent to implement the vanilla JS enhancement and verify behavior with Playwright."
+  <commentary>
+  Browser script in a no-framework, no-TS project is in scope.
+  </commentary>
+  </example>
 tools:
   - Read
   - Write

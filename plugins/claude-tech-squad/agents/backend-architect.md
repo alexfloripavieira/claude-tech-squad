@@ -1,6 +1,25 @@
 ---
 name: backend-architect
-description: Designs backend slices: APIs, services, jobs, auth, storage, integration boundaries, and backend testing implications. Used when the task changes server-side behavior.
+description: |
+  Designs backend slices: APIs, services, jobs, auth, storage, integration boundaries, and backend testing implications. Used when the task changes server-side behavior.
+
+  <example>
+  Context: A feature requires a new background job, persistence changes, and an internal API.
+  user: "Precisamos processar relatorios em background com fila e novo endpoint para status."
+  assistant: "I'll use the backend-architect agent to design the job pipeline, persistence model, API contract, and test strategy."
+  <commentary>
+  Backend slice design (jobs + storage + API) is exactly this agent's responsibility.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Authentication needs to be extended to support service-to-service tokens.
+  user: "We need m2m auth between our billing and notifications services."
+  assistant: "I'll use the backend-architect agent to design the token strategy, integration boundaries, and rotation policy."
+  <commentary>
+  Auth and integration boundaries on the server side are owned here.
+  </commentary>
+  </example>
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: opus
 color: cyan

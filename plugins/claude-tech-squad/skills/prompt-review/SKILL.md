@@ -1,6 +1,6 @@
 ---
 name: prompt-review
-description: Reviews changes to prompt files, system prompts, and AI templates. Runs regression tests against golden examples, checks for prompt injection vulnerabilities, validates token budget, and produces a versioned diff with quality assessment. Trigger with "revisar prompt", "review de prompt", "mudei o prompt", "checar regressao de prompt", "prompt review", "validar prompt".
+description: This skill should be used when reviewing prompt files, system prompts, or AI templates for regressions, token budget, prompt injection risk, and quality drift against golden examples. Trigger with "revisar prompt", "review de prompt", "mudei o prompt", "checar regressao de prompt", "prompt review", "validar prompt". NOT for running a broader model evaluation suite (use /llm-eval).
 user-invocable: true
 ---
 

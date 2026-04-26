@@ -1,6 +1,6 @@
 ---
 name: migration-plan
-description: Plans database migrations by analyzing current migration state, detecting pending model changes, and producing a structured migration strategy with rollback plans. Trigger with "planejar migration", "migration plan", "mudanca de schema", "alterar modelo Django".
+description: This skill should be used when planning database or schema migrations with current-state analysis, pending model detection, safe sequencing, and rollback strategy. Trigger with "planejar migration", "migration plan", "mudanca de schema", "alterar modelo Django". NOT for executing the implementation of the feature itself.
 user-invocable: true
 ---
 

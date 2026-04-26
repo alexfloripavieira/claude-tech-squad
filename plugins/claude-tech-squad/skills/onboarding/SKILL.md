@@ -1,6 +1,6 @@
 ---
 name: onboarding
-description: Bootstraps a new project or repository for squad usage. Creates ai-docs/ structure, generates a CLAUDE.md template from the detected stack, configures SEP artifacts, runs initial security and dependency audits, and produces a project health baseline. Trigger with "onboarding do projeto", "configurar squad", "bootstrap projeto", "setup squad", "iniciar projeto com squad".
+description: This skill should be used when bootstrapping a new repository for squad usage, including ai-docs setup, CLAUDE.md templating, SEP artifacts, and initial health/security baselines. Trigger with "onboarding do projeto", "configurar squad", "bootstrap projeto", "setup squad", "iniciar projeto com squad". NOT for feature delivery within an already-prepared repo.
 user-invocable: true
 ---
 

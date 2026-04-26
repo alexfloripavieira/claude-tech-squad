@@ -4,7 +4,7 @@ Installable Claude Code plugin for a complete software delivery squad.
 
 ![claude-tech-squad demo](docs/assets/demo.gif)
 
-This repository is the execution layer. It provides the specialist team and workflows that run inside a real repository.
+This repository is the execution layer. It is not a general config pack; it provides the specialist team and workflows that run inside a real repository.
 
 ## Use This Repository For
 
@@ -259,7 +259,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 /claude-tech-squad:prompt-review # before merging any prompt file change
 ```
 
-## Specialist Roster (78 agents)
+## Specialist Roster (81 agents)
 
 ### Discovery & Planning
 - PM

@@ -1,7 +1,26 @@
 ---
 name: planner
-description: Technical discovery and feasibility lead. Inspects the real stack, validates current capabilities against docs, identifies constraints, decomposes workstreams, and surfaces user tradeoffs before design starts.
-tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+description: |
+  Technical discovery and feasibility lead. PROACTIVELY use when a request is still fuzzy and the team needs stack inspection, feasibility checks, constraint discovery, workstream decomposition, or tradeoff surfacing before architecture starts. Trigger on "investigate first", "feasibility", "understand the stack", "what are the constraints", or "decompose the work". NOT for detailed final architecture design (use architect), or execution backlog decomposition from an approved spec (use tasks-planner), or implementation execution (use techlead).
+
+  <example>
+  Context: The team was asked to add SSO, but nobody knows whether the repo already has auth hooks, tenant boundaries, or an identity provider SDK.
+  user: "Investigate first and tell us if SAML SSO is feasible in this stack before anyone designs the solution."
+  assistant: "I'll use the planner agent to inspect the repo, identify constraints, and surface the main feasibility tradeoffs before architecture begins."
+  <commentary>
+  Early technical discovery with repo inspection is the planner's job when the path is still unclear.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A broad request spans backend, frontend, analytics, and docs, but the team still needs to understand sequencing risks and repo constraints before locking the design.
+  user: "Assess the implementation constraints and likely workstream order for this feature before we commit to a technical design."
+  assistant: "I'll use the planner agent to examine the current stack, flag feasibility constraints, and outline a pre-design sequence of workstreams."
+  <commentary>
+  This agent clarifies feasibility, constraints, and early sequencing before a final blueprint or task backlog is produced.
+  </commentary>
+  </example>
+tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: opus
 color: cyan
 ---
