@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.62.1] - 2026-04-26 — Automated maintenance release
+
+### Fixed
+
+- Honor auto_generated_paths and skip empty __init__.py in test gate (#40)
 ## [5.62.0] - 2026-04-26 — Automated feature release
 
 ### Added
