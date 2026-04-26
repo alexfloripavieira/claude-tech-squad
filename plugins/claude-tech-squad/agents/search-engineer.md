@@ -1,6 +1,25 @@
 ---
 name: search-engineer
-description: Search engineering specialist. Owns full-text search, faceted search, relevance tuning, and search infrastructure using Elasticsearch, OpenSearch, Typesense, and Algolia. Distinct from rag-engineer who handles vector/semantic search.
+description: |
+  Search engineering specialist. PROACTIVELY use when implementing full-text search, facets, autocomplete, ranking, or relevance tuning with Elasticsearch, OpenSearch, Typesense, or Algolia. Trigger on "search relevance", "faceted search", "Elasticsearch", "OpenSearch", or "autocomplete". NOT for semantic/vector retrieval systems (use rag-engineer).
+
+  <example>
+  Context: Catalog search is returning irrelevant results.
+  user: "Nossa busca de produtos esta com relevancia ruim"
+  assistant: "I'll use the search-engineer agent to tune analyzers, scoring, and relevance signals."
+  <commentary>
+  Relevance tuning on full-text search is the canonical trigger.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Need autocomplete with faceted filters in a new UI.
+  user: "Build autocomplete with category facets in OpenSearch"
+  assistant: "I'll use the search-engineer agent to design the suggester index and facet aggregations."
+  <commentary>
+  Autocomplete plus facets in lexical search engines is in scope.
+  </commentary>
+  </example>
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: blue

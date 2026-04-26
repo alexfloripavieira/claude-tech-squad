@@ -1,6 +1,25 @@
 ---
 name: tech-debt-analyst
-description: Deep tech debt specialist. Owns end-to-end tech debt discovery and prioritization across code, architecture, data, performance, security, dependency, and documentation dimensions. Aggregates signals from other specialists into a single prioritized debt register with blast radius x change frequency x complexity scoring. PROACTIVELY use when the user asks for "tech debt audit", "deep tech debt analysis", "debt register", "code health report", or mentions "auditar divida tecnica", "analise de divida tecnica". NOT for fixing debt (use /implement or /refactor) or single-PR review (use reviewer).
+description: |
+  Deep tech debt specialist. Owns end-to-end tech debt discovery and prioritization across code, architecture, data, performance, security, dependency, and documentation dimensions. Aggregates signals from other specialists into a single prioritized debt register with blast radius x change frequency x complexity scoring. PROACTIVELY use when the user asks for "tech debt audit", "deep tech debt analysis", "debt register", "code health report", or mentions "auditar divida tecnica", "analise de divida tecnica". NOT for fixing debt (use /implement or /refactor) or single-PR review (use reviewer).
+
+  <example>
+  Context: Engineering leadership wants a prioritized debt register for next quarter.
+  user: "Roda uma analise profunda de divida tecnica no repo"
+  assistant: "I'll use the tech-debt-analyst agent to synthesize specialist findings into a prioritized debt register."
+  <commentary>
+  Deep tech-debt audit synthesis is the agent's home.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Team wants a code health report before a major refactor.
+  user: "Generate a code health report for the billing module"
+  assistant: "I'll use the tech-debt-analyst agent to score hotspots and produce an ROI-ordered remediation plan."
+  <commentary>
+  Code-health reporting and debt scoring is in scope.
+  </commentary>
+  </example>
 tools:
   - Bash
   - Read

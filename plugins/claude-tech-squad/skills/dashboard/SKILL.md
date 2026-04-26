@@ -1,6 +1,6 @@
 ---
 name: dashboard
-description: Instant pipeline health dashboard. Reads SEP logs from ai-docs/.squad-log/, aggregates run status per skill, flags hotfixes without a post-mortem, and saves Markdown plus HTML snapshots. No agents spawned — zero latency. Trigger with "dashboard", "status da esteira", "pipeline health", "resumo de execuções", "squad status".
+description: This skill should be used when the operator wants an instant dashboard of squad pipeline health, run status, and SEP-log-derived snapshots without spawning agents. Trigger with "dashboard", "status da esteira", "pipeline health", "resumo de execuções", "squad status". NOT for executing or debugging the runs themselves.
 user-invocable: true
 ---
 

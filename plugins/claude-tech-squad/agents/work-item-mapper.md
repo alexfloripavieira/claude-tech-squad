@@ -1,7 +1,26 @@
 ---
 name: work-item-mapper
-description: Maps a PRD/TechSpec/Tasks set (or a bug report) into the configured vendor-neutral work-item taxonomy defined in runtime-policy.yaml. Emits a structured work-items.md file and enforces opt-in delivery_gates rules. Handles defect vs bug classification for fixes.
-tool_allowlist: [Read, Write, Glob, Grep]
+description: |
+  Work-item mapping specialist. PROACTIVELY use when PRDs, TechSpecs, task sets, or bug reports need to be translated into the runtime-policy work-item taxonomy and delivery gates. Trigger on "map to work items", "work-items.md", "taxonomy", or "defect vs bug classification". NOT for writing the PRD/spec/tasks themselves.
+
+  <example>
+  Context: A PRD, TechSpec, and approved tasks already exist, and the team now needs them translated into the runtime-policy hierarchy before publishing to Jira.
+  user: "Map these delivery artifacts into work-items.md using the configured taxonomy and note any gate findings."
+  assistant: "I'll use the work-item-mapper agent to convert the existing artifacts into the runtime-policy work-item structure."
+  <commentary>
+  Taxonomy mapping from existing delivery artifacts is the clear routing signal for this agent.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A production incident report needs classification as bug versus defect and placement in the configured item hierarchy.
+  user: "Classify this issue and map it into the work-item taxonomy with any delivery-gate warnings."
+  assistant: "I'll use the work-item-mapper agent to apply the policy taxonomy, defect classification rules, and gate evaluation."
+  <commentary>
+  This agent translates artifacts and fix-class inputs into policy-driven work items rather than authoring the underlying spec.
+  </commentary>
+  </example>
+tool_allowlist: [Read, Write, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: haiku
 color: magenta
 ---

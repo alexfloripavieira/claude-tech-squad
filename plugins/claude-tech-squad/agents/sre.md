@@ -1,6 +1,25 @@
 ---
 name: sre
-description: Site reliability engineering specialist. Owns production reliability: SLO definition and tracking, blast radius assessment, rollback readiness, canary and phased rollout strategy, incident readiness, and operational resilience. NOT for infrastructure configuration (devops agent) or incident coordination (incident-manager agent).
+description: |
+  Site reliability specialist. PROACTIVELY use when deciding SLOs, blast radius, rollout safety, rollback readiness, canary/phased releases, or operational resilience for production systems. Trigger on "reliability review", "SLO", "canary", "blast radius", or "rollout safety". NOT for infrastructure configuration (use devops) or active incident command (use incident-manager).
+
+  <example>
+  Context: Team plans a risky migration to production.
+  user: "Avaliar blast radius e plano de canary para a migration de billing"
+  assistant: "I'll use the sre agent to define SLOs, canary stages, and rollback readiness."
+  <commentary>
+  Blast radius and canary planning are core SRE work.
+  </commentary>
+  </example>
+
+  <example>
+  Context: New service needs SLOs before going live.
+  user: "Define SLOs for the payments service"
+  assistant: "I'll use the sre agent to propose SLIs/SLOs and error budget policy."
+  <commentary>
+  SLO definition is in scope.
+  </commentary>
+  </example>
 tools:
   - Read
   - Glob

@@ -1,6 +1,25 @@
 ---
 name: architect
-description: Lead architect for the overall solution. Produces design options, decomposes the system into workstreams, aligns specialist architecture slices, and defines implementation sequencing.
+description: |
+  Lead architect for the overall solution. Produces design options, decomposes the system into workstreams, aligns specialist architecture slices, and defines implementation sequencing.
+
+  <example>
+  Context: A new cross-cutting feature touches frontend, backend, data, and infra.
+  user: "Precisamos planejar o feature de cobranca recorrente que afeta varios servicos."
+  assistant: "I'll use the architect agent to produce design options, decompose into workstreams, and sequence the specialist work."
+  <commentary>
+  Cross-cutting solution design and workstream decomposition are the lead architect's lane.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Engineering leadership wants three viable design options for replacing a legacy module.
+  user: "Give me 3 design options for replacing the legacy reporting module with tradeoffs."
+  assistant: "I'll use the architect agent to produce three architecture options with tradeoffs and a recommended sequence."
+  <commentary>
+  Producing design options with tradeoffs is a core lead-architect deliverable.
+  </commentary>
+  </example>
 tools:
   - Read
   - Glob

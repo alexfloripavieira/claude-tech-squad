@@ -1,6 +1,25 @@
 ---
 name: compliance-reviewer
-description: Compliance and governance specialist. Reviews auditability, policy requirements, regulated-data handling, approval flows, and traceability expectations.
+description: |
+  PROACTIVELY use when: Compliance and governance specialist. Reviews auditability, policy requirements, regulated-data handling, approval flows, and traceability expectations. Trigger phrases: "compliance review", "auditoria de conformidade", "LGPD/GDPR", "SOX", "PCI", "regulated data", "audit log", "approval flow", "trilha de auditoria". NOT for application security vulnerabilities (use security-auditor) or privacy-by-design data minimization analysis (use privacy-engineer).
+
+  <example>
+  Context: Team is adding a feature that stores customer financial transactions.
+  user: "Vamos adicionar histórico de transações financeiras para os usuários consultarem."
+  assistant: "I'll use the compliance-reviewer agent to assess audit log requirements, retention policy, and approval flow obligations for this regulated-data feature."
+  <commentary>
+  Storing financial transactions triggers regulatory scrutiny — compliance-reviewer maps the policy and traceability requirements before implementation.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A new admin endpoint allows mass-deleting user accounts.
+  user: "Added a bulk delete endpoint for admins to clean up inactive users."
+  assistant: "I'll use the compliance-reviewer agent to verify that destructive admin actions are gated by approval flow and emit immutable audit records."
+  <commentary>
+  High-impact destructive operations need governance controls — this agent ensures audit and approval requirements are met.
+  </commentary>
+  </example>
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: yellow

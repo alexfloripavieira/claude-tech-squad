@@ -1,6 +1,6 @@
 ---
 name: multi-service
-description: Coordinates feature delivery across multiple repositories and services. Maps inter-service dependencies, negotiates API contracts, sequences deployments safely, and validates cross-service integration. Trigger with "feature em multiplos servicos", "multi-service", "mudanca cross-service", "coordenar servicos", "feature distribuida", "multi-repo feature".
+description: This skill should be used when a feature spans multiple repositories or services and needs dependency mapping, API contract coordination, safe deployment sequencing, and cross-service validation. Trigger with "feature em multiplos servicos", "multi-service", "mudanca cross-service", "coordenar servicos", "feature distribuida", "multi-repo feature". NOT for single-repo delivery where /implement is sufficient.
 user-invocable: true
 ---
 

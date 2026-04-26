@@ -1,6 +1,6 @@
 ---
 name: factory-retrospective
-description: Runs a retrospective on recent agent executions by analyzing execution logs, identifying retry patterns and common failures, and producing improvement recommendations for prompts, rules, and workflow. Trigger with "retrospectiva da factory", "factory retrospective", "melhorar a squad", "revisar processo", "lessons learned".
+description: This skill should be used when reviewing recent squad executions to identify retry patterns, common failures, and workflow/prompt improvements from logs. Trigger with "retrospectiva da factory", "factory retrospective", "melhorar a squad", "revisar processo", "lessons learned". NOT for post-mortems on a single production incident (use /incident-postmortem).
 user-invocable: true
 ---
 

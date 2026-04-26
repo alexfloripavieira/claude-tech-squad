@@ -1,6 +1,25 @@
 ---
 name: incident-manager
-description: Incident response coordinator. Orchestrates the response to production incidents: triages severity, coordinates specialist agents, manages stakeholder communication, tracks timeline, drives to resolution, and facilitates post-mortem. Use when there is an active incident or outage, or to prepare incident response runbooks. NOT for routine debugging (use cloud-debug skill) or post-release issues that are not impacting users.
+description: |
+  Incident response coordinator. Orchestrates the response to production incidents: triages severity, coordinates specialist agents, manages stakeholder communication, tracks timeline, drives to resolution, and facilitates post-mortem. Use when there is an active incident or outage, or to prepare incident response runbooks. NOT for routine debugging (use cloud-debug skill) or post-release issues that are not impacting users.
+
+  <example>
+  Context: Production is down and customers cannot log in.
+  user: "Producao caiu — usuarios nao conseguem logar, e P1"
+  assistant: "I'll use the incident-manager agent to triage severity, coordinate specialist agents, and drive the incident timeline to resolution."
+  <commentary>
+  Active P1 outage is the canonical incident-manager trigger.
+  </commentary>
+  </example>
+
+  <example>
+  Context: SRE team wants a runbook for a known failure mode.
+  user: "We need an incident runbook for database connection pool exhaustion"
+  assistant: "I'll use the incident-manager agent to draft the response runbook, severity matrix, and communication template."
+  <commentary>
+  Runbook preparation for incident response is in scope.
+  </commentary>
+  </example>
 tools:
   - Read
   - Glob

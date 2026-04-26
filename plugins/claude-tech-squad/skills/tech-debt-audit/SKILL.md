@@ -1,6 +1,6 @@
 ---
 name: tech-debt-audit
-description: Deep tech debt analysis across code, architecture, data, performance, security, and dependency dimensions. Spawns 5 specialist lenses in parallel (code-quality, design-principles, dba, performance-engineer, security-reviewer) and synthesizes their findings via a tech-debt-analyst into a prioritized debt register with hotspot map and ROI-ordered remediation plan. Trigger with "auditar divida tecnica", "tech debt audit", "deep tech debt analysis", "code health report", "analise de divida tecnica".
+description: This skill should be used when the team needs a deep, multi-lens tech debt audit across code, architecture, data, performance, security, and dependencies, resulting in a prioritized debt register and remediation plan. Trigger with "auditar divida tecnica", "tech debt audit", "deep tech debt analysis", "code health report", "analise de divida tecnica". NOT for fixing debt directly (use /refactor or /implement).
 user-invocable: true
 ---
 

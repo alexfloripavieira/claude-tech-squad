@@ -259,7 +259,7 @@ claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 /claude-tech-squad:prompt-review # before merging any prompt file change
 ```
 
-## Specialist Roster (78 agents)
+## Specialist Roster (81 agents)
 
 ### Discovery & Planning
 - PM

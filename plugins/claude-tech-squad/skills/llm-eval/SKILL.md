@@ -1,6 +1,6 @@
 ---
 name: llm-eval
-description: Runs a structured LLM evaluation suite against the project's AI features. Discovers eval datasets, measures quality metrics (faithfulness, relevance, hallucination rate), runs regression against baseline, integrates as CI gate, and produces a structured eval report. Trigger with "rodar evals", "avaliar llm", "checar qualidade do ai", "llm eval", "eval suite", "regressao de prompts".
+description: This skill should be used when AI features need structured evaluation against datasets, baselines, and quality metrics such as faithfulness, relevance, and hallucination rate. Trigger with "rodar evals", "avaliar llm", "checar qualidade do ai", "llm eval", "eval suite", "regressao de prompts". NOT for prompt-only code review (use /prompt-review).
 user-invocable: true
 ---
 

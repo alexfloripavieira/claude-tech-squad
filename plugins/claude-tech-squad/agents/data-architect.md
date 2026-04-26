@@ -1,7 +1,26 @@
 ---
 name: data-architect
-description: Designs data changes: schema evolution, migrations, contracts, event flows, analytics impacts, rollback constraints, and data quality risks. Used when the task touches databases, search indexes, or evented data flows.
-tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+description: |
+  Data architecture specialist. PROACTIVELY use when a change touches schema evolution, migrations, data contracts, event flows, analytics side effects, rollback constraints, or data quality risk. Trigger on "schema change", "data model", "migration design", "event contract", or "analytics impact". NOT for DBA execution details (use dba) or ETL implementation (use data-engineer).
+
+  <example>
+  Context: A subscription feature needs new tables, a backfill for legacy plans, and safe rollback if billing sync fails.
+  user: "Design the migration path for adding subscription_tiers and moving existing customers without breaking rollbacks."
+  assistant: "I'll use the data-architect agent to define the schema changes, migration ordering, backfill strategy, and rollback constraints."
+  <commentary>
+  Schema evolution plus backfill and rollback design routes to this agent before any DBA execution step.
+  </commentary>
+  </example>
+
+  <example>
+  Context: An existing webhook payload change could break downstream analytics and partner consumers.
+  user: "We need to add `discount_code` to the order-created event. Assess the data contract and analytics impact first."
+  assistant: "I'll use the data-architect agent to review the event contract, downstream dependencies, and safe rollout plan."
+  <commentary>
+  Data contracts and analytics side effects are distinguishing signals for this role over general architecture work.
+  </commentary>
+  </example>
+tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: opus
 color: cyan
 ---

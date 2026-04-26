@@ -1,6 +1,6 @@
 ---
 name: pre-commit-lint
-description: Configures a PreToolUse hook that auto-fixes staged files with project lint tools (ruff, black, isort, eslint, prettier) before any git commit, and validates sonar rules and PEP compliance so pre-commit checks never block Claude's commits.
+description: This skill should be used when pre-commit checks are blocking commits, when configuring auto-fix on staged files, or when standardizing lint tooling (ruff, black, isort, eslint, prettier) across a repo. Trigger with "configurar pre-commit", "lint automático", "pre-commit bloqueia commit", "auto-fix staged files", "pre-commit-lint", "fix lint before commit", "padronizar lint", "sonar rules", "PEP compliance hook". Configures a PreToolUse hook that auto-fixes staged files before any git commit so pre-commit checks never block Claude's commits.
 ---
 
 # /pre-commit-lint — Auto-fix Lint Before Commits

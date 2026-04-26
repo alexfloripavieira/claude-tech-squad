@@ -1,6 +1,7 @@
 ---
 name: discovery
-description: Run discovery and blueprint for any software project with a full specialist squad. Produces product definition, prioritization, business analysis, architecture, specialist design notes, test and TDD delivery guidance, quality baselines, and delivery artifacts guidance.
+description: This skill should be used when starting a new feature, epic, or initiative that needs structured planning before implementation — produces product definition, prioritization, business analysis, architecture, specialist design notes, TDD delivery guidance, quality baselines. Trigger with "rodar discovery", "planejamento de feature", "blueprint do projeto", "/discovery", "discovery and blueprint", "antes de implementar", "discovery phase", "epic planning", "kickoff técnico". Uses the full specialist bench (PM, PO, BA, architects, test-planner, tdd-specialist) — each as independent teammate. NOT for direct implementation (use /implement) or full end-to-end (use /squad).
+user-invocable: true
 ---
 
 # /discovery — Discovery & Blueprint

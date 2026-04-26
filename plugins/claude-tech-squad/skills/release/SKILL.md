@@ -1,6 +1,6 @@
 ---
 name: release
-description: Standalone release preparation workflow. Builds change inventory from git, validates CI/CD and deploy assumptions, defines rollback steps, generates release notes, creates the version tag, and identifies required communication. Trigger with "preparar release", "gerar release", "release notes", "criar tag", "cortar release", "cut release".
+description: This skill should be used when preparing a release end-to-end with change inventory, deploy assumptions, rollback steps, release notes, tagging, and communication planning. Trigger with "preparar release", "gerar release", "release notes", "criar tag", "cortar release", "cut release". NOT for implementing the feature work itself.
 user-invocable: true
 ---
 

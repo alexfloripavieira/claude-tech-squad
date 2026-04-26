@@ -1,6 +1,7 @@
 ---
 name: implement
-description: Run build and quality for any software project based on a prior discovery document. Supports a full specialist bench across implementation, quality, operations, and delivery artifacts.
+description: This skill should be used when an approved discovery/blueprint exists and the team is ready to build — runs implementation, code review, QA, conformance, UAT, and operations gates with separate teammate contexts per phase. Trigger with "implementar feature", "rodar implement", "executar blueprint", "/implement", "build phase", "implementation phase", "construir feature aprovada", "post-discovery build". Uses TDD-first cycles, multi-lens reviewer/QA/conformance gates with retry budgets and checkpoints. NOT for greenfield planning (use /discovery first) or one-shot bug fixes (use /bug-fix).
+user-invocable: true
 ---
 
 # /implement — Build & Quality

@@ -1,6 +1,6 @@
 ---
 name: hotfix
-description: Streamlined emergency fix workflow for production issues. Skips discovery overhead — goes straight to root cause, minimal patch, tests, hotfix branch, PR, and deploy checklist. Trigger with "hotfix", "fix urgente", "producao quebrada", "patch emergencial", "emergency fix".
+description: This skill should be used when production is broken and the team needs an emergency fix workflow that goes straight to root cause, minimal patch, tests, branch, PR, and deploy checklist. Trigger with "hotfix", "fix urgente", "producao quebrada", "patch emergencial", "emergency fix". NOT for non-urgent bugs where full diagnosis and TDD depth can happen via /bug-fix.
 user-invocable: true
 ---
 

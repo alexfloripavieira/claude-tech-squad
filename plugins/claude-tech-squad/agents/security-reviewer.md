@@ -1,6 +1,25 @@
 ---
 name: security-reviewer
-description: Performs threat-focused review during design and quality. Checks auth, authz, input validation, secret handling, data exposure, unsafe integrations, and operational security assumptions.
+description: |
+  PROACTIVELY use when: auditing auth/authz, input validation, secret handling, unsafe integrations, data exposure, or operational security assumptions during design or quality gates. Trigger on "revisar seguranca", "security review", "threat review", "authz check", "checar autorizacao", "secret handling", "tratamento de segredo", or "unsafe integration". NOT for building the security feature itself (use security-engineer) — and NOT for AI/LLM-specific threat review (use llm-safety-reviewer).
+
+  <example>
+  Context: A new endpoint exposes user data and the team wants a security pass before launch.
+  user: "Revisar seguranca do novo endpoint /users/export"
+  assistant: "I'll use the security-reviewer agent to audit authz, input validation, and data exposure."
+  <commentary>
+  Pre-launch security review of a sensitive endpoint is the canonical trigger.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Engineer integrated a third-party API with secrets in env vars.
+  user: "Check the new third-party integration for security issues"
+  assistant: "I'll use the security-reviewer agent to audit secret handling and trust boundaries."
+  <commentary>
+  Unsafe integration review is in scope.
+  </commentary>
+  </example>
 tools:
   - Bash
   - Read

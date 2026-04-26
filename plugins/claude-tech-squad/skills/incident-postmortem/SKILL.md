@@ -1,6 +1,6 @@
 ---
 name: incident-postmortem
-description: Structured post-mortem workflow after a production incident. Reconstructs timeline, identifies root cause and contributing factors, runs 5-whys analysis, produces action items with owners, and generates a post-mortem document ready to share with the team. Trigger with "post-mortem", "postmortem", "retrospectiva do incidente", "análise do incidente", "rca", "root cause analysis".
+description: This skill should be used when a production incident has already happened and the team needs a structured post-mortem with timeline, root cause, contributing factors, 5-whys, and owned action items. Trigger with "post-mortem", "postmortem", "retrospectiva do incidente", "análise do incidente", "rca", "root cause analysis". NOT for live incident response (use /cloud-debug or /hotfix first).
 user-invocable: true
 ---
 

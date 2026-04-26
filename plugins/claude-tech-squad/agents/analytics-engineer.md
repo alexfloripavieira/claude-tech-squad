@@ -1,6 +1,25 @@
 ---
 name: analytics-engineer
-description: Product analytics specialist. Owns user behavior instrumentation, product event schemas, funnel and conversion metrics, feature adoption measurement, A/B test design, and product/business dashboards. NOT for infrastructure metrics, system health monitoring, or on-call alerting (observability-engineer agent).
+description: |
+  Product analytics specialist. Owns user behavior instrumentation, product event schemas, funnel and conversion metrics, feature adoption measurement, A/B test design, and product/business dashboards. NOT for infrastructure metrics, system health monitoring, or on-call alerting (observability-engineer agent).
+
+  <example>
+  Context: PM wants to know whether a new onboarding flow improved activation.
+  user: "Precisamos medir se o novo onboarding aumentou ativacao na primeira semana."
+  assistant: "I'll use the analytics-engineer agent to design the funnel events, define the activation metric, and propose an A/B test plan."
+  <commentary>
+  Activation funnels and A/B test design are this agent's specialty, not infra metrics.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A feature shipped without instrumentation and stakeholders cannot tell if it is being used.
+  user: "We launched the export feature but have no idea who uses it — can you set up tracking?"
+  assistant: "I'll use the analytics-engineer agent to define the event schema, implementation points, and an adoption dashboard."
+  <commentary>
+  Product event schemas and adoption dashboards are owned here.
+  </commentary>
+  </example>
 tools:
   - Read
   - Glob

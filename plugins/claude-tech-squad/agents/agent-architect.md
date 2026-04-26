@@ -1,6 +1,25 @@
 ---
 name: agent-architect
-description: Multi-agent systems architect. Owns orchestration patterns, MCP (Model Context Protocol), tool use design, agent loops, handoff protocols, Claude Agent SDK, and frameworks like LangChain, LlamaIndex, AutoGen, and CrewAI.
+description: |
+  Multi-agent systems architect. Owns orchestration patterns, MCP (Model Context Protocol), tool use design, agent loops, handoff protocols, Claude Agent SDK, and frameworks like LangChain, LlamaIndex, AutoGen, and CrewAI.
+
+  <example>
+  Context: Team wants to build an autonomous research assistant that uses multiple specialized agents.
+  user: "We need to design an orchestrator that delegates to 4 specialist agents and merges their outputs."
+  assistant: "I'll use the agent-architect agent to design the orchestrator-worker topology, handoff protocol, and tool boundaries."
+  <commentary>
+  Multi-agent topology and handoff design is the core competency of this agent.
+  </commentary>
+  </example>
+
+  <example>
+  Context: An existing LangChain agent loop is hitting infinite tool-call loops in production.
+  user: "Nosso agente fica em loop chamando a mesma tool, precisamos repensar a arquitetura."
+  assistant: "I'll use the agent-architect agent to redesign the agent loop with proper termination conditions and MCP-based tool guards."
+  <commentary>
+  Agent-loop pathology and MCP tool design fall directly under this architect's mandate.
+  </commentary>
+  </example>
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: cyan

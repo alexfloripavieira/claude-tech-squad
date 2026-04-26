@@ -1,6 +1,25 @@
 ---
 name: inception-author
-description: Generates a Technical Specification (TechSpec) from an existing PRD. Produces architecture, interfaces, impact analysis, test strategy, risks, gates, and effort estimation. Strictly follows templates/techspec-template.md. Vendor-neutral, idempotent, Context7-first.
+description: |
+  Generates a Technical Specification (TechSpec) from an existing PRD. Produces architecture, interfaces, impact analysis, test strategy, risks, gates, and effort estimation. Strictly follows templates/techspec-template.md. Vendor-neutral, idempotent, Context7-first.
+
+  <example>
+  Context: A validated PRD exists and engineering needs a TechSpec to begin work.
+  user: "Tenho o PRD aprovado do feature de notificacoes — gera o TechSpec"
+  assistant: "I'll use the inception-author agent to produce the TechSpec with architecture, interfaces, risks, gates, and effort estimation."
+  <commentary>
+  PRD-to-TechSpec translation is exactly the inception-author scope.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Stakeholders need risk and effort estimation before committing to a roadmap slot.
+  user: "We have the PRD for SSO — what is the effort and main risks?"
+  assistant: "I'll use the inception-author agent to produce the TechSpec including risk register and day-level effort estimation."
+  <commentary>
+  Risk and effort estimation flow from the TechSpec author.
+  </commentary>
+  </example>
 tool_allowlist: [Read, Write, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: opus
 color: cyan

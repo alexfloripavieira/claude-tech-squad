@@ -1,6 +1,6 @@
 ---
 name: rollover
-description: Proactively consolidate the current run's state into a handoff brief, machine state, and resume command before the context window becomes a problem. Spawns the context-summarizer teammate. Trigger with "/rollover", "rollover now", "fazer rollover", "consolidar contexto", "preparar para /clear".
+description: This skill should be used when an in-flight run needs proactive context rollover before the context window becomes a problem, producing a handoff brief, machine state, and resume command. Trigger with "/rollover", "rollover now", "fazer rollover", "consolidar contexto", "preparar para /clear". NOT for resuming an existing rollover artifact (use /resume-from-rollover).
 user-invocable: true
 ---
 

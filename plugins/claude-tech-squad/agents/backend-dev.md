@@ -1,6 +1,25 @@
 ---
 name: backend-dev
-description: Implements backend changes following the agreed architecture. Owns APIs, services, auth, persistence, queues, and backend unit tests. Verifies every library API against current docs before using it.
+description: |
+  Implements backend changes following the agreed architecture. Owns APIs, services, auth, persistence, queues, and backend unit tests. Verifies every library API against current docs before using it.
+
+  <example>
+  Context: Architecture is approved for a new orders endpoint and the implementation needs to begin.
+  user: "Implementa o endpoint POST /orders conforme o design do backend-architect."
+  assistant: "I'll use the backend-dev agent to implement the endpoint, persistence, and unit tests against the approved architecture."
+  <commentary>
+  Backend implementation following an existing design is this agent's role.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A queue worker needs to be added for async email dispatch.
+  user: "Add a Celery worker to send password-reset emails asynchronously."
+  assistant: "I'll use the backend-dev agent to implement the worker, retry policy, and unit tests, verifying Celery APIs via Context7."
+  <commentary>
+  Queues and async workers on the server side are core backend-dev tasks.
+  </commentary>
+  </example>
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: green

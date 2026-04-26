@@ -1,6 +1,25 @@
 ---
 name: qa-tester
-description: Validates delivered features using Playwright. Navigates the running application, verifies functional behavior, checks that the UI matches the design, catches console errors, and confirms that user flows work end-to-end. Does not write application code.
+description: |
+  Browser-based end-to-end QA tester. Owns Playwright/browser validation of a running app — clicking real flows, verifying UI vs design, capturing console/runtime errors, and confirming user paths. PROACTIVELY use when a running app needs e2e validation in a real browser. Trigger on "testar no browser", "test in browser", "Playwright QA", "validar o fluxo", "validate the flow", "check the UI", "ponta a ponta", or "end-to-end". NOT for unit/integration test execution and AC validation (use qa) — and NOT for writing product code or defining the initial test strategy (use test-planner or tdd-specialist).
+
+  <example>
+  Context: A new checkout flow is deployed to staging and needs e2e validation.
+  user: "Valida o fluxo de checkout no browser, ponta a ponta"
+  assistant: "I'll use the qa-tester agent to drive Playwright through the checkout flow and capture any UI or console issues."
+  <commentary>
+  Real-browser e2e validation is the qa-tester remit, not qa's.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Designer wants to confirm the implemented page matches the design.
+  user: "Check the new dashboard page matches the Figma design"
+  assistant: "I'll use the qa-tester agent to compare the live page in the browser against the design and report deltas."
+  <commentary>
+  UI-vs-design checks against a running app belong to qa-tester.
+  </commentary>
+  </example>
 tools:
   - Read
   - Glob

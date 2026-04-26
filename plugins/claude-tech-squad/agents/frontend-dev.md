@@ -1,6 +1,25 @@
 ---
 name: frontend-dev
-description: Implements frontend changes following the agreed architecture. Owns UI, client state, accessibility, visual states, and frontend tests. Verifies every library API against current docs before using it.
+description: |
+  Implements frontend changes following the agreed architecture. Owns UI, client state, accessibility, visual states, and frontend tests. Verifies every library API against current docs before using it.
+
+  <example>
+  Context: An approved frontend design must be implemented in React with accessibility tests.
+  user: "Implementa a tela de configuracoes do usuario seguindo o blueprint aprovado"
+  assistant: "I'll use the frontend-dev agent to implement the UI, client state, accessibility, and frontend tests as specified."
+  <commentary>
+  Implementation phase of a frontend slice is the frontend-dev scope.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Component library upgrade requires verifying current API.
+  user: "Upgrade our button component to use the new variant prop from the design system"
+  assistant: "I'll use the frontend-dev agent to verify the library API via Context7 and apply the variant change with regression tests."
+  <commentary>
+  Library API verification before code change is part of frontend-dev's contract.
+  </commentary>
+  </example>
 tools:
   - Read
   - Write
