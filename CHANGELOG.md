@@ -6,7 +6,7 @@
 
 - `repository` field in `plugin.json` changed from object `{type, url}` (npm-style) to string. Claude Code marketplace schema requires string; previous shape caused `Validation errors: repository: Invalid input: expected string, received object` and prevented the plugin from loading.
 
-## [5.62.4] - 2026-04-26 — Automated maintenance release
+## [5.62.5] - 2026-04-26 — Automated maintenance release
 
 ### Changed
 
