@@ -425,5 +425,75 @@ def memory(run_id: str, key: str, content: str | None, append: bool, state_dir: 
             _output({"key": key, "content": mem})
 
 
+@main.group("test-gate")
+def test_gate_group():
+    """Mandatory test gate operations."""
+
+
+@test_gate_group.command("evaluate")
+@click.option("--skill", required=True)
+@click.option("--run-id", required=True)
+@click.option("--repo-root", default=".", type=click.Path(exists=True))
+def test_gate_evaluate(skill: str, run_id: str, repo_root: str):
+    import subprocess
+    import yaml
+
+    from squad_cli.test_gate import (
+        GatePolicy,
+        GateVerdict,
+        StackFingerprint,
+        check_paired_tests,
+        evaluate_gate,
+    )
+
+    repo = Path(repo_root).resolve()
+    try:
+        diff = subprocess.check_output(
+            ["git", "-C", str(repo), "diff", "--name-only", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip().splitlines()
+    except subprocess.CalledProcessError:
+        diff = []
+
+    policy_path = repo / "plugins/claude-tech-squad/runtime-policy.yaml"
+    if not policy_path.exists():
+        click.echo(f"test-gate: runtime-policy not found at {policy_path}", err=True)
+        raise SystemExit(1)
+    policy_yaml = yaml.safe_load(policy_path.read_text()) or {}
+    mtg = policy_yaml.get("mandatory_test_gate", {})
+    if skill not in mtg.get("skills_in_scope", []):
+        click.echo(f"test-gate: {skill} not in scope; skip")
+        raise SystemExit(0)
+
+    stack = StackFingerprint(language="python")
+    try:
+        from squad_cli.stack_detect import detect_stack
+        result = detect_stack(repo)
+        stack_name = (result.stack or "").lower()
+        if "django" in stack_name or "python" in stack_name or "rag" in stack_name:
+            stack = StackFingerprint(language="python")
+        elif "react" in stack_name or "vue" in stack_name or "next" in stack_name or "node" in stack_name:
+            stack = StackFingerprint(language="typescript")
+        elif "go" in stack_name:
+            stack = StackFingerprint(language="go")
+    except Exception:
+        pass
+
+    unpaired = check_paired_tests(diff, stack, repo)
+    policy = GatePolicy(
+        enforce_level=mtg.get("enforce_level", "warning"),
+        coverage_warning_threshold=float(mtg.get("coverage_warning_threshold", 0.02)),
+    )
+    verdict = evaluate_gate(unpaired, 0.0, policy)
+    click.echo(
+        f"test-gate run_id={run_id} skill={skill} verdict={verdict.value} "
+        f"unpaired={[u.path for u in unpaired]}"
+    )
+    if verdict == GateVerdict.BLOCKING:
+        raise SystemExit(2)
+    raise SystemExit(0)
+
+
 if __name__ == "__main__":
     main()

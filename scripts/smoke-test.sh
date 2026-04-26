@@ -392,4 +392,14 @@ bash "$ROOT/scripts/test-render.sh" > /dev/null || {
   exit 1
 }
 
+# ── Mandatory test gate runtime artifacts ──────────────────────────────────
+test -x "$PLUGIN_DIR/hooks/test-gate.sh" || {
+  echo "Smoke test failed: hooks/test-gate.sh not executable"
+  exit 1
+}
+"$PLUGIN_DIR/bin/squad-cli" test-gate --help >/dev/null 2>&1 || {
+  echo "Smoke test failed: 'squad-cli test-gate' subcommand missing"
+  exit 1
+}
+
 echo "claude-tech-squad smoke test passed"
