@@ -10,6 +10,8 @@ tools:
   - Write
   - Agent
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write, Agent]
+model: opus
+color: red
 ---
 
 # Incident Manager

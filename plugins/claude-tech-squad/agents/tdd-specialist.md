@@ -2,6 +2,8 @@
 name: tdd-specialist
 description: Converts the approved scope into executable red-green-refactor cycles. Defines first failing tests, minimal implementation targets, and refactor checkpoints for delivery agents using the repo's real test stack.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: opus
+color: yellow
 ---
 
 # TDD Specialist Agent

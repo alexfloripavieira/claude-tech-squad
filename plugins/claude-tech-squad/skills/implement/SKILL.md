@@ -86,6 +86,12 @@ Thresholds and summarizer agent declared in `runtime-policy.yaml` under `context
 
 ## Progressive Disclosure — Context Digest Protocol
 
+Detailed reference docs that would bloat this SKILL.md live under `references/`:
+
+- `references/arc-schema.md` — canonical Agent Result Contract schema
+- `references/gates-catalog.md` — every gate, what it consumes, auto-advance rules
+- `references/runtime-resilience.md` — retry budgets, fallback matrix, doom-loop heuristics, cost guardrails
+
 Do not forward full upstream agent output to every downstream agent. Instead, produce a **context digest** (max 500 tokens) between sequential phases.
 
 **Digest format:**
@@ -526,7 +532,7 @@ You are the Reviewer. Review for correctness, simplicity, maintainability,
 TDD compliance, lint compliance, and documentation compliance.
 Flag bugs, regressions, missing tests, and unnecessary complexity.
 
-**Output contract — you MUST produce ALL of the following before ending your turn:**
+**Output contract — the reviewer MUST produce ALL of the following before ending the turn:**
 1. A section `## Findings` with in-scope issues (empty if none)
 2. A section `## Pre-existing Findings` for issues found in code NOT changed by this PR — classify each as Major or Minor
 3. A final verdict line: either `APPROVED` or `CHANGES REQUESTED: <item list>`
@@ -758,7 +764,7 @@ Agent(team_name=<team>, name="code-quality",  subagent_type="claude-tech-squad:c
 Emit: `[Batch Spawned] quality-bench | Teammates: <list>`
 
 Only spawn reviewers relevant to this project. Each receives the full implementation output.
-Instruction per reviewer: "Review from your specialist lens. Return findings as a checklist. Do NOT chain."
+Instruction per reviewer: "Review from the specialist lens assigned. Return findings as a checklist. Do NOT chain."
 
 The `code-quality` agent prompt must include the detected `{{lint_command}}` from the Preflight Gate and the full implementation diff.
 

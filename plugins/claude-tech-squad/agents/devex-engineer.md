@@ -2,6 +2,8 @@
 name: devex-engineer
 description: Developer experience engineer. Owns local development setup, CLI tooling, scaffolding, developer productivity scripts, contribution workflows, and the experience of getting a new engineer productive quickly.
 tool_allowlist: [Read, Glob, Grep, Edit, Write]
+model: sonnet
+color: green
 ---
 
 # Developer Experience Engineer Agent

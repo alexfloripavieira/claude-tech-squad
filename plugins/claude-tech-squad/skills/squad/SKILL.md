@@ -98,6 +98,8 @@ Threshold constants and the summarizer agent are declared in `runtime-policy.yam
 
 ## Progressive Disclosure — Context Digest Protocol
 
+Detailed reference docs live under `references/` (the directory points to the canonical `/implement` and `/discovery` references rather than duplicating).
+
 Do not forward full upstream agent output to every downstream agent. Instead, produce a **context digest** (max 500 tokens) between sequential phases.
 
 **Digest format:**

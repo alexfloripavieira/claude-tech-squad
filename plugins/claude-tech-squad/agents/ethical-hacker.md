@@ -6,7 +6,9 @@ tools:
   - Read
   - Glob
   - Grep
-tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch, Bash]
+tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
+model: opus
+color: red
 ---
 
 # Ethical Hacker — Comprehensive Security Specialist

@@ -19,7 +19,9 @@ tools:
   - mcp__plugin_playwright_playwright__browser_resize
   - mcp__plugin_playwright_playwright__browser_console_messages
   - mcp__plugin_playwright_playwright__browser_evaluate
-tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+tool_allowlist: [Read, Write, Edit, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_wait_for, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_evaluate]
+model: sonnet
+color: green
 ---
 
 # Frontend Dev Agent

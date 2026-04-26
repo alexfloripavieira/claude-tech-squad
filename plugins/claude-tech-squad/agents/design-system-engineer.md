@@ -2,6 +2,8 @@
 name: design-system-engineer
 description: Design system specialist. Owns component libraries, design tokens, Storybook, visual consistency, accessibility in the component layer, and the contract between design tools (Figma, Pencil) and front-end implementation.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: sonnet
+color: blue
 ---
 
 # Design System Engineer Agent

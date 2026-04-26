@@ -2,6 +2,8 @@
 name: search-engineer
 description: Search engineering specialist. Owns full-text search, faceted search, relevance tuning, and search infrastructure using Elasticsearch, OpenSearch, Typesense, and Algolia. Distinct from rag-engineer who handles vector/semantic search.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: sonnet
+color: blue
 ---
 
 # Search Engineer Agent

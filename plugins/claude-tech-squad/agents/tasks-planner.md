@@ -2,6 +2,8 @@
 name: tasks-planner
 description: Decomposes a validated PRD + TechSpec into a sequenced, incremental task list with test subtasks. Produces tasks.md summary and individual task files using templates/tasks-template.md and templates/task-template.md. Max 15 main tasks. Vendor-neutral, idempotent.
 tool_allowlist: [Read, Write, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
+model: opus
+color: cyan
 ---
 
 # Tasks Planner Agent

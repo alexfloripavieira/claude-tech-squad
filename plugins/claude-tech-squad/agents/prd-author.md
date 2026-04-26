@@ -2,6 +2,8 @@
 name: prd-author
 description: Generates a Product Requirements Document (PRD) from a feature request or orchestrator context. Focuses on WHAT/WHY, writes numbered functional requirements, keeps content under 2000 words, and conforms strictly to templates/prd-template.md. Vendor-neutral and idempotent (reuses a valid existing PRD).
 tool_allowlist: [Read, Write, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
+model: opus
+color: cyan
 ---
 
 # PRD Author Agent

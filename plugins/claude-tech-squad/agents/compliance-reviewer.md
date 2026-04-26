@@ -2,6 +2,8 @@
 name: compliance-reviewer
 description: Compliance and governance specialist. Reviews auditability, policy requirements, regulated-data handling, approval flows, and traceability expectations.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: opus
+color: yellow
 ---
 
 # Compliance Reviewer Agent

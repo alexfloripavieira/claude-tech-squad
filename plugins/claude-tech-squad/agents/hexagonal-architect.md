@@ -2,6 +2,8 @@
 name: hexagonal-architect
 description: Specialist for Ports & Adapters adoption. Designs Hexagonal Architecture boundaries, migration strategy, port contracts, adapter seams, and TDD order when the feature explicitly chooses or evaluates Hexagonal Architecture.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: opus
+color: cyan
 ---
 
 # Hexagonal Architect Agent

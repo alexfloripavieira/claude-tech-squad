@@ -2,6 +2,8 @@
 name: security-engineer
 description: Security implementation specialist. Builds security features: OAuth2/OIDC flows, MFA, WAF rules, SAST/DAST pipeline integration, threat modeling, penetration testing guidance, and security hardening. Distinct from security-reviewer who audits code.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: opus
+color: red
 ---
 
 # Security Engineer Agent

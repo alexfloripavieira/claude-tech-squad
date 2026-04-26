@@ -6,6 +6,8 @@ tools:
   - Glob
   - Grep
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
+model: sonnet
+color: green
 ---
 
 # Platform Dev Agent

@@ -8,7 +8,9 @@ tools:
   - Bash
   - mcp__plugin_context7_context7__resolve-library-id
   - mcp__plugin_context7_context7__query-docs
-tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+tool_allowlist: [Read, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, WebSearch, WebFetch]
+model: opus
+color: cyan
 ---
 
 # Tech Lead Agent

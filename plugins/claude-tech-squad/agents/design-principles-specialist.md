@@ -2,6 +2,8 @@
 name: design-principles-specialist
 description: Applies software design principles pragmatically. Reviews boundaries, dependency direction, cohesion, coupling, testability, ports and adapters opportunities, clean architecture tradeoffs, and Clean Code-style readability using the repository's real structure.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: opus
+color: cyan
 ---
 
 # Design Principles Specialist Agent

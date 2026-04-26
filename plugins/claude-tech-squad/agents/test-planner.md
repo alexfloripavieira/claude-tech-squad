@@ -2,6 +2,8 @@
 name: test-planner
 description: Defines the testing contract for the agreed solution. Maps acceptance criteria to unit, integration, e2e, regression, and manual validation. Uses only documented test APIs for the current stack.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: sonnet
+color: yellow
 ---
 
 # Test Planner Agent

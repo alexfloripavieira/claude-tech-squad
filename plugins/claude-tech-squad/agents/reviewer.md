@@ -2,6 +2,8 @@
 name: reviewer
 description: Reviews code for correctness, simplicity, maintainability, and documentation compliance. Flags bugs, regressions, missing tests, and unnecessary complexity before quality sign-off.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+model: opus
+color: yellow
 ---
 
 # Reviewer Agent

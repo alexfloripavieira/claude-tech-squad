@@ -53,6 +53,41 @@ Emit these trace lines so the operator can follow the run and the SEP log can ca
 - `[Temp Files Cleaned] bug-fix | N files removed` (when applicable)
 - `[SEP Log Written] ai-docs/.squad-log/<filename>`
 
+## Agent Result Contract (ARC)
+
+Every spawned teammate (techlead, dev, qa, reviewer) MUST return both blocks below. Outputs missing either block are treated as a silent failure (see Teammate Failure Protocol).
+
+```yaml
+result_contract:
+  status: PASS | FAIL | NEEDS_HUMAN
+  confidence: low | medium | high
+  files_touched: [<paths>]
+  evidence:
+    test_command: "<exact command run>"
+    test_output_path: "<artifact path or inline excerpt>"
+  blockers: [<short list, empty if none>]
+  next_action: "<one-line handoff>"
+verification_checklist:
+  - "[x|FAIL] Failing test written before fix (Step 3)"
+  - "[x|FAIL] Test passes after fix (Step 5)"
+  - "[x|FAIL] No production data destroyed"
+  - "[x|FAIL] No commit/push without explicit user approval"
+  - "[x|FAIL] tool_allowlist respected"
+```
+
+This is the inline ARC for `/bug-fix` (whitelisted for inline execution per CLAUDE.md). For full multi-gate ARC see `/implement` and `/squad`.
+
+## Runtime Resilience Contract
+
+- **Retry budget:** at most 2 retries per teammate (per `runtime-policy.yaml.failure_handling`).
+- **Fallback:** on second failure of dev, fall back to tech-lead with reduced scope; on second failure of reviewer, escalate to user.
+- **Doom loop guard:** halt if root cause hypothesis flips 3 times in a row (per `runtime-policy.yaml.doom_loop_detection`).
+- **Cost guardrail:** warn at 75 % of skill budget, halt at 100 %.
+
+### Checkpoint / Resume Rules
+
+- Checkpoint after Step 5 (validation PASS). On resume, re-read `ai-docs/.squad-log/.last-bug-fix-checkpoint.json` and skip Steps 0–5 if state is consistent. Otherwise restart from Step 0.
+
 ## Execution
 
 ## Teammate Failure Protocol
@@ -115,7 +150,7 @@ Ask the user for (skip fields already extracted from ticket):
 3. **Reproduction**: Steps or code to reproduce
 4. **Context**: Environment (dev/staging/prod), recent changes if known
 
-Do not proceed until you have at least symptom + expected behavior.
+Do not proceed until at least symptom + expected behavior have been captured.
 
 ### Step 1b — Stack Specialist Routing
 
@@ -237,7 +272,7 @@ Failing test: {{tdd_output}}
 
 Rules:
 - Fix ONLY what is described. Do not refactor surrounding code.
-- The failing test must pass after your fix.
+- The failing test must pass after the fix is applied.
 - Do not introduce new behavior beyond what is needed to fix the bug.
 - Follow the project's coding standards (Hexagonal Architecture, no direct DB JOINs across apps, etc.)
 - Verify all library APIs via context7 before using them.
