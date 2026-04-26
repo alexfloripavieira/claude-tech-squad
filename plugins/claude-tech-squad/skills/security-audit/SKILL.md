@@ -72,8 +72,8 @@ Before any other work, compute the remediation close-rate across the history of 
 
 ```bash
 # Count total [ ] vs [x] CRITICAL items across all remediation files
-TOTAL_OPEN=$(grep -h "^- \[ \].*CRITICAL\|^- \[ \].*\[CRIT" ai-docs/security-remediation-*.md 2>/dev/null | wc -l)
-TOTAL_CLOSED=$(grep -h "^- \[x\].*CRITICAL\|^- \[x\].*\[CRIT" ai-docs/security-remediation-*.md 2>/dev/null | wc -l)
+TOTAL_OPEN=$(grep -h "^- \[ \].*CRITICAL\|^- \[ \].*\[CRIT\|^- \[ \].*HIGH\|^- \[ \].*\[HIGH" ai-docs/security-remediation-*.md 2>/dev/null | wc -l)
+TOTAL_CLOSED=$(grep -h "^- \[x\].*CRITICAL\|^- \[x\].*\[CRIT\|^- \[x\].*HIGH\|^- \[x\].*\[HIGH" ai-docs/security-remediation-*.md 2>/dev/null | wc -l)
 TOTAL=$((TOTAL_OPEN + TOTAL_CLOSED))
 if [ "$TOTAL" -gt 0 ]; then
   CLOSE_RATE=$((TOTAL_CLOSED * 100 / TOTAL))
@@ -86,7 +86,7 @@ echo "close_rate=${CLOSE_RATE}% open=${TOTAL_OPEN} closed=${TOTAL_CLOSED}"
 **If close-rate < 40%:** this is a security doom loop (audits generate faster than they close). Emit:
 
 ```
-[Gate] Security Doom Loop Detected | close_rate={{rate}}% | open_critical={{open}}
+[Gate] Security Doom Loop Detected | close_rate={{rate}}% | open_critical_high={{open}}
 A new audit would add findings without closing the backlog. This run is BLOCKED until:
 - [Q] Invoke /claude-tech-squad:squad on the recurring CRITICAL findings (mandatory recommendation)
 - [O] Override — provide explicit reason to be recorded in SEP log under `doom_loop_override_reason`
@@ -162,6 +162,34 @@ find . -name "*.prompt" -o -name "*.jinja2" -o -name "system-prompt*" 2>/dev/nul
 If any LLM library or prompt file is found: set `llm_detected=true`. Record: which libraries, whether prompt files exist.
 
 If `llm_detected=true`, emit: `[LLM Detected] AI/LLM code found — activating LLM security checks`
+
+### Step 1c — Compliance scope detection
+
+Lightweight detection so the SEP `compliance_scope` block can be populated (parity with `/pentest-deep`):
+
+```bash
+# LGPD signals (Brazilian residents data)
+LGPD_SIGNALS=$(grep -rli "cpf\|cnpj\|encarregado\|titular dos dados\|lgpd\|anpd" --include="*.md" --include="*.py" --include="*.ts" --include="*.js" --include="*.tsx" --include="*.jsx" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=venv --exclude-dir=.venv --exclude-dir=dist --exclude-dir=build 2>/dev/null | head -1)
+LGPD=$([ -n "$LGPD_SIGNALS" ] && echo "true" || echo "false")
+
+# GDPR signals
+GDPR_SIGNALS=$(grep -rli "gdpr\|eu/eea\|data subject\|right to erasure" --include="*.md" --include="*.py" --include="*.ts" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=venv --exclude-dir=.venv --exclude-dir=dist --exclude-dir=build 2>/dev/null | head -1)
+GDPR=$([ -n "$GDPR_SIGNALS" ] && echo "true" || echo "false")
+
+# PCI-DSS signals
+PCI_SIGNALS=$(grep -rli "cardholder\|primary account number\|cvv\|stripe\|adyen\|braintree" --include="*.md" --include="*.py" --include="*.ts" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=venv --exclude-dir=.venv --exclude-dir=dist --exclude-dir=build 2>/dev/null | head -1)
+PCI=$([ -n "$PCI_SIGNALS" ] && echo "true" || echo "false")
+
+# HIPAA signals
+HIPAA_SIGNALS=$(grep -rli "phi\|protected health\|hipaa\|hl7\|fhir" --include="*.md" --include="*.py" --include="*.ts" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=venv --exclude-dir=.venv --exclude-dir=dist --exclude-dir=build 2>/dev/null | head -1)
+HIPAA=$([ -n "$HIPAA_SIGNALS" ] && echo "true" || echo "false")
+
+echo "compliance_scope: lgpd=$LGPD gdpr=$GDPR pci_dss=$PCI hipaa=$HIPAA"
+```
+
+Capture into `{{lgpd_detected}}`, `{{gdpr_detected}}`, `{{pci_detected}}`, `{{hipaa_detected}}` for the SEP log frontmatter.
+
+Emit: `[Compliance Scope] lgpd={{lgpd_detected}} gdpr={{gdpr_detected}} pci_dss={{pci_detected}} hipaa={{hipaa_detected}}`
 
 ### Step 2 — Run static analysis tools via Bash
 
@@ -397,10 +425,10 @@ dedup_recurring: N
 dedup_regressed: N
 remediation_artifact: ai-docs/security-remediation-YYYY-MM-DD.md
 compliance_scope:
-  lgpd: {{bool_or_null}}
-  gdpr: {{bool_or_null}}
-  pci_dss: {{bool_or_null}}
-  hipaa: {{bool_or_null}}
+  lgpd: {{lgpd_detected}}
+  gdpr: {{gdpr_detected}}
+  pci_dss: {{pci_detected}}
+  hipaa: {{hipaa_detected}}
 developer_feedback: {{one_line_text_or_null}}   # captured at end-of-run from operator if provided
 tokens_input: {{total_input_tokens}}  # required — actual measurement or null; 0 placeholder forbidden
 tokens_output: {{total_output_tokens}}  # required — actual measurement or null; 0 placeholder forbidden
