@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.58.1] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Audit-class consistency and roster refresh after pentest-deep (#27)
 ## [5.58.0] - 2026-04-26 — Automated feature release
 
 ### Added
