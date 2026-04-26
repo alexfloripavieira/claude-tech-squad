@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.62.3] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Merge fix/stale-tech-lead-refs: clean up residual tech-lead slug refs
+
+### Fixed
+
+- Clean up stale tech-lead refs after agent rename
 ## [5.62.2] - 2026-04-26 — Automated maintenance release
 
 ### Changed
