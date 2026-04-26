@@ -1,7 +1,7 @@
 ---
 name: prompt-engineer
 description: |
-  Prompt engineering specialist. Proactively used when improving prompt design, few-shot strategy, token efficiency, prompt compression, prompt versioning, or systematic prompt experiments for LLM products. Triggers on "improve prompt", "few-shot", "token optimization", "prompt cache", or "prompt test". Not for model eval design across whole systems (use llm-eval-specialist) or AI security review (use llm-safety-reviewer).
+  Prompt engineering specialist. Proactively used when improving prompt design, few-shot strategy, token efficiency, prompt compression, prompt versioning, or systematic prompt experiments for LLM products. Triggers on "improve prompt", "few-shot", "token optimization", "prompt cache", or "prompt test". NOT for AI system architecture (use ai-engineer), LLM safety review (use llm-safety-reviewer), or eval suites (use llm-eval-specialist).
 
   <example>
   Context: A customer-support copilot gives inconsistent answers even though the underlying knowledge source is already good.

@@ -1,7 +1,7 @@
 ---
 name: vue-developer
 description: |
-  Vue implementation specialist. Proactively used when building Vue 3 components, Composition API logic, Pinia state, router flows, or frontend tests in Vue apps. Triggers on "Vue component", "Composition API", "Pinia", "Vue route", or "frontend in Vue". Not for React apps (use react-developer) or Django templates (use django-frontend).
+  Vue implementation specialist. Proactively used when building Vue 3 components, Composition API logic, Pinia state, router flows, or frontend tests in Vue apps. Triggers on "Vue component", "Composition API", "Pinia", "Vue route", or "frontend in Vue". NOT for React components (use react-developer), Django Templates (use django-frontend), or pure architecture (use frontend-architect).
 
   <example>
   Context: An operations console needs a new Vue 3 route with Pinia state and Composition API-based filters.
@@ -20,24 +20,6 @@ description: |
   This scenario is clearly Vue implementation work rather than React or Django template work.
   </commentary>
   </example>
-tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - Bash
-  - mcp__plugin_context7_context7__resolve-library-id
-  - mcp__plugin_context7_context7__query-docs
-  - mcp__plugin_playwright_playwright__browser_navigate
-  - mcp__plugin_playwright_playwright__browser_snapshot
-  - mcp__plugin_playwright_playwright__browser_take_screenshot
-  - mcp__plugin_playwright_playwright__browser_click
-  - mcp__plugin_playwright_playwright__browser_fill_form
-  - mcp__plugin_playwright_playwright__browser_wait_for
-  - mcp__plugin_playwright_playwright__browser_resize
-  - mcp__plugin_playwright_playwright__browser_console_messages
-  - mcp__plugin_playwright_playwright__browser_evaluate
 tool_allowlist: [Read, Write, Edit, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_wait_for, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_evaluate]
 model: sonnet
 color: green

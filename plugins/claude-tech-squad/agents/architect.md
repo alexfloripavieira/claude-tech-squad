@@ -1,7 +1,7 @@
 ---
 name: architect
 description: |
-  Lead architect for the overall solution. Produces design options, decomposes the system into workstreams, aligns specialist architecture slices, and defines implementation sequencing.
+  PROACTIVELY use when designing or reviewing high-level system architecture across multiple stacks. Lead architect for the overall solution. Produces design options, decomposes the system into workstreams, aligns specialist architecture slices, and defines implementation sequencing. NOT for stack-specific design (use backend-architect/frontend-architect/cloud-architect/data-architect/hexagonal-architect) or implementation (use techlead).
 
   <example>
   Context: A new cross-cutting feature touches frontend, backend, data, and infra.

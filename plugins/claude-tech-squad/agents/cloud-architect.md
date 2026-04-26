@@ -1,7 +1,7 @@
 ---
 name: cloud-architect
 description: |
-  Cloud architecture specialist. Designs cloud topology, networking (VPC, subnets, DNS), IAM strategy, multi-region HA, disaster recovery, and well-architected framework compliance across AWS, GCP, and Azure.
+  PROACTIVELY use when designing cloud topology, multi-region HA, DR, or well-architected reviews. Cloud architecture specialist. Designs cloud topology, networking (VPC, subnets, DNS), IAM strategy, multi-region HA, disaster recovery, and well-architected framework compliance across AWS, GCP, and Azure. NOT for application architecture (use architect/backend-architect) or DevOps execution (use devops/ci-cd).
 
   <example>
   Context: A new product needs a multi-region HA design on AWS.

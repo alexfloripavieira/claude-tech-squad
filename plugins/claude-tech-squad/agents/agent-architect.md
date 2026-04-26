@@ -1,7 +1,7 @@
 ---
 name: agent-architect
 description: |
-  Multi-agent systems architect. Owns orchestration patterns, MCP (Model Context Protocol), tool use design, agent loops, handoff protocols, Claude Agent SDK, and frameworks like LangChain, LlamaIndex, AutoGen, and CrewAI.
+  PROACTIVELY use when designing multi-agent topologies, orchestration patterns, MCP integrations, or agent handoff protocols. Multi-agent systems architect. Owns orchestration patterns, MCP (Model Context Protocol), tool use design, agent loops, handoff protocols, Claude Agent SDK, and frameworks like LangChain, LlamaIndex, AutoGen, and CrewAI. NOT for application architecture (use architect/backend-architect) or implementation (use backend-dev/frontend-dev).
 
   <example>
   Context: Team wants to build an autonomous research assistant that uses multiple specialized agents.

@@ -1,7 +1,7 @@
 ---
 name: django-frontend
 description: |
-  Django template frontend specialist. Proactively used when building DTL templates, Tailwind-based pages, template tags, static assets, responsive layouts, or server-rendered UI components. Triggers on "Django template", "Tailwind page", "DTL", "server-rendered UI", or "template tag". Not for React/Vue SPAs (use react-developer or vue-developer) or backend model/view logic (use django-backend).
+  Django template frontend specialist. Proactively used when building DTL templates, Tailwind-based pages, template tags, static assets, responsive layouts, or server-rendered UI components. Triggers on "Django template", "Tailwind page", "DTL", "server-rendered UI", or "template tag". NOT for React/Vue components (use react-developer/vue-developer) or pure backend logic (use django-backend).
 
   <example>
   Context: A Django app needs a responsive account settings page rendered entirely with templates and Tailwind.

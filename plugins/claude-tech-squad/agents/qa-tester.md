@@ -20,24 +20,6 @@ description: |
   UI-vs-design checks against a running app belong to qa-tester.
   </commentary>
   </example>
-tools:
-  - Read
-  - Glob
-  - mcp__plugin_playwright_playwright__browser_navigate
-  - mcp__plugin_playwright_playwright__browser_snapshot
-  - mcp__plugin_playwright_playwright__browser_take_screenshot
-  - mcp__plugin_playwright_playwright__browser_click
-  - mcp__plugin_playwright_playwright__browser_fill_form
-  - mcp__plugin_playwright_playwright__browser_type
-  - mcp__plugin_playwright_playwright__browser_press_key
-  - mcp__plugin_playwright_playwright__browser_select_option
-  - mcp__plugin_playwright_playwright__browser_hover
-  - mcp__plugin_playwright_playwright__browser_wait_for
-  - mcp__plugin_playwright_playwright__browser_evaluate
-  - mcp__plugin_playwright_playwright__browser_console_messages
-  - mcp__plugin_playwright_playwright__browser_network_requests
-  - mcp__plugin_playwright_playwright__browser_resize
-  - mcp__plugin_playwright_playwright__browser_handle_dialog
 tool_allowlist: [Read, Glob, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_type, mcp__plugin_playwright_playwright__browser_press_key, mcp__plugin_playwright_playwright__browser_select_option, mcp__plugin_playwright_playwright__browser_hover, mcp__plugin_playwright_playwright__browser_wait_for, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_network_requests, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_handle_dialog, Grep, Bash, Edit, Write]
 model: sonnet
 color: yellow

@@ -1,7 +1,7 @@
 ---
 name: ai-engineer
 description: |
-  AI systems specialist for model integrations, prompt contracts, tool use, retrieval, evals, latency, and safety-aware implementation. Trigger on phrases like "integrar LLM", "build a RAG pipeline", "tune prompt", "add evals", "reduce hallucinations", or "AI feature implementation". NOT for high-level multi-agent topology (use agent-architect) or pure ML model training (use ml-engineer).
+  PROACTIVELY use when implementing LLM integrations, RAG pipelines, retrieval, evals, or safety-aware AI features. AI systems specialist for model integrations, prompt contracts, tool use, retrieval, evals, latency, and safety-aware implementation. Trigger on phrases like "integrar LLM", "build a RAG pipeline", "tune prompt", "add evals", "reduce hallucinations", or "AI feature implementation". NOT for prompt-only changes (use prompt-engineer), LLM eval suites (use llm-eval-specialist), LLM safety review (use llm-safety-reviewer), high-level multi-agent topology (use agent-architect), or pure ML model training (use ml-engineer).
 
   <example>
   Context: Product wants to add a summarization feature backed by an LLM with retrieval.

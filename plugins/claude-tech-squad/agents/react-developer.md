@@ -1,7 +1,7 @@
 ---
 name: react-developer
 description: |
-  React implementation specialist. Proactively used when building React components, hooks, state flows, API integration, or frontend tests in React apps. Triggers on "React component", "hook", "state management", "SPA screen", or "frontend in React". Not for Vue apps (use vue-developer) or server-rendered Django templates (use django-frontend).
+  React implementation specialist. Proactively used when building React components, hooks, state flows, API integration, or frontend tests in React apps. Triggers on "React component", "hook", "state management", "SPA screen", or "frontend in React". NOT for Vue components (use vue-developer), Django Templates (use django-frontend), or pure architecture (use frontend-architect).
 
   <example>
   Context: A SaaS app needs a new React dashboard screen with hooks, optimistic updates, and component tests.
@@ -20,24 +20,6 @@ description: |
   This scenario is React-specific frontend implementation, not server-rendered Django templates.
   </commentary>
   </example>
-tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - Bash
-  - mcp__plugin_context7_context7__resolve-library-id
-  - mcp__plugin_context7_context7__query-docs
-  - mcp__plugin_playwright_playwright__browser_navigate
-  - mcp__plugin_playwright_playwright__browser_snapshot
-  - mcp__plugin_playwright_playwright__browser_take_screenshot
-  - mcp__plugin_playwright_playwright__browser_click
-  - mcp__plugin_playwright_playwright__browser_fill_form
-  - mcp__plugin_playwright_playwright__browser_wait_for
-  - mcp__plugin_playwright_playwright__browser_resize
-  - mcp__plugin_playwright_playwright__browser_console_messages
-  - mcp__plugin_playwright_playwright__browser_evaluate
 tool_allowlist: [Read, Write, Edit, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_wait_for, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_evaluate]
 model: sonnet
 color: green

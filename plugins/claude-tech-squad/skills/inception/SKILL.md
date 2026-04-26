@@ -1,6 +1,7 @@
 ---
 name: inception
 description: This skill should be used when a PRD exists and needs technical refinement before implementation — produces a validated TechSpec plus viability, risk, gate, and effort estimate report. Trigger with "refinar techspec", "inception técnico", "consolidar PRD em techspec", "gate de viabilidade", "estimar risco técnico", "/inception", "techspec from PRD", "pre-implementation refinement", "validar PRD tecnicamente". Vendor-neutral, Context7-first, idempotent. NOT for greenfield planning without PRD (use /discovery) or implementation (use /implement).
+user-invocable: true
 ---
 
 # /inception — Technical Refinement
