@@ -209,7 +209,7 @@ for skill in discovery implement squad; do
   grep -q '^### Checkpoint / Resume Rules$' "$skill_file" || { echo "Smoke test failed: missing Checkpoint / Resume Rules in $skill"; exit 1; }
 done
 
-for skill in bug-fix cloud-debug dependency-check dashboard factory-retrospective from-ticket hotfix iac-review incident-postmortem llm-eval migration-plan multi-service onboarding pre-commit-lint prompt-review pr-review refactor release security-audit; do
+for skill in bug-fix cloud-debug dependency-check dashboard factory-retrospective from-ticket hotfix iac-review incident-postmortem llm-eval migration-plan multi-service onboarding pre-commit-lint prompt-review pr-review refactor release security-audit tech-debt-audit; do
   skill_file="$SKILLS_DIR/$skill/SKILL.md"
   [ -f "$skill_file" ] || { echo "Smoke test failed: SKILL.md missing for $skill"; exit 1; }
   grep -q '## Global Safety Contract' "$skill_file" || { echo "Smoke test failed: missing Global Safety Contract in $skill"; exit 1; }
