@@ -61,8 +61,37 @@ Any of these are treated as silent failure and trigger the retry/fallback budget
 - `status` value not in the enumeration
 - Empty response or response that does not parse as the expected handoff format
 
+## `/implement` legacy ARC block (compatibility form)
+
+The `/implement` SKILL also accepts the legacy ARC block where `status` uses `completed | needs_input | blocked | failed`. Both forms validate; the orchestrator normalises to the canonical PASS/FAIL/NEEDS_HUMAN form before consulting fallback/severity policy.
+
+```yaml
+result_contract:
+  status: completed | needs_input | blocked | failed
+  confidence: high | medium | low
+  blockers: []
+  artifacts: []
+  findings: []
+  next_action: "..."
+
+verification_checklist:
+  plan_produced: true
+  base_checks_passed: [completeness, accuracy, contract, scope, downstream]
+  role_checks_passed: [<role-specific check names>]
+  issues_found_and_fixed: 0
+  confidence_after_verification: high | medium | low
+```
+
+Validation rules:
+- `status` must reflect the real execution outcome
+- `blockers`, `artifacts`, `findings` use empty lists when there is nothing to report
+- `next_action` must identify the single best downstream step
+- `confidence_after_verification` must match `confidence` in `result_contract`
+- Missing `result_contract` OR missing `verification_checklist` triggers the Teammate Failure Protocol
+
 ## Cross-references
 
 - Runtime retry/fallback rules: `references/runtime-resilience.md`
 - Gate catalog (which gates use which ARC fields): `references/gates-catalog.md`
+- Visual reporting (consumes `metrics`): `references/visual-reporting.md`
 - Policy file: `plugins/claude-tech-squad/runtime-policy.yaml`
