@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.58.6] - 2026-04-26 — Automated maintenance release
+
+### Changed
+
+- Align plugin with plugin-dev review feedback (#32)
 ## [5.58.5] - 2026-04-26 — Automated maintenance release
 
 ### Changed
