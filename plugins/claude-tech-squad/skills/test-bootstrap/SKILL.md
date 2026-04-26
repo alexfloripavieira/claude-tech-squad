@@ -74,3 +74,30 @@ Agent(team_name="bootstrap-team", name="ci-cd", subagent_type="claude-tech-squad
 
 4. **Human gate** — operator reviews diff before commit.
 5. Persist `task_memory.set("test_infra_bootstrapped", true)` and write SEP log.
+
+## SEP Log Template
+
+```yaml
+run_id: <id>
+skill: test-bootstrap
+timestamp: <iso8601>
+final_status: completed
+tokens_input: 0
+tokens_output: 0
+estimated_cost_usd: 0.0
+total_duration_ms: 0
+checkpoints: [bootstrap.framework_chosen, bootstrap.tests_written, bootstrap.ci_added]
+teammates:
+  - name: test-planner
+    subagent_type: claude-tech-squad:test-planner
+    tokens_input: 0
+    tokens_output: 0
+  - name: test-automation-engineer
+    subagent_type: claude-tech-squad:test-automation-engineer
+    tokens_input: 0
+    tokens_output: 0
+  - name: ci-cd
+    subagent_type: claude-tech-squad:ci-cd
+    tokens_input: 0
+    tokens_output: 0
+```

@@ -397,6 +397,10 @@ test -x "$PLUGIN_DIR/hooks/test-gate.sh" || {
   echo "Smoke test failed: hooks/test-gate.sh not executable"
   exit 1
 }
+test -f "$PLUGIN_DIR/skills/test-bootstrap/SKILL.md" || {
+  echo "Smoke test failed: /test-bootstrap skill missing"
+  exit 1
+}
 "$PLUGIN_DIR/bin/squad-cli" test-gate --help >/dev/null 2>&1 || {
   echo "Smoke test failed: 'squad-cli test-gate' subcommand missing"
   exit 1
