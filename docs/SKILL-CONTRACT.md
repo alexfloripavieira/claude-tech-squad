@@ -396,3 +396,13 @@ For any skill listed in `runtime-policy.yaml#mandatory_test_gate.skills_in_scope
 3. A `### Test Gate (Mandatory)` section referencing `runtime-policy.yaml#mandatory_test_gate`. The only exception is skills that declare an exemption — they use `### Test Gate Exemption Protocol` instead, documenting the proposal/registration/followup flow.
 
 `scripts/validate.sh` enforces these rules mechanically via the mandatory_test_gate contract block. Skills outside the `skills_in_scope` list are unaffected.
+
+## Non-standard frontmatter fields
+
+This plugin uses one extension to the official Claude Code skill frontmatter that is not part of the standard schema:
+
+| Field | Type | Purpose |
+|---|---|---|
+| `user-invocable` | boolean | When `true`, the skill appears in the user's `/`-command palette (e.g. `/squad`, `/discovery`, `/implement`). When omitted or `false`, the skill is internal and only invokable via the `Skill` tool by another agent or skill. |
+
+External validators (e.g. the official `plugin-dev:plugin-validator`) may flag `user-invocable` as an unknown field. This is expected — it is a `claude-tech-squad`-specific extension honored by the orchestrator harness, not by Claude Code's core skill loader. The field is documented here so contributors do not remove it during routine plugin-dev compliance passes.
