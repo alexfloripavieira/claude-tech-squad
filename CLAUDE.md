@@ -66,7 +66,7 @@ bash scripts/dogfood-report.sh
 - `## Runtime Resilience Contract`
 - `### Checkpoint / Resume Rules`
 - `## Progressive Disclosure — Context Digest Protocol`
-- `## Live Status Protocol` (writes `ai-docs/.live-status.json` for the live dashboard)
+- `## Visual Reporting Contract` (teammate cards + pipeline board rendered from Result Contract metrics)
 
 **No self-chaining** — only `incident-manager.md` may expose the `Agent` tool or reference `subagent_type`. Any other agent file with those will fail validation.
 
@@ -100,8 +100,7 @@ bash scripts/dogfood-report.sh
 │   │   ├── pre-tool-guard.sh                # blocks destructive operations deterministically
 │   │   ├── settings-template.json           # copy to .claude/settings.json to activate hooks
 │   │   └── README.md
-│   └── dashboard/                           # live pipeline monitoring
-│       └── live.html                        # auto-refresh HTML dashboard (polls .live-status.json)
+│   └── scripts/                             # render-teammate-card.sh, render-pipeline-board.sh
 ├── fixtures/dogfooding/
 │   ├── scenarios.json                       # dogfood scenario manifest (must have exactly 4)
 │   ├── layered-monolith/                    # simulates a layered repo for discovery
@@ -110,7 +109,6 @@ bash scripts/dogfood-report.sh
 │   └── llm-rag/                             # simulates a RAG pipeline for AI bench
 ├── ai-docs/
 │   ├── .squad-log/                          # SEP logs from real runs (gitignored, .gitkeep tracked)
-│   ├── .live-status.json                    # live dashboard status file (gitignored, runtime only)
 │   └── dogfood-runs/                        # captured golden runs (gitignored, .gitkeep tracked)
 ├── templates/                               # RFC, service readiness review, golden run scorecard
 ├── scripts/                                 # validate, smoke-test, dogfood, release, open-dashboard
@@ -141,9 +139,9 @@ Every skill reads `runtime-policy.yaml` at preflight. The policy provides:
 
 Every skill writes a Squad Execution Protocol log to `ai-docs/.squad-log/<skill>-<timestamp>.md` before ending, including `tokens_input`, `tokens_output`, `estimated_cost_usd`, and `total_duration_ms`. This file is the data source for `/factory-retrospective` and `/dashboard`. Real run artifacts are gitignored; only `.gitkeep` files are tracked.
 
-### Live dashboard
+### Dashboard
 
-Orchestrator skills write `ai-docs/.live-status.json` after every trace event. The dashboard (`plugins/claude-tech-squad/dashboard/live.html`) polls this file every 2 seconds and shows real-time teammate status, token budget, checkpoint progress, and event timeline. Open it with `bash scripts/open-dashboard.sh`.
+The `/dashboard` skill aggregates SEP logs from `ai-docs/.squad-log/` into Markdown and HTML snapshots (`ai-docs/dashboard-snapshot.md` and `ai-docs/dashboard.html`). Run via `python3 plugins/claude-tech-squad/bin/squad-cli dashboard` or invoke the skill. There is no live-polling dashboard — observability is post-run via SEP logs and Visual Reporting Contract cards.
 
 ---
 

@@ -187,6 +187,20 @@ If the runtime policy file is missing or unreadable, stop the run and surface `[
 
 ---
 
+## Context Rollover Gate
+
+Between every teammate completion and the next teammate spawn, inspect cumulative token usage. Emit `[Token Usage]` at each phase boundary.
+
+- If `used >= 100k`: emit `[Context Advisory]`. Continue, but plan the next teammate as the last before rollover.
+- If `used >= 140k`: emit `[Gate] Context Rollover Required` and halt for operator choice `[R|D|F]`:
+  - `R` — Rollover now. Spawn `context-summarizer` as a teammate; then halt for `/clear` + `/resume-from-rollover <run_id>`.
+  - `D` — Defer one phase. Proceed one more teammate only, then force rollover.
+  - `F` — Force continue. Emit `[Rollover Declined]` with operator reason. Degradation risk accepted and logged.
+
+Thresholds and summarizer agent declared in `runtime-policy.yaml` under `context_management`. Checks only at boundaries, never mid-teammate. Rationale: `docs/architecture/0001-context-rollover.md`.
+
+---
+
 ## Visual Reporting Contract
 
 - After every teammate returns, pipe its Result Contract `metrics` JSON to `plugins/claude-tech-squad/scripts/render-teammate-card.sh` and print the card inline in the orchestrator output. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.

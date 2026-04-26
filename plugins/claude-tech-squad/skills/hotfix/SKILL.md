@@ -33,6 +33,23 @@ Lightweight emergency fix workflow. Faster than `/bug-fix` for known production 
 
 **Escalate to `/squad` if:** the fix requires architectural changes, touches more than 5 files, or reveals a design flaw that needs proper scoping.
 
+## Operator Visibility Contract
+
+Emit these trace lines so the operator can follow the emergency response and the SEP log can capture state transitions:
+
+- `[Preflight Start] hotfix`
+- `[Stack Detected] <stack> | impl=<agent> | reviewer=<agent>`
+- `[Hotfix Branch] hotfix/<slug> created from <base_branch>`
+- `[Team Created] hotfix-team`
+- `[Teammate Spawned] <role> | pane: <name>`
+- `[Teammate Done] <role> | Output: <one-line summary>`
+- `[Teammate Retry] <role> | Reason: <failure>`
+- `[Gate] Teammate Failure | <name> failed twice` (when teammate failure protocol fires)
+- `[Deploy Checklist] passed | <items>` (production deploy gate)
+- `[Post-Mortem] recommended | severity=<level>` (when applicable)
+- `[Team Deleted] hotfix-team | cleanup complete` (or `[Team Cleanup Warning]` on failure)
+- `[SEP Log Written] ai-docs/.squad-log/<filename>`
+
 ## Execution
 
 ## Teammate Failure Protocol
