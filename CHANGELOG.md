@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.56.2] - 2026-04-26 — Automated maintenance release
+
+### Fixed
+
+- Add Visual Reporting Contract to bug-fix and CodeRabbit final gate (#23)
 ## [5.56.1] - 2026-04-22 — Automated maintenance release
 
 ### Changed
