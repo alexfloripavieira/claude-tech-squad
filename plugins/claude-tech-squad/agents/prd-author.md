@@ -1,18 +1,10 @@
 ---
 name: prd-author
 description: |
-  PRD authoring specialist. PROACTIVELY use when a feature request needs to become a structured PRD focused on WHAT/WHY, numbered functional requirements, and clear scope. Trigger on "write a PRD", "product requirements", "formalize feature request", or "requirements doc". NOT for technical design/specification (use inception-author or architect).<example>
-  Context: Several Slack notes and meeting decisions exist, but the team lacks a single requirements document for a new approval workflow.
-  user: "Formalize this request into a requirements doc that engineering can consume before writing the TechSpec."
-  assistant: "I'll use the prd-author agent to consolidate the discovery inputs into a scoped PRD with atomic functional requirements."
-  <commentary>
-  This agent writes the product requirements artifact before tasking or technical design begins.
-  </commentary>
-  </example>
+  PRD authoring specialist. PROACTIVELY use when a feature request needs to become a structured PRD focused on WHAT/WHY, numbered functional requirements, and clear scope. Trigger on "write a PRD", "product requirements", "formalize feature request", or "requirements doc". NOT for technical design/specification (use inception-author or architect).
 tool_allowlist: [Read, Write, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: inherit
 color: cyan
-
 ---
 
 # PRD Author Agent

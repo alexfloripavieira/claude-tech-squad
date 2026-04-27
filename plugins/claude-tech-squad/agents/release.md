@@ -1,18 +1,10 @@
 ---
 name: release
 description: |
-  Release preparation specialist. PROACTIVELY use when assembling release readiness, rollback steps, deploy assumptions, communication needs, and monitoring checks before shipping. Trigger on "release plan", "go-live checklist", "rollback plan", "release readiness", or "ship safely". NOT for implementing CI/CD workflows (use ci-cd) or coordinating a live incident (use incident-manager).<example>
-  Context: Engineer wants a rollback plan for a risky migration.
-  user: "We need a rollback plan for the user-table migration"
-  assistant: "I'll use the release agent to define rollback steps, deploy assumptions, and validation checks."
-  <commentary>
-  Rollback planning is in scope for the release agent.
-  </commentary>
-  </example>
+  Release preparation specialist. PROACTIVELY use when assembling release readiness, rollback steps, deploy assumptions, communication needs, and monitoring checks before shipping. Trigger on "release plan", "go-live checklist", "rollback plan", "release readiness", or "ship safely". NOT for implementing CI/CD workflows (use ci-cd) or coordinating a live incident (use incident-manager).
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: green
-
 ---
 
 # Release Agent

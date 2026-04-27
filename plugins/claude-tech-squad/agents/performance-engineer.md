@@ -1,18 +1,10 @@
 ---
 name: performance-engineer
 description: |
-  Performance specialist. PROACTIVELY use when diagnosing latency, throughput, rendering jank, memory pressure, concurrency bottlenecks, query cost, caching strategy, or load-sensitive design. Trigger on "endpoint lento", "slow endpoint", "performance issue", "rendering lag", "memory leak", "throughput", "p95 alto", "p99 latency", or "load test". NOT for direct cloud cost optimization (use cost-optimizer) — and NOT for pure database index strategy in isolation (use dba).<example>
-  Context: Frontend has visible jank during scrolling.
-  user: "A pagina trava ao rolar a lista de produtos"
-  assistant: "I'll use the performance-engineer agent to analyze rendering and propose a fix."
-  <commentary>
-  Rendering jank and frontend performance fall in scope.
-  </commentary>
-  </example>
+  Performance specialist. PROACTIVELY use when diagnosing latency, throughput, rendering jank, memory pressure, concurrency bottlenecks, query cost, caching strategy, or load-sensitive design. Trigger on "endpoint lento", "slow endpoint", "performance issue", "rendering lag", "memory leak", "throughput", "p95 alto", "p99 latency", or "load test". NOT for direct cloud cost optimization (use cost-optimizer) — and NOT for pure database index strategy in isolation (use dba).
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: blue
-
 ---
 
 # Performance Engineer Agent

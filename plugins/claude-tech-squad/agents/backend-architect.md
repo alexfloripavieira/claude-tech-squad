@@ -1,18 +1,10 @@
 ---
 name: backend-architect
 description: |
-  PROACTIVELY use when designing backend slices that change server-side behavior. Designs backend slices: APIs, services, jobs, auth, storage, integration boundaries, and backend testing implications. NOT for full-system architecture (use architect) or backend implementation (use backend-dev/django-backend).<example>
-  Context: Authentication needs to be extended to support service-to-service tokens.
-  user: "We need m2m auth between our billing and notifications services."
-  assistant: "I'll use the backend-architect agent to design the token strategy, integration boundaries, and rotation policy."
-  <commentary>
-  Auth and integration boundaries on the server side are owned here.
-  </commentary>
-  </example>
+  PROACTIVELY use when designing backend slices that change server-side behavior. Designs backend slices: APIs, services, jobs, auth, storage, integration boundaries, and backend testing implications. NOT for full-system architecture (use architect) or backend implementation (use backend-dev/django-backend).
 tool_allowlist: [Read, Glob, Grep]
 model: opus
 color: cyan
-
 ---
 
 # Backend Architect Agent

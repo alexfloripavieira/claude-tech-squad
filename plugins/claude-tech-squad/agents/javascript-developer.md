@@ -1,18 +1,10 @@
 ---
 name: javascript-developer
 description: |
-  Implements vanilla JavaScript modules, browser scripts, Node.js utilities, and integrations in projects that do not use TypeScript. Uses Context7 for JavaScript and Web API lookups. Verifies browser behavior with Playwright. Trigger phrases: "vanilla js", "javascript puro", "node script", "browser script", "no typescript". NOT for TypeScript projects (use frontend-dev or a TS-aware agent) and NOT for React/Vue/Angular component work (use frontend-dev).<example>
-  Context: A legacy admin page needs a vanilla JS dropdown enhancement.
-  user: "Add a debounced search input to our legacy admin page (no framework)"
-  assistant: "I'll use the javascript-developer agent to implement the vanilla JS enhancement and verify behavior with Playwright."
-  <commentary>
-  Browser script in a no-framework, no-TS project is in scope.
-  </commentary>
-  </example>
+  Implements vanilla JavaScript modules, browser scripts, Node.js utilities, and integrations in projects that do not use TypeScript. Uses Context7 for JavaScript and Web API lookups. Verifies browser behavior with Playwright. Trigger phrases: "vanilla js", "javascript puro", "node script", "browser script", "no typescript". NOT for TypeScript projects (use frontend-dev or a TS-aware agent) and NOT for React/Vue/Angular component work (use frontend-dev).
 tool_allowlist: [Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_take_screenshot]
 model: sonnet
 color: green
-
 ---
 
 # JavaScript Developer Agent

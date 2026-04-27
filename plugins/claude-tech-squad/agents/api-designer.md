@@ -1,18 +1,10 @@
 ---
 name: api-designer
 description: |
-  API contract specialist for REST, GraphQL, RPC, webhooks, and event interfaces. Defines contracts, versioning, validation, compatibility, and error models.<example>
-  Context: Team wants to add webhooks for order events but is unsure about retry semantics and payload shape.
-  user: "We need to design webhooks for order.created and order.updated — including retries."
-  assistant: "I'll use the api-designer agent to draft the webhook contract, retry policy, signature scheme, and idempotency keys."
-  <commentary>
-  Webhook contracts and event interface design are owned here.
-  </commentary>
-  </example>
+  API contract specialist for REST, GraphQL, RPC, webhooks, and event interfaces. Defines contracts, versioning, validation, compatibility, and error models.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: green
-
 ---
 
 # API Designer Agent

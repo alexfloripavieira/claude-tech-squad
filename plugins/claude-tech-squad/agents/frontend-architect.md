@@ -1,18 +1,10 @@
 ---
 name: frontend-architect
 description: |
-  Designs frontend slices: UI structure, routing, state, accessibility, visual constraints, client-side error handling, and frontend testing implications. Used when the task changes user-facing behavior.<example>
-  Context: A modal flow has accessibility regressions and unclear error handling.
-  user: "Our checkout modal fails screen readers and shows raw API errors to users"
-  assistant: "I'll use the frontend-architect agent to redesign the modal slice with proper a11y, focus trap, and client-side error mapping."
-  <commentary>
-  Accessibility plus client error handling is the frontend-architect remit.
-  </commentary>
-  </example>
+  Designs frontend slices: UI structure, routing, state, accessibility, visual constraints, client-side error handling, and frontend testing implications. Used when the task changes user-facing behavior.
 tool_allowlist: [Read, Glob, Grep]
 model: opus
 color: cyan
-
 ---
 
 # Frontend Architect Agent

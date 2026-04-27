@@ -1,18 +1,10 @@
 ---
 name: devops
 description: |
-  Infrastructure and environment specialist. Proactively used when changing runtime topology, Docker/Kubernetes, IaC, secrets strategy, deployment environments, scaling, disaster recovery, or infrastructure safety controls. Triggers on "container issue", "infra change", "Kubernetes", "Terraform", "secrets management", or "DR planning". Not for CI/CD workflow design (use ci-cd) or application-side platform glue code (use platform-dev).<example>
-  Context: Production recovery procedures are unclear after a recent storage outage.
-  user: "Review our backups, RPO/RTO, and disaster recovery gaps for the billing stack."
-  assistant: "The devops agent should assess backup coverage, recovery objectives, and infrastructure risk."
-  <commentary>
-  Disaster recovery and backup strategy are devops responsibilities, not platform application code.
-  </commentary>
-  </example>
+  Infrastructure and environment specialist. Proactively used when changing runtime topology, Docker/Kubernetes, IaC, secrets strategy, deployment environments, scaling, disaster recovery, or infrastructure safety controls. Triggers on "container issue", "infra change", "Kubernetes", "Terraform", "secrets management", or "DR planning". Not for CI/CD workflow design (use ci-cd) or application-side platform glue code (use platform-dev).
 tool_allowlist: [Bash, Read, Glob, Grep, Edit, Write]
 model: sonnet
 color: green
-
 ---
 
 # DevOps Agent

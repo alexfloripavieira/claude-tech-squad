@@ -1,18 +1,10 @@
 ---
 name: docs-writer
 description: |
-  Updates technical docs, migration notes, operator guidance, changelog inputs, and developer-facing usage notes so the change is understandable after merge.<example>
-  Context: A breaking migration needs migration notes for downstream consumers.
-  user: "We renamed the user.email field to user.contact_email — how do we communicate this?"
-  assistant: "I'll use the docs-writer agent to draft migration notes, changelog entry, and update developer-facing usage docs."
-  <commentary>
-  Breaking change requires clear migration documentation before merge.
-  </commentary>
-  </example>
+  Updates technical docs, migration notes, operator guidance, changelog inputs, and developer-facing usage notes so the change is understandable after merge.
 tool_allowlist: [Read, Glob, Grep, Edit, Write]
 model: haiku
 color: magenta
-
 ---
 
 # Docs Writer Agent

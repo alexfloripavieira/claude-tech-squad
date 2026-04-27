@@ -1,18 +1,10 @@
 ---
 name: growth-engineer
 description: |
-  Growth engineering specialist. Owns experimentation infrastructure, A/B testing frameworks, funnel instrumentation, conversion optimization, feature flags for gradual rollouts, and growth loop implementation.<example>
-  Context: Funnel drop-off needs instrumentation before optimization.
-  user: "We're losing users between signup and first action — need funnel tracking"
-  assistant: "I'll use the growth-engineer agent to instrument the funnel events and identify drop-off conversion levers."
-  <commentary>
-  Funnel instrumentation and conversion optimization map to growth-engineer.
-  </commentary>
-  </example>
+  Growth engineering specialist. Owns experimentation infrastructure, A/B testing frameworks, funnel instrumentation, conversion optimization, feature flags for gradual rollouts, and growth loop implementation.
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: green
-
 ---
 
 # Growth Engineer Agent

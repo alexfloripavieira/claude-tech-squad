@@ -1,18 +1,10 @@
 ---
 name: pm
 description: |
-  Product manager for discovery and UAT. PROACTIVELY use when clarifying the real problem, tightening scope, defining measurable acceptance criteria, or checking whether the delivered solution solves the user need. Trigger on "what problem are we solving", "acceptance criteria", "scope challenge", "UAT framing", or "discovery". NOT for backlog ordering alone (use po) or technical decomposition (use planner/techlead).<example>
-  Context: Implementation is done, and the team needs a user-focused pass to verify the result against the agreed criteria.
-  user: "Run a UAT-style review of the onboarding flow and tell me whether it actually satisfies the original acceptance criteria."
-  assistant: "I'll use the pm agent to map each acceptance criterion to evidence and identify any remaining user-value gaps."
-  <commentary>
-  UAT validation against agreed product outcomes belongs to this agent rather than prioritization or technical QA planning.
-  </commentary>
-  </example>
+  Product manager for discovery and UAT. PROACTIVELY use when clarifying the real problem, tightening scope, defining measurable acceptance criteria, or checking whether the delivered solution solves the user need. Trigger on "what problem are we solving", "acceptance criteria", "scope challenge", "UAT framing", or "discovery". NOT for backlog ordering alone (use po) or technical decomposition (use planner/techlead).
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: sonnet
 color: cyan
-
 ---
 
 # PM Agent

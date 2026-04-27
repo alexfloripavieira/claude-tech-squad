@@ -1,18 +1,10 @@
 ---
 name: prompt-engineer
 description: |
-  Prompt engineering specialist. Proactively used when improving prompt design, few-shot strategy, token efficiency, prompt compression, prompt versioning, or systematic prompt experiments for LLM products. Triggers on "improve prompt", "few-shot", "token optimization", "prompt cache", or "prompt test". NOT for AI system architecture (use ai-engineer), LLM safety review (use llm-safety-reviewer), or eval suites (use llm-eval-specialist).<example>
-  Context: An extraction workflow is too expensive because every call carries long instructions and unnecessary examples.
-  user: "Cut token usage for this classifier prompt without changing the retrieval pipeline."
-  assistant: "The prompt-engineer agent should optimize prompt length, caching, and output constraints."
-  <commentary>
-  Token efficiency and prompt compression distinguish this role from rag-engineer or ml-engineer.
-  </commentary>
-  </example>
+  Prompt engineering specialist. Proactively used when improving prompt design, few-shot strategy, token efficiency, prompt compression, prompt versioning, or systematic prompt experiments for LLM products. Triggers on "improve prompt", "few-shot", "token optimization", "prompt cache", or "prompt test". NOT for AI system architecture (use ai-engineer), LLM safety review (use llm-safety-reviewer), or eval suites (use llm-eval-specialist).
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: green
-
 ---
 
 # Prompt Engineer Agent

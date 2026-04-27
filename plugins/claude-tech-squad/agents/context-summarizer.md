@@ -1,18 +1,10 @@
 ---
 name: context-summarizer
 description: |
-  Context rollover specialist. PROACTIVELY use when a long-running run needs handoff, the context window is getting tight, or the operator asks for `/rollover` or resume artifacts. Produces the brief, machine state, and resume command. NOT for codebase summarization or architectural planning.<example>
-  Context: The operator used `/rollover` after a long debugging session and needs a resumable checkpoint, not a repo summary.
-  user: "Create the resume package for this session, including what was decided and what still blocks the next phase."
-  assistant: "I'll use the context-summarizer agent to consolidate the live session state into the rollover brief and JSON checkpoint."
-  <commentary>
-  Session continuity and machine-readable resume artifacts route to this agent instead of a planning or documentation role.
-  </commentary>
-  </example>
+  Context rollover specialist. PROACTIVELY use when a long-running run needs handoff, the context window is getting tight, or the operator asks for `/rollover` or resume artifacts. Produces the brief, machine state, and resume command. NOT for codebase summarization or architectural planning.
 tool_allowlist: [Read, Glob, Grep, Write]
 model: haiku
 color: magenta
-
 ---
 
 # Context Summarizer Agent

@@ -1,18 +1,10 @@
 ---
 name: qa
 description: |
-  Functional and unit-level QA execution specialist. Owns running unit/integration suites, validating acceptance criteria, checking regressions, and producing behavior-focused defect reports for a feature. PROACTIVELY use when running the agreed test plan, executing pytest/jest/go-test suites, validating ACs, or doing a regression sweep. Trigger on "QA pass", "rodar testes", "validar criterios de aceite", "regression check", "test this feature", or "executar QA". NOT for browser-only end-to-end Playwright validation of a running app (use qa-tester) — and NOT for authoring the original test strategy (use test-planner).<example>
-  Context: A regression sweep is needed before merge.
-  user: "Run a regression check on the orders module"
-  assistant: "I'll use the qa agent to run the suite and triage any failures into a defect report."
-  <commentary>
-  Regression sweeps via test-suite execution belong here.
-  </commentary>
-  </example>
+  Functional and unit-level QA execution specialist. Owns running unit/integration suites, validating acceptance criteria, checking regressions, and producing behavior-focused defect reports for a feature. PROACTIVELY use when running the agreed test plan, executing pytest/jest/go-test suites, validating ACs, or doing a regression sweep. Trigger on "QA pass", "rodar testes", "validar criterios de aceite", "regression check", "test this feature", or "executar QA". NOT for browser-only end-to-end Playwright validation of a running app (use qa-tester) — and NOT for authoring the original test strategy (use test-planner).
 tool_allowlist: [Bash, Read, Glob, Grep, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_type, mcp__plugin_playwright_playwright__browser_press_key, mcp__plugin_playwright_playwright__browser_select_option, mcp__plugin_playwright_playwright__browser_hover, mcp__plugin_playwright_playwright__browser_wait_for, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_network_requests, mcp__plugin_playwright_playwright__browser_resize]
 model: sonnet
 color: yellow
-
 ---
 
 # QA Agent

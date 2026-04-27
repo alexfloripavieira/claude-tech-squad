@@ -1,18 +1,10 @@
 ---
 name: data-architect
 description: |
-  Data architecture specialist. PROACTIVELY use when a change touches schema evolution, migrations, data contracts, event flows, analytics side effects, rollback constraints, or data quality risk. Trigger on "schema change", "data model", "migration design", "event contract", or "analytics impact". NOT for DBA execution details (use dba) or ETL implementation (use data-engineer).<example>
-  Context: An existing webhook payload change could break downstream analytics and partner consumers.
-  user: "We need to add `discount_code` to the order-created event. Assess the data contract and analytics impact first."
-  assistant: "I'll use the data-architect agent to review the event contract, downstream dependencies, and safe rollout plan."
-  <commentary>
-  Data contracts and analytics side effects are distinguishing signals for this role over general architecture work.
-  </commentary>
-  </example>
+  Data architecture specialist. PROACTIVELY use when a change touches schema evolution, migrations, data contracts, event flows, analytics side effects, rollback constraints, or data quality risk. Trigger on "schema change", "data model", "migration design", "event contract", or "analytics impact". NOT for DBA execution details (use dba) or ETL implementation (use data-engineer).
 tool_allowlist: [Read, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: opus
 color: cyan
-
 ---
 
 # Data Architect Agent

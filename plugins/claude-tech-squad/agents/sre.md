@@ -1,18 +1,10 @@
 ---
 name: sre
 description: |
-  Site reliability specialist. PROACTIVELY use when deciding SLOs, blast radius, rollout safety, rollback readiness, canary/phased releases, or operational resilience for production systems. Trigger on "reliability review", "SLO", "canary", "blast radius", or "rollout safety". NOT for infrastructure configuration (use devops) or active incident command (use incident-manager).<example>
-  Context: New service needs SLOs before going live.
-  user: "Define SLOs for the payments service"
-  assistant: "I'll use the sre agent to propose SLIs/SLOs and error budget policy."
-  <commentary>
-  SLO definition is in scope.
-  </commentary>
-  </example>
+  Site reliability specialist. PROACTIVELY use when deciding SLOs, blast radius, rollout safety, rollback readiness, canary/phased releases, or operational resilience for production systems. Trigger on "reliability review", "SLO", "canary", "blast radius", or "rollout safety". NOT for infrastructure configuration (use devops) or active incident command (use incident-manager).
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: blue
-
 ---
 
 # SRE Agent

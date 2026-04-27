@@ -1,19 +1,11 @@
 ---
 name: incident-manager
 description: |
-  Incident response coordinator. Orchestrates the response to production incidents: triages severity, coordinates specialist agents, manages stakeholder communication, tracks timeline, drives to resolution, and facilitates post-mortem. Use when there is an active incident or outage, or to prepare incident response runbooks. NOT for routine debugging (use cloud-debug skill) or post-release issues that are not impacting users.<example>
-  Context: SRE team wants a runbook for a known failure mode.
-  user: "We need an incident runbook for database connection pool exhaustion"
-  assistant: "I'll use the incident-manager agent to draft the response runbook, severity matrix, and communication template."
-  <commentary>
-  Runbook preparation for incident response is in scope.
-  </commentary>
-  </example>
+  Incident response coordinator. Orchestrates the response to production incidents: triages severity, coordinates specialist agents, manages stakeholder communication, tracks timeline, drives to resolution, and facilitates post-mortem. Use when there is an active incident or outage, or to prepare incident response runbooks. NOT for routine debugging (use cloud-debug skill) or post-release issues that are not impacting users.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write, Agent]
 model: opus
 color: red
 # WHY: incident-manager is the ONLY agent allowed to spawn other agents (subagent_type) — enforced by scripts/validate.sh. It coordinates specialists during a live incident response and must dispatch security-engineer, sre, observability-engineer, etc. in parallel. Removing the Agent tool would break /incident-postmortem.
-
 ---
 
 # Incident Manager

@@ -1,18 +1,10 @@
 ---
 name: architect
 description: |
-  PROACTIVELY use when designing or reviewing high-level system architecture across multiple stacks. Lead architect for the overall solution. Produces design options, decomposes the system into workstreams, aligns specialist architecture slices, and defines implementation sequencing. NOT for stack-specific design (use backend-architect/frontend-architect/cloud-architect/data-architect/hexagonal-architect) or implementation (use techlead).<example>
-  Context: Engineering leadership wants three viable design options for replacing a legacy module.
-  user: "Give me 3 design options for replacing the legacy reporting module with tradeoffs."
-  assistant: "I'll use the architect agent to produce three architecture options with tradeoffs and a recommended sequence."
-  <commentary>
-  Producing design options with tradeoffs is a core lead-architect deliverable.
-  </commentary>
-  </example>
+  PROACTIVELY use when designing or reviewing high-level system architecture across multiple stacks. Lead architect for the overall solution. Produces design options, decomposes the system into workstreams, aligns specialist architecture slices, and defines implementation sequencing. NOT for stack-specific design (use backend-architect/frontend-architect/cloud-architect/data-architect/hexagonal-architect) or implementation (use techlead).
 tool_allowlist: [Read, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, WebSearch, WebFetch]
 model: opus
 color: cyan
-
 ---
 
 # Architect Agent

@@ -1,18 +1,10 @@
 ---
 name: tasks-planner
 description: |
-  Task decomposition specialist. PROACTIVELY use when a validated PRD plus TechSpec needs to become a sequenced implementation backlog with test subtasks and incremental delivery order. Trigger on "break into tasks", "implementation backlog", "tasks.md", or "decompose the spec". NOT for prioritization of business scope alone (use po) or raw technical feasibility work (use planner).<example>
-  Context: A payment reconciliation feature is fully specified, but engineering needs functional increments instead of a long freeform to-do list.
-  user: "Decompose this spec into implementation tasks in dependency order, keeping the delivery slices incremental."
-  assistant: "I'll use the tasks-planner agent to emit the backlog structure, ordering, and mandatory test subtasks."
-  <commentary>
-  This agent turns completed specification work into executable backlog items, not product prioritization or feasibility analysis.
-  </commentary>
-  </example>
+  Task decomposition specialist. PROACTIVELY use when a validated PRD plus TechSpec needs to become a sequenced implementation backlog with test subtasks and incremental delivery order. Trigger on "break into tasks", "implementation backlog", "tasks.md", or "decompose the spec". NOT for prioritization of business scope alone (use po) or raw technical feasibility work (use planner).
 tool_allowlist: [Read, Write, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: inherit
 color: cyan
-
 ---
 
 # Tasks Planner Agent

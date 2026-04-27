@@ -1,18 +1,10 @@
 ---
 name: shell-developer
 description: |
-  Shell automation specialist. Proactively used when writing Bash/POSIX scripts, lightweight automation, local tooling, deployment helpers, or script-based CI tasks with portability and safety in mind. Triggers on "bash script", "shell automation", "CLI wrapper", "deploy script", or "POSIX". Not for broader infra/environment architecture (use devops) or typed application code (use python-developer/typescript-developer).<example>
-  Context: CI needs a small POSIX script to diff generated files and fail fast when fixtures are stale.
-  user: "Add a shell check for stale snapshots in our pipeline."
-  assistant: "The shell-developer agent should implement the script-based CI helper."
-  <commentary>
-  A focused shell task for automation is a better fit here than a larger Python utility.
-  </commentary>
-  </example>
+  Shell automation specialist. Proactively used when writing Bash/POSIX scripts, lightweight automation, local tooling, deployment helpers, or script-based CI tasks with portability and safety in mind. Triggers on "bash script", "shell automation", "CLI wrapper", "deploy script", or "POSIX". Not for broader infra/environment architecture (use devops) or typed application code (use python-developer/typescript-developer).
 tool_allowlist: [Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: sonnet
 color: green
-
 ---
 
 # Shell Developer Agent

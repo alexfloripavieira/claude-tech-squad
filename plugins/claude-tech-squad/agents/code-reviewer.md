@@ -1,18 +1,10 @@
 ---
 name: code-reviewer
 description: |
-  PROACTIVELY use when reviewing Django backend/frontend code for correctness, performance, and convention drift before QA. Reviews Django backend and frontend code for correctness, security, performance, and adherence to project conventions. Flags bugs, N+1 queries, XSS risks, TDD violations, and TailwindCSS anti-patterns before QA runs. NOT for security-only review (use security-reviewer), privacy review (use privacy-reviewer), or full PR pipeline review (use /pr-review skill).<example>
-  Context: Frontend PR adds inline styles and skips test coverage for a new component.
-  user: "Review this React PR — I think it has Tailwind anti-patterns and missing tests."
-  assistant: "I'll use the code-reviewer agent to flag the Tailwind anti-patterns, TDD gaps, and any XSS risks."
-  <commentary>
-  Tailwind anti-patterns and TDD violation detection are explicitly in scope.
-  </commentary>
-  </example>
+  PROACTIVELY use when reviewing Django backend/frontend code for correctness, performance, and convention drift before QA. Reviews Django backend and frontend code for correctness, security, performance, and adherence to project conventions. Flags bugs, N+1 queries, XSS risks, TDD violations, and TailwindCSS anti-patterns before QA runs. NOT for security-only review (use security-reviewer), privacy review (use privacy-reviewer), or full PR pipeline review (use /pr-review skill).
 tool_allowlist: [Read, Glob, Grep, Bash, WebSearch, WebFetch]
 model: opus
 color: yellow
-
 ---
 
 # Code Reviewer Agent

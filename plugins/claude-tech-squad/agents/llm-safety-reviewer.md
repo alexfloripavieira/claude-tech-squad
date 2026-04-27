@@ -1,18 +1,10 @@
 ---
 name: llm-safety-reviewer
 description: |
-  PROACTIVELY use when: a feature involves LLM input/output, tool calling, RAG, agents, or prompt-controlled workflows and you need prompt-injection, jailbreak, authorization, or data-leak analysis. Trigger on "LLM safety", "prompt injection", "jailbreak", "tool abuse", or "RAG security". NOT for broad AppSec review of non-AI systems (use security-reviewer or ethical-hacker).<example>
-  Context: A RAG pipeline ingests user documents that may contain attacker payloads.
-  user: "Revisar seguranca do nosso pipeline de RAG"
-  assistant: "I'll use the llm-safety-reviewer agent to map injection vectors and data-leak paths in the RAG flow."
-  <commentary>
-  Indirect prompt injection via retrieval is in scope for AI safety review.
-  </commentary>
-  </example>
+  PROACTIVELY use when: a feature involves LLM input/output, tool calling, RAG, agents, or prompt-controlled workflows and you need prompt-injection, jailbreak, authorization, or data-leak analysis. Trigger on "LLM safety", "prompt injection", "jailbreak", "tool abuse", or "RAG security". NOT for broad AppSec review of non-AI systems (use security-reviewer or ethical-hacker).
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: red
-
 ---
 
 # LLM Safety Reviewer Agent

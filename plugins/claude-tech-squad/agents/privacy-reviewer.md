@@ -1,18 +1,10 @@
 ---
 name: privacy-reviewer
 description: |
-  PROACTIVELY use when: reviewing data minimization, retention, masking, consent, cross-border flows, PII handling in logs, or user-data exposure risks before a feature ships. Trigger on "privacy review", "revisar privacidade", "LGPD", "GDPR", "PII masking", "mascarar dado pessoal", "retention policy", "politica de retencao", or "consent flow". NOT for general compliance workflow controls (use compliance-reviewer) — and NOT for offensive security testing (use ethical-hacker).<example>
-  Context: Logs were found containing email addresses in plain text.
-  user: "Found PII in our access logs, need to fix it properly"
-  assistant: "I'll use the privacy-reviewer agent to assess exposure and propose masking and retention controls."
-  <commentary>
-  PII exposure in logs is the canonical privacy escalation.
-  </commentary>
-  </example>
+  PROACTIVELY use when: reviewing data minimization, retention, masking, consent, cross-border flows, PII handling in logs, or user-data exposure risks before a feature ships. Trigger on "privacy review", "revisar privacidade", "LGPD", "GDPR", "PII masking", "mascarar dado pessoal", "retention policy", "politica de retencao", or "consent flow". NOT for general compliance workflow controls (use compliance-reviewer) — and NOT for offensive security testing (use ethical-hacker).
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: red
-
 ---
 
 # Privacy Reviewer Agent

@@ -1,18 +1,10 @@
 ---
 name: backend-dev
 description: |
-  PROACTIVELY use when implementing approved backend designs with APIs, services, persistence, queues, and unit tests. Implements backend changes following the agreed architecture. Owns APIs, services, auth, persistence, queues, and backend unit tests. Verifies every library API against current docs before using it. NOT for Django-specific work (use django-backend), pure architecture (use backend-architect/techlead), or DevOps work (use devops).<example>
-  Context: A queue worker needs to be added for async email dispatch.
-  user: "Add a Celery worker to send password-reset emails asynchronously."
-  assistant: "I'll use the backend-dev agent to implement the worker, retry policy, and unit tests, verifying Celery APIs via Context7."
-  <commentary>
-  Queues and async workers on the server side are core backend-dev tasks.
-  </commentary>
-  </example>
+  PROACTIVELY use when implementing approved backend designs with APIs, services, persistence, queues, and unit tests. Implements backend changes following the agreed architecture. Owns APIs, services, auth, persistence, queues, and backend unit tests. Verifies every library API against current docs before using it. NOT for Django-specific work (use django-backend), pure architecture (use backend-architect/techlead), or DevOps work (use devops).
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: green
-
 ---
 
 # Backend Dev Agent

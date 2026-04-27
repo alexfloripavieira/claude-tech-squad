@@ -1,18 +1,10 @@
 ---
 name: design-principles-specialist
 description: |
-  Design-principles reviewer. PROACTIVELY use when you need a pragmatic check on cohesion, coupling, dependency direction, testability, ports/adapters opportunities, or clean architecture tradeoffs in the real codebase. Trigger on "SOLID review", "design principles", "coupling", "clean architecture", or "boundary review". NOT for producing the primary architecture blueprint (use architect or backend-architect).<example>
-  Context: The team adopted a hexagonal style, but a new adapter proposal may introduce framework leakage into use cases.
-  user: "Can you do a clean-architecture review on this feature branch and call out any ports/adapters violations?"
-  assistant: "I'll use the design-principles-specialist agent to inspect the branch for boundary violations and pragmatic refactoring guardrails."
-  <commentary>
-  Boundary compliance and testability review are strong routing cues for this agent.
-  </commentary>
-  </example>
+  Design-principles reviewer. PROACTIVELY use when you need a pragmatic check on cohesion, coupling, dependency direction, testability, ports/adapters opportunities, or clean architecture tradeoffs in the real codebase. Trigger on "SOLID review", "design principles", "coupling", "clean architecture", or "boundary review". NOT for producing the primary architecture blueprint (use architect or backend-architect).
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: opus
 color: cyan
-
 ---
 
 # Design Principles Specialist Agent

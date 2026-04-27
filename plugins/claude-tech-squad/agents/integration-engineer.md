@@ -1,18 +1,10 @@
 ---
 name: integration-engineer
 description: |
-  Specialist for third-party and inter-service integrations. Designs and implements contracts, retries, idempotency, failure handling, and integration validation.<example>
-  Context: Two internal services need a contract for async events.
-  user: "Service A publishes order.created — service B must consume reliably"
-  assistant: "I'll use the integration-engineer agent to define the event contract, consumer idempotency, and failure-mode handling."
-  <commentary>
-  Inter-service contract and reliability is in scope.
-  </commentary>
-  </example>
+  Specialist for third-party and inter-service integrations. Designs and implements contracts, retries, idempotency, failure handling, and integration validation.
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: green
-
 ---
 
 # Integration Engineer Agent
