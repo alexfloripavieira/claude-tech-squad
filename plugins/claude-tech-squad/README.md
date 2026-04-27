@@ -49,6 +49,50 @@ For visible execution interpretation, see [EXECUTION-TRACE.md](../../docs/EXECUT
 - `/claude-tech-squad:rollover`
 - `/claude-tech-squad:resume-from-rollover`
 
+### Agent profile management (since v5.63.0)
+
+- `/claude-tech-squad:setup` — detect repo stack and pick a curated profile
+- `/claude-tech-squad:profiles` — list available profiles with agent counts
+- `/claude-tech-squad:list-agents` — show active vs. disabled agents
+- `/claude-tech-squad:enable <agent>` — re-enable a single agent on top of profile
+- `/claude-tech-squad:disable <agent>` — silence a single agent for this repo
+- `/claude-tech-squad:reset` — restore the default 'full' profile (all 81 agents active)
+
+## Profile-based agent selection
+
+The plugin ships 81 specialist agents covering many stacks (Django, React, Vue, mobile, data, AI/RAG, etc.). Loading all of them into every project's system prompt costs roughly 17k tokens.
+
+**With profiles**, each project picks only the agents that match its stack:
+
+| Profile | Agents | Description |
+|---|---|---|
+| `django-react-ai` | ~38 | Django + React with LLM/RAG (e.g. A1) |
+| `django-react` | ~32 | Plain Django + React SaaS |
+| `vue-typescript` | ~28 | Vue 3 + TS frontend with API backend |
+| `react-typescript` | ~28 | React + TS frontend with API backend |
+| `python-backend` | ~28 | FastAPI/Flask Python services |
+| `mobile-fullstack` | ~28 | React Native or Flutter + backend |
+| `data-platform` | ~26 | dbt/Airflow/Spark data engineering |
+| `minimal` | 14 | Discovery + implementation + review only |
+| `full` | 81 | All agents (default — backward-compatible) |
+
+**Per-repo config** lives at `.claude-tech-squad.yml` in the project root and is committed to git so the whole team uses the same agent set:
+
+```yaml
+profile: django-react-ai
+overrides:
+  enable:
+    - llm-safety-reviewer    # added on top of profile
+  disable:
+    - jira-confluence-specialist
+```
+
+**How it works:**
+1. Run `/claude-tech-squad:setup` once per repo. It detects your stack (Django, React, etc.) and proposes a profile.
+2. Confirm — the plugin writes `.claude-tech-squad.yml` and physically moves non-profile agents to `agents/.disabled/` inside the plugin cache.
+3. The `SessionStart` hook reapplies the profile every time Claude Code starts, so plugin auto-updates won't undo your config.
+4. Backward-compatible: if `.claude-tech-squad.yml` is absent, all 81 agents stay active (same as before).
+
 ## squad-cli — Embedded Orchestrator
 
 The plugin includes `squad-cli`, a Python tool that handles deterministic orchestration logic outside the LLM. This reduces token overhead by 80-85% on mechanical tasks like stack detection, health checks, cost tracking, and SEP log generation.

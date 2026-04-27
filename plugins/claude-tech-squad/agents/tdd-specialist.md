@@ -1,18 +1,7 @@
 ---
 name: tdd-specialist
 description: |
-  TDD workflow specialist. PROACTIVELY use when approved scope needs to be converted into red-green-refactor cycles, first failing tests, minimal implementation targets, and refactor checkpoints. Trigger on "TDD plan", "write the failing tests first", "red green refactor", or "test-first breakdown". NOT for executing the implementation itself or for generic QA validation after the fact.
-
-  <example>
-  Context: Discovery is approved and the team wants a TDD breakdown.
-  user: "Quebra essa feature em ciclos red-green-refactor"
-  assistant: "I'll use the tdd-specialist agent to author the failing tests and minimal targets per cycle."
-  <commentary>
-  Test-first breakdown of approved scope is the agent's home.
-  </commentary>
-  </example>
-
-  <example>
+  TDD workflow specialist. PROACTIVELY use when approved scope needs to be converted into red-green-refactor cycles, first failing tests, minimal implementation targets, and refactor checkpoints. Trigger on "TDD plan", "write the failing tests first", "red green refactor", or "test-first breakdown". NOT for executing the implementation itself or for generic QA validation after the fact.<example>
   Context: A bug fix needs a failing test first.
   user: "Write the failing test for this bug before we fix it"
   assistant: "I'll use the tdd-specialist agent to author the red test that pins down the defect."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: opus
 color: yellow
+
 ---
 
 # TDD Specialist Agent

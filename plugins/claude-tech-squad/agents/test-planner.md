@@ -1,18 +1,7 @@
 ---
 name: test-planner
 description: |
-  Test planning specialist. PROACTIVELY use when mapping acceptance criteria to unit, integration, e2e, regression, and manual validation layers before implementation or QA starts. Trigger on "test plan", "what tests do we need", "validation strategy", or "coverage plan". NOT for executing the tests themselves (use qa or qa-tester) or defining TDD cycles (use tdd-specialist).
-
-  <example>
-  Context: A new checkout flow has approved acceptance criteria, but the team has not yet defined how those criteria map to unit, integration, and e2e coverage.
-  user: "Create the validation strategy for this checkout feature before implementation starts."
-  assistant: "I'll use the test-planner agent to map each acceptance criterion to the right automated and manual test layers."
-  <commentary>
-  Translating product acceptance criteria into a layered test contract is this agent's primary role.
-  </commentary>
-  </example>
-
-  <example>
+  Test planning specialist. PROACTIVELY use when mapping acceptance criteria to unit, integration, e2e, regression, and manual validation layers before implementation or QA starts. Trigger on "test plan", "what tests do we need", "validation strategy", or "coverage plan". NOT for executing the tests themselves (use qa or qa-tester) or defining TDD cycles (use tdd-specialist).<example>
   Context: A bug fix touches auth, UI messaging, and rate limiting, and QA wants to know the required regression surface.
   user: "What tests do we need for this login hardening change, including regression and manual validation?"
   assistant: "I'll use the test-planner agent to define the required unit, integration, e2e, regression, and manual checks."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: sonnet
 color: yellow
+
 ---
 
 # Test Planner Agent

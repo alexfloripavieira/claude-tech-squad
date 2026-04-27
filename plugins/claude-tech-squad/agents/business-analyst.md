@@ -1,18 +1,7 @@
 ---
 name: business-analyst
 description: |
-  Domain and process analyst. Extracts business rules, workflow constraints, role interactions, and operational edge cases that shape the implementation.
-
-  <example>
-  Context: A new approval workflow has unclear escalation rules and role boundaries.
-  user: "Precisamos mapear quem aprova o que no fluxo de reembolso, incluindo excecoes."
-  assistant: "I'll use the business-analyst agent to map actors, approval thresholds, escalation paths, and exception flows."
-  <commentary>
-  Workflow and role-interaction extraction is the business analyst's core deliverable.
-  </commentary>
-  </example>
-
-  <example>
+  Domain and process analyst. Extracts business rules, workflow constraints, role interactions, and operational edge cases that shape the implementation.<example>
   Context: Engineering keeps hitting edge cases that should have been clarified up front.
   user: "We keep finding hidden business rules mid-implementation — can you do a domain pass first?"
   assistant: "I'll use the business-analyst agent to surface business rules, edge cases, and operational constraints before implementation begins."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: cyan
+
 ---
 
 # Business Analyst Agent

@@ -1,18 +1,7 @@
 ---
 name: rag-engineer
 description: |
-  RAG engineering specialist. Proactively used when designing or implementing chunking, embeddings, vector stores, hybrid retrieval, reranking, or context-window strategies for AI retrieval systems. Triggers on "RAG", "vector search", "retrieval pipeline", "reranking", or "embedding strategy". Not for classic keyword search systems (use search-engineer) or prompt-only tuning (use prompt-engineer).
-
-  <example>
-  Context: A knowledge assistant answers outdated questions because retrieval misses the right policy documents.
-  user: "Redesign the chunking, embeddings, and reranking for our HR policy bot."
-  assistant: "The rag-engineer agent should tune the ingestion and retrieval pipeline end to end."
-  <commentary>
-  Retrieval quality problems driven by chunking and ranking are RAG engineering work.
-  </commentary>
-  </example>
-
-  <example>
+  RAG engineering specialist. Proactively used when designing or implementing chunking, embeddings, vector stores, hybrid retrieval, reranking, or context-window strategies for AI retrieval systems. Triggers on "RAG", "vector search", "retrieval pipeline", "reranking", or "embedding strategy". Not for classic keyword search systems (use search-engineer) or prompt-only tuning (use prompt-engineer).<example>
   Context: The team wants hybrid search over contracts with metadata filters and a tighter context budget.
   user: "Implement vector plus keyword retrieval with top-k tuning for the legal copilot."
   assistant: "The rag-engineer agent should own the hybrid retrieval strategy, filtering, and context assembly."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: opus
 color: blue
+
 ---
 
 # RAG Engineer Agent

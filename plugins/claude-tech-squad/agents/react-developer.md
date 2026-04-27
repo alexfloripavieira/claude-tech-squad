@@ -1,18 +1,7 @@
 ---
 name: react-developer
 description: |
-  React implementation specialist. Proactively used when building React components, hooks, state flows, API integration, or frontend tests in React apps. Triggers on "React component", "hook", "state management", "SPA screen", or "frontend in React". NOT for Vue components (use vue-developer), Django Templates (use django-frontend), or pure architecture (use frontend-architect).
-
-  <example>
-  Context: A SaaS app needs a new React dashboard screen with hooks, optimistic updates, and component tests.
-  user: "Build the subscriptions page in React and wire it to our billing API."
-  assistant: "The react-developer agent should implement the screen, hooks, API states, and frontend tests."
-  <commentary>
-  React SPA feature work with hooks and component tests belongs to react-developer.
-  </commentary>
-  </example>
-
-  <example>
+  React implementation specialist. Proactively used when building React components, hooks, state flows, API integration, or frontend tests in React apps. Triggers on "React component", "hook", "state management", "SPA screen", or "frontend in React". NOT for Vue components (use vue-developer), Django Templates (use django-frontend), or pure architecture (use frontend-architect).<example>
   Context: The backend already exists, but a file uploader in a React app keeps failing around CSRF and loading states.
   user: "Fix this React form so uploads work with Django and show proper pending/error states."
   assistant: "The react-developer agent should handle the React form behavior and Django API integration."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Write, Edit, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_wait_for, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_evaluate]
 model: sonnet
 color: green
+
 ---
 
 # React Developer Agent

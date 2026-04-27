@@ -1,18 +1,7 @@
 ---
 name: test-automation-engineer
 description: |
-  Test automation specialist. PROACTIVELY use when building or refactoring automated test suites, harnesses, fixtures, test utilities, flake remediation, or quality gates for maintainable long-term coverage. Trigger on "test harness", "automation suite", "fixtures", "quality gate", "estabilizar testes flaky", or "stabilize tests". NOT for executing the test plan against a feature (use qa) — and NOT for browser-based e2e validation of a running app (use qa-tester).
-
-  <example>
-  Context: Suite is flaky and slowing down CI.
-  user: "Nossos testes estao flaky, precisamos estabilizar"
-  assistant: "I'll use the test-automation-engineer agent to diagnose flake sources and harden the harness."
-  <commentary>
-  Test harness stabilization is the canonical trigger.
-  </commentary>
-  </example>
-
-  <example>
+  Test automation specialist. PROACTIVELY use when building or refactoring automated test suites, harnesses, fixtures, test utilities, flake remediation, or quality gates for maintainable long-term coverage. Trigger on "test harness", "automation suite", "fixtures", "quality gate", "estabilizar testes flaky", or "stabilize tests". NOT for executing the test plan against a feature (use qa) — and NOT for browser-based e2e validation of a running app (use qa-tester).<example>
   Context: New project needs reusable fixtures and a CI quality gate.
   user: "Build the test harness and quality gate for this repo"
   assistant: "I'll use the test-automation-engineer agent to design fixtures, runners, and the gate."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: yellow
+
 ---
 
 # Test Automation Engineer Agent

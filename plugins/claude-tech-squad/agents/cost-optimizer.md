@@ -1,18 +1,7 @@
 ---
 name: cost-optimizer
 description: |
-  Cost optimization specialist. PROACTIVELY use when reviewing cloud bills, rightsizing infrastructure, reducing API or model spend, or cutting expensive query/runtime costs without harming SLAs. Trigger on "cost reduction", "optimize cloud bill", "rightsizing", "API cost", or "FinOps". NOT for pure latency tuning (use performance-engineer) or database indexing strategy alone (use dba).
-
-  <example>
-  Context: AWS bill jumped 40% last month and the team needs to identify drivers.
-  user: "Our AWS bill spiked, can you help find what to rightsize?"
-  assistant: "I'll use the cost-optimizer agent to analyze the spend drivers and propose rightsizing actions."
-  <commentary>
-  Cloud bill review and rightsizing is the canonical FinOps trigger for this agent.
-  </commentary>
-  </example>
-
-  <example>
+  Cost optimization specialist. PROACTIVELY use when reviewing cloud bills, rightsizing infrastructure, reducing API or model spend, or cutting expensive query/runtime costs without harming SLAs. Trigger on "cost reduction", "optimize cloud bill", "rightsizing", "API cost", or "FinOps". NOT for pure latency tuning (use performance-engineer) or database indexing strategy alone (use dba).<example>
   Context: LLM API costs are growing faster than usage.
   user: "Custos da OpenAI estao subindo demais, precisamos cortar"
   assistant: "I'll use the cost-optimizer agent to map model spend and recommend caching, model tiering, and prompt-size cuts."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: inherit
 color: blue
+
 ---
 
 # Cost Optimizer

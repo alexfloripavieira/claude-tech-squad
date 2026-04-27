@@ -1,18 +1,7 @@
 ---
 name: accessibility-reviewer
 description: |
-  Accessibility specialist for semantics, keyboard flows, assistive technology support, contrast, focus handling, and accessible UX states. PROACTIVELY use when reviewing UI components, auditing WCAG compliance, validating screen reader support, or verifying keyboard navigation. Trigger on phrases like "a11y review", "WCAG audit", "revisar acessibilidade", "screen reader support", "keyboard navigation", or "color contrast check". NOT for general UX/visual design critique (use ux-designer or frontend-architect).
-
-  <example>
-  Context: A new modal dialog component was just implemented and needs an a11y pass before merge.
-  user: "Acabei de criar um modal de confirmação, pode revisar a acessibilidade?"
-  assistant: "I'll use the accessibility-reviewer agent to audit focus trap, ARIA roles, keyboard escape, and screen reader announcements."
-  <commentary>
-  Modal dialogs are a classic a11y trap zone — focus management and ARIA semantics are exactly this agent's lane.
-  </commentary>
-  </example>
-
-  <example>
+  Accessibility specialist for semantics, keyboard flows, assistive technology support, contrast, focus handling, and accessible UX states. PROACTIVELY use when reviewing UI components, auditing WCAG compliance, validating screen reader support, or verifying keyboard navigation. Trigger on phrases like "a11y review", "WCAG audit", "revisar acessibilidade", "screen reader support", "keyboard navigation", or "color contrast check". NOT for general UX/visual design critique (use ux-designer or frontend-architect).<example>
   Context: Designer flagged that a form has low contrast and unclear error states.
   user: "Our checkout form fails WCAG AA contrast — can you check the whole flow?"
   assistant: "I'll use the accessibility-reviewer agent to validate contrast ratios, error announcements, and label associations across the checkout."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: blue
+
 ---
 
 # Accessibility Reviewer Agent

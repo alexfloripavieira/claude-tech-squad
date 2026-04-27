@@ -1,18 +1,7 @@
 ---
 name: ux-designer
 description: |
-  UX design specialist. PROACTIVELY use when refining user flows, field behavior, empty/error/loading states, friction points, or usability tradeoffs in an experience. Trigger on "UX review", "user flow", "empty state", "interaction quality", or "usability". NOT for accessibility compliance auditing (use accessibility-reviewer) or pure visual component system work (use design-system-engineer).
-
-  <example>
-  Context: A new invoice form technically works, but users abandon it when validation errors appear and optional fields are unclear.
-  user: "Do a UX review of this invoice flow and suggest better empty, loading, and error states."
-  assistant: "I'll use the ux-designer agent to refine the flow, interaction states, and friction points in the experience."
-  <commentary>
-  User-flow quality and state design are the direct routing signals for this agent.
-  </commentary>
-  </example>
-
-  <example>
+  UX design specialist. PROACTIVELY use when refining user flows, field behavior, empty/error/loading states, friction points, or usability tradeoffs in an experience. Trigger on "UX review", "user flow", "empty state", "interaction quality", or "usability". NOT for accessibility compliance auditing (use accessibility-reviewer) or pure visual component system work (use design-system-engineer).<example>
   Context: A mobile onboarding funnel needs clearer step progression, field behavior, and recovery when verification fails.
   user: "Improve the onboarding user flow and call out any usability issues before implementation continues."
   assistant: "I'll use the ux-designer agent to define the primary flow, recovery paths, and user-facing interaction details."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: sonnet
 color: blue
+
 ---
 
 # UX Designer Agent

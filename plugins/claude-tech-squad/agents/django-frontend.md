@@ -1,18 +1,7 @@
 ---
 name: django-frontend
 description: |
-  Django template frontend specialist. Proactively used when building DTL templates, Tailwind-based pages, template tags, static assets, responsive layouts, or server-rendered UI components. Triggers on "Django template", "Tailwind page", "DTL", "server-rendered UI", or "template tag". NOT for React/Vue components (use react-developer/vue-developer) or pure backend logic (use django-backend).
-
-  <example>
-  Context: A Django app needs a responsive account settings page rendered entirely with templates and Tailwind.
-  user: "Build the new settings screen in DTL and keep it mobile-friendly."
-  assistant: "The django-frontend agent should implement the template structure, Tailwind classes, and responsive states."
-  <commentary>
-  Server-rendered Django UI work with templates and Tailwind belongs to django-frontend.
-  </commentary>
-  </example>
-
-  <example>
+  Django template frontend specialist. Proactively used when building DTL templates, Tailwind-based pages, template tags, static assets, responsive layouts, or server-rendered UI components. Triggers on "Django template", "Tailwind page", "DTL", "server-rendered UI", or "template tag". NOT for React/Vue components (use react-developer/vue-developer) or pure backend logic (use django-backend).<example>
   Context: The backend already returns context data, but the pricing page needs reusable server-rendered components.
   user: "Extract the pricing cards into Django template includes and add a custom template tag for badges."
   assistant: "The django-frontend agent should refactor the templates and add the reusable UI pieces."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Write, Edit, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_console_messages, Bash]
 model: sonnet
 color: green
+
 ---
 
 # Django Frontend Agent

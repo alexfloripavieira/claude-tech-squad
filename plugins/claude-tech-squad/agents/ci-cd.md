@@ -1,18 +1,7 @@
 ---
 name: ci-cd
 description: |
-  CI/CD specialist for pipelines, build automation, quality gates, artifact flow, deployment stages, and release workflow validation. Trigger on phrases like "configurar pipeline", "GitHub Actions workflow", "fix CI", "add quality gate", "deploy stages", or "release workflow". NOT for cloud infrastructure topology (use cloud-architect) or one-off lint fixes (use pre-commit-lint skill).
-
-  <example>
-  Context: A repo lacks any CI and the team wants tests to run on every PR.
-  user: "Precisamos adicionar pipeline de CI rodando testes e lint em cada PR."
-  assistant: "I'll use the ci-cd agent to design the workflow, define quality gates, and wire artifact caching."
-  <commentary>
-  Pipeline design with quality gates is the core CI/CD specialist responsibility.
-  </commentary>
-  </example>
-
-  <example>
+  CI/CD specialist for pipelines, build automation, quality gates, artifact flow, deployment stages, and release workflow validation. Trigger on phrases like "configurar pipeline", "GitHub Actions workflow", "fix CI", "add quality gate", "deploy stages", or "release workflow". NOT for cloud infrastructure topology (use cloud-architect) or one-off lint fixes (use pre-commit-lint skill).<example>
   Context: Deploys are manual and risky — team wants staged deployments with promotion.
   user: "We want staging then prod with manual approval — set it up."
   assistant: "I'll use the ci-cd agent to design the deploy stages, promotion gate, and rollback path."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: green
+
 ---
 
 # CI/CD Agent

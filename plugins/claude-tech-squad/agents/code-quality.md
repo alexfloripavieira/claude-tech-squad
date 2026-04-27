@@ -1,18 +1,7 @@
 ---
 name: code-quality
 description: |
-  Code quality and standards specialist. Owns lint configuration, coding standards enforcement, tech debt measurement, and continuous quality improvement. Use when setting up quality tooling, reviewing tech debt, defining coding standards, or interpreting SonarQube/static analysis reports. Trigger on phrases like "configurar lint", "definir padroes de codigo", "interpretar SonarQube", "medir tech debt", "set up ruff/eslint", or "quality baseline". NOT for reviewing specific PRs (use code-reviewer) or running one-time lint fixes (use pre-commit-lint skill).
-
-  <example>
-  Context: A new repo has no lint config and the team wants a quality baseline.
-  user: "Precisamos configurar ruff, black e mypy com regras consistentes."
-  assistant: "I'll use the code-quality agent to define the lint config, severity policy, and CI integration."
-  <commentary>
-  Lint configuration and standards setup are exactly this agent's lane.
-  </commentary>
-  </example>
-
-  <example>
+  Code quality and standards specialist. Owns lint configuration, coding standards enforcement, tech debt measurement, and continuous quality improvement. Use when setting up quality tooling, reviewing tech debt, defining coding standards, or interpreting SonarQube/static analysis reports. Trigger on phrases like "configurar lint", "definir padroes de codigo", "interpretar SonarQube", "medir tech debt", "set up ruff/eslint", or "quality baseline". NOT for reviewing specific PRs (use code-reviewer) or running one-time lint fixes (use pre-commit-lint skill).<example>
   Context: SonarQube reports 400+ issues and leadership wants a tech-debt plan.
   user: "Help me triage the SonarQube backlog and produce a tech-debt reduction plan."
   assistant: "I'll use the code-quality agent to interpret the report, classify by severity, and produce a prioritized debt-reduction plan."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: inherit
 color: yellow
+
 ---
 
 # Code Quality Specialist

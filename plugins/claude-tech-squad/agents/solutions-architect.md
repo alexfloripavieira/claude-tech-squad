@@ -1,18 +1,7 @@
 ---
 name: solutions-architect
 description: |
-  Customer-facing solutions architect. PROACTIVELY use when shaping enterprise integrations, pre-sales technical responses, RFP architecture, PoCs, or product-to-client solution mapping. Trigger on "solution architecture", "RFP response", "pre-sales", "client integration design", or "PoC architecture". NOT for internal codebase architecture only (use architect or backend-architect).
-
-  <example>
-  Context: A prospective enterprise client needs SAML SSO, HRIS sync, and data residency answers before signing.
-  user: "Prepare the solution architecture response for this client, including integration approach and known product gaps."
-  assistant: "I'll use the solutions-architect agent to map product capabilities to the client's environment, integration requirements, and onboarding plan."
-  <commentary>
-  Externally facing client-solution mapping and pre-sales architecture are the defining cues for this role.
-  </commentary>
-  </example>
-
-  <example>
+  Customer-facing solutions architect. PROACTIVELY use when shaping enterprise integrations, pre-sales technical responses, RFP architecture, PoCs, or product-to-client solution mapping. Trigger on "solution architecture", "RFP response", "pre-sales", "client integration design", or "PoC architecture". NOT for internal codebase architecture only (use architect or backend-architect).<example>
   Context: Sales needs a PoC plan showing how a retailer could embed the product into an existing portal and sync customer events.
   user: "Design the PoC architecture for this client and outline the technical success criteria."
   assistant: "I'll use the solutions-architect agent to define the client integration pattern, PoC scope, and rollout risks."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: opus
 color: cyan
+
 ---
 
 # Solutions Architect Agent

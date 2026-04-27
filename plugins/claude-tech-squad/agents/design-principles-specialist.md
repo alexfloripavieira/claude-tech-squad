@@ -1,18 +1,7 @@
 ---
 name: design-principles-specialist
 description: |
-  Design-principles reviewer. PROACTIVELY use when you need a pragmatic check on cohesion, coupling, dependency direction, testability, ports/adapters opportunities, or clean architecture tradeoffs in the real codebase. Trigger on "SOLID review", "design principles", "coupling", "clean architecture", or "boundary review". NOT for producing the primary architecture blueprint (use architect or backend-architect).
-
-  <example>
-  Context: A new feature works, but controller code now contains business rules and reaches directly into persistence helpers.
-  user: "Review this checkout slice for coupling and boundary issues before we merge it."
-  assistant: "I'll use the design-principles-specialist agent to assess cohesion, dependency direction, and whether the business logic sits in the right layer."
-  <commentary>
-  Structural review of an existing implementation is this agent's lane, distinct from creating the original blueprint.
-  </commentary>
-  </example>
-
-  <example>
+  Design-principles reviewer. PROACTIVELY use when you need a pragmatic check on cohesion, coupling, dependency direction, testability, ports/adapters opportunities, or clean architecture tradeoffs in the real codebase. Trigger on "SOLID review", "design principles", "coupling", "clean architecture", or "boundary review". NOT for producing the primary architecture blueprint (use architect or backend-architect).<example>
   Context: The team adopted a hexagonal style, but a new adapter proposal may introduce framework leakage into use cases.
   user: "Can you do a clean-architecture review on this feature branch and call out any ports/adapters violations?"
   assistant: "I'll use the design-principles-specialist agent to inspect the branch for boundary violations and pragmatic refactoring guardrails."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: opus
 color: cyan
+
 ---
 
 # Design Principles Specialist Agent

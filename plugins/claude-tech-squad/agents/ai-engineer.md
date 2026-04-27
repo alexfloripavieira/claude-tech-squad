@@ -1,18 +1,7 @@
 ---
 name: ai-engineer
 description: |
-  PROACTIVELY use when implementing LLM integrations, RAG pipelines, retrieval, evals, or safety-aware AI features. AI systems specialist for model integrations, prompt contracts, tool use, retrieval, evals, latency, and safety-aware implementation. Trigger on phrases like "integrar LLM", "build a RAG pipeline", "tune prompt", "add evals", "reduce hallucinations", or "AI feature implementation". NOT for prompt-only changes (use prompt-engineer), LLM eval suites (use llm-eval-specialist), LLM safety review (use llm-safety-reviewer), high-level multi-agent topology (use agent-architect), or pure ML model training (use ml-engineer).
-
-  <example>
-  Context: Product wants to add a summarization feature backed by an LLM with retrieval.
-  user: "Precisamos adicionar resumo de tickets via LLM com contexto da base de conhecimento."
-  assistant: "I'll use the ai-engineer agent to design the prompt contract, retrieval strategy, and eval harness for the summarization feature."
-  <commentary>
-  Prompt contracts plus retrieval plus evals is exactly this agent's wheelhouse.
-  </commentary>
-  </example>
-
-  <example>
+  PROACTIVELY use when implementing LLM integrations, RAG pipelines, retrieval, evals, or safety-aware AI features. AI systems specialist for model integrations, prompt contracts, tool use, retrieval, evals, latency, and safety-aware implementation. Trigger on phrases like "integrar LLM", "build a RAG pipeline", "tune prompt", "add evals", "reduce hallucinations", or "AI feature implementation". NOT for prompt-only changes (use prompt-engineer), LLM eval suites (use llm-eval-specialist), LLM safety review (use llm-safety-reviewer), high-level multi-agent topology (use agent-architect), or pure ML model training (use ml-engineer).<example>
   Context: An existing AI feature is producing inconsistent outputs and lacks tests.
   user: "Our AI classifier is flaky — we have no evals and don't know if changes regress."
   assistant: "I'll use the ai-engineer agent to build an eval suite, baseline current quality, and harden the prompt contract."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: blue
+
 ---
 
 # AI Engineer Agent

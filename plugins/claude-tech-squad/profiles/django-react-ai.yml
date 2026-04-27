@@ -1,0 +1,51 @@
+name: django-react-ai
+description: Django + React with LLM/RAG features (AI-augmented SaaS)
+detection:
+  required_any:
+    - file_exists: manage.py
+    - requirements_has: django
+  required_with:
+    - package_json_dep: react
+    - any_dep_matches: openai|langchain|pgvector|anthropic|llamaindex|chromadb
+agents:
+  - pm
+  - po
+  - planner
+  - architect
+  - techlead
+  - backend-architect
+  - frontend-architect
+  - django-pm
+  - django-tech-lead
+  - django-backend
+  - django-frontend
+  - react-developer
+  - frontend-dev
+  - backend-dev
+  - tdd-specialist
+  - test-planner
+  - qa
+  - qa-tester
+  - code-reviewer
+  - reviewer
+  - code-quality
+  - design-principles-specialist
+  - security-reviewer
+  - privacy-reviewer
+  - compliance-reviewer
+  - performance-engineer
+  - observability-engineer
+  - dba
+  - data-architect
+  - ai-engineer
+  - rag-engineer
+  - prompt-engineer
+  - llm-safety-reviewer
+  - llm-eval-specialist
+  - prd-author
+  - inception-author
+  - tasks-planner
+  - work-item-mapper
+  - business-analyst
+  - docs-writer
+  - release

@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.63.0] - 2026-04-27 — Agent profile system + stack-aware setup
+
+### Added
+
+- New `/claude-tech-squad:setup` command — detects the project stack (Django, React, Vue, TypeScript, RN, Flutter, dbt, AI/RAG, etc.) and proposes a curated agent profile, cutting loaded agents from 81 to ~28-38 depending on the stack.
+- Eight curated profiles in `profiles/`: `django-react`, `django-react-ai`, `vue-typescript`, `react-typescript`, `python-backend`, `mobile-fullstack`, `data-platform`, `minimal`, `full`.
+- New per-repo config file `.claude-tech-squad.yml` (project root, committable) with `profile` and `overrides.enable`/`overrides.disable` keys.
+- `SessionStart` hook auto-applies the configured profile on every session, surviving plugin auto-updates.
+- New helper commands: `/claude-tech-squad:profiles`, `/claude-tech-squad:list-agents`, `/claude-tech-squad:enable`, `/claude-tech-squad:disable`, `/claude-tech-squad:reset`.
+- `scripts/reconcile.py` — idempotent reconciler that physically moves agents between `agents/` and `agents/.disabled/`. Pure Python stdlib (no external deps).
+- `scripts/detect-stack.sh` — heuristic stack detector that emits stack tags consumed by the setup flow.
+
+### Changed
+
+- Stripped `<example>` blocks from all 81 agent description frontmatters, cutting ~9.4k tokens (-36%) from system-prompt overhead with no loss of routing signal.
+- `hooks/hooks.json` extended with `SessionStart` entry running `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/reconcile.py`.
+
+### Backward compatibility
+
+- Zero breaking changes for existing installs. If a repo has no `.claude-tech-squad.yml`, all 81 agents stay active exactly as before. Profile usage is fully opt-in via `/claude-tech-squad:setup`.
+
 ## [5.62.6] - 2026-04-26 — Automated maintenance release
 
 ### Changed

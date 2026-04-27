@@ -1,18 +1,7 @@
 ---
 name: cloud-architect
 description: |
-  PROACTIVELY use when designing cloud topology, multi-region HA, DR, or well-architected reviews. Cloud architecture specialist. Designs cloud topology, networking (VPC, subnets, DNS), IAM strategy, multi-region HA, disaster recovery, and well-architected framework compliance across AWS, GCP, and Azure. NOT for application architecture (use architect/backend-architect) or DevOps execution (use devops/ci-cd).
-
-  <example>
-  Context: A new product needs a multi-region HA design on AWS.
-  user: "Precisamos desenhar a topologia AWS multi-region com failover ativo-passivo."
-  assistant: "I'll use the cloud-architect agent to design VPC layout, cross-region routing, IAM boundaries, and DR strategy."
-  <commentary>
-  Multi-region topology and DR design are exactly this agent's mandate.
-  </commentary>
-  </example>
-
-  <example>
+  PROACTIVELY use when designing cloud topology, multi-region HA, DR, or well-architected reviews. Cloud architecture specialist. Designs cloud topology, networking (VPC, subnets, DNS), IAM strategy, multi-region HA, disaster recovery, and well-architected framework compliance across AWS, GCP, and Azure. NOT for application architecture (use architect/backend-architect) or DevOps execution (use devops/ci-cd).<example>
   Context: An audit flagged IAM sprawl across hundreds of roles in GCP.
   user: "We need a clean IAM strategy for our GCP org — least privilege everywhere."
   assistant: "I'll use the cloud-architect agent to define the IAM hierarchy, role boundaries, and well-architected compliance gaps."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep]
 model: opus
 color: cyan
+
 ---
 
 # Cloud Architect Agent

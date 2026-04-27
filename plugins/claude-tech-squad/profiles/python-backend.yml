@@ -1,0 +1,39 @@
+name: python-backend
+description: Python backend (FastAPI/Flask/non-Django) with API focus
+detection:
+  required_any:
+    - file_exists: pyproject.toml
+    - file_exists: requirements.txt
+  forbidden_any:
+    - file_exists: manage.py
+agents:
+  - pm
+  - po
+  - planner
+  - architect
+  - techlead
+  - backend-architect
+  - backend-dev
+  - python-developer
+  - api-designer
+  - integration-engineer
+  - tdd-specialist
+  - test-planner
+  - qa
+  - code-reviewer
+  - reviewer
+  - code-quality
+  - design-principles-specialist
+  - security-reviewer
+  - privacy-reviewer
+  - performance-engineer
+  - observability-engineer
+  - dba
+  - data-architect
+  - prd-author
+  - inception-author
+  - tasks-planner
+  - work-item-mapper
+  - business-analyst
+  - docs-writer
+  - release

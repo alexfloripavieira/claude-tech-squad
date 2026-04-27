@@ -1,18 +1,7 @@
 ---
 name: reviewer
 description: |
-  General code reviewer. PROACTIVELY use when you need a broad review for correctness, simplicity, maintainability, missing tests, regressions, or documentation drift before sign-off. Trigger on "review this change", "code review", "find risks", or "quality pass". NOT for security-specific review (use security-reviewer) or release-readiness governance (use release).
-
-  <example>
-  Context: A PR is ready and needs a broad quality pass before merge.
-  user: "Pode revisar essa PR antes do merge?"
-  assistant: "I'll use the reviewer agent to do a correctness, tests, and maintainability pass."
-  <commentary>
-  Generic pre-merge code review is the reviewer's home.
-  </commentary>
-  </example>
-
-  <example>
+  General code reviewer. PROACTIVELY use when you need a broad review for correctness, simplicity, maintainability, missing tests, regressions, or documentation drift before sign-off. Trigger on "review this change", "code review", "find risks", or "quality pass". NOT for security-specific review (use security-reviewer) or release-readiness governance (use release).<example>
   Context: A refactor changed many files and the team wants a risk pass.
   user: "Find risks in this refactor"
   assistant: "I'll use the reviewer agent to scan for regressions, missing tests, and doc drift."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: yellow
+
 ---
 
 # Reviewer Agent

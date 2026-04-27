@@ -1,18 +1,7 @@
 ---
 name: tasks-planner
 description: |
-  Task decomposition specialist. PROACTIVELY use when a validated PRD plus TechSpec needs to become a sequenced implementation backlog with test subtasks and incremental delivery order. Trigger on "break into tasks", "implementation backlog", "tasks.md", or "decompose the spec". NOT for prioritization of business scope alone (use po) or raw technical feasibility work (use planner).
-
-  <example>
-  Context: The PRD and TechSpec for multi-factor authentication are approved, and the implementation team needs an ordered backlog with explicit test subtasks.
-  user: "Break the MFA spec into tasks.md and task files, with unit and integration coverage for each main task."
-  assistant: "I'll use the tasks-planner agent to convert the approved PRD and TechSpec into a sequenced implementation backlog."
-  <commentary>
-  Structured decomposition from approved specs into execution-ready tasks is the routing signal for this agent.
-  </commentary>
-  </example>
-
-  <example>
+  Task decomposition specialist. PROACTIVELY use when a validated PRD plus TechSpec needs to become a sequenced implementation backlog with test subtasks and incremental delivery order. Trigger on "break into tasks", "implementation backlog", "tasks.md", or "decompose the spec". NOT for prioritization of business scope alone (use po) or raw technical feasibility work (use planner).<example>
   Context: A payment reconciliation feature is fully specified, but engineering needs functional increments instead of a long freeform to-do list.
   user: "Decompose this spec into implementation tasks in dependency order, keeping the delivery slices incremental."
   assistant: "I'll use the tasks-planner agent to emit the backlog structure, ordering, and mandatory test subtasks."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Write, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: inherit
 color: cyan
+
 ---
 
 # Tasks Planner Agent

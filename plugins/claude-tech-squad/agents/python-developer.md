@@ -1,18 +1,7 @@
 ---
 name: python-developer
 description: |
-  Python implementation specialist outside the Django web layer. Proactively used when building Python services, business logic modules, CLIs, scripts, libraries, or data-processing code with tests. Triggers on "Python utility", "CLI tool", "script", "Python service", "library module", or "typed Python logic". Not for workers, queues, operational integration glue, or internal platform tooling (use platform-dev).
-
-  <example>
-  Context: A repository needs a typed Python CLI that reads CSV files and uploads normalized records to an API.
-  user: "Build a Python import tool with Click and tests for bad input rows."
-  assistant: "The python-developer agent should implement the CLI, validation layer, and test coverage."
-  <commentary>
-  A standalone Python CLI and data-processing flow fit python-developer rather than shell-developer.
-  </commentary>
-  </example>
-
-  <example>
+  Python implementation specialist outside the Django web layer. Proactively used when building Python services, business logic modules, CLIs, scripts, libraries, or data-processing code with tests. Triggers on "Python utility", "CLI tool", "script", "Python service", "library module", or "typed Python logic". Not for workers, queues, operational integration glue, or internal platform tooling (use platform-dev).<example>
   Context: A product team needs shared Python domain logic to price subscriptions consistently across apps.
   user: "Create a Python package for pricing rules, discounts, and invoice calculations with tests."
   assistant: "The python-developer agent should build the library module, typed business logic, and test suite."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: sonnet
 color: green
+
 ---
 
 # Python Developer Agent

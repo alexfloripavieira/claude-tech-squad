@@ -1,18 +1,7 @@
 ---
 name: techlead
 description: |
-  Cross-stack technical execution lead. PROACTIVELY use when architecture already exists and the team needs implementation path selection, boundary assignment, sequencing, and execution authority across stacks during /squad or /implement. Trigger on "execution strategy", "who does what", "implementation sequencing", or "drive delivery". NOT for Django-specific planning before coding (use django-tech-lead) — and NOT for pure architecture design (use architect).
-
-  <example>
-  Context: Discovery is done; team needs an execution lead to drive delivery across backend, frontend, and data.
-  user: "Architecture is approved, drive delivery across stacks"
-  assistant: "I'll use the techlead agent to assign boundaries, sequence tasks, and own execution authority."
-  <commentary>
-  Cross-stack execution authority during /implement is the techlead's remit.
-  </commentary>
-  </example>
-
-  <example>
+  Cross-stack technical execution lead. PROACTIVELY use when architecture already exists and the team needs implementation path selection, boundary assignment, sequencing, and execution authority across stacks during /squad or /implement. Trigger on "execution strategy", "who does what", "implementation sequencing", or "drive delivery". NOT for Django-specific planning before coding (use django-tech-lead) — and NOT for pure architecture design (use architect).<example>
   Context: Multiple specialists need to coordinate on a feature already designed.
   user: "Quem faz o que nessa feature?"
   assistant: "I'll use the techlead agent to assign boundaries and sequencing across stacks."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, WebSearch, WebFetch]
 model: opus
 color: cyan
+
 ---
 
 # Tech Lead Agent

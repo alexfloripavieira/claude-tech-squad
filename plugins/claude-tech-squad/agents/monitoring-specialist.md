@@ -1,18 +1,7 @@
 ---
 name: monitoring-specialist
 description: |
-  Monitoring specialist. PROACTIVELY use when tuning alerts, configuring APM, building dashboards, tracking SLO/SLA health, or correlating incidents across Grafana, Datadog, New Relic, and similar tools. Trigger on "monitoring", "alert noise", "APM", "dashboard", or "SLO tracking". NOT for implementation of logs/traces in code (use observability-engineer) or product analytics instrumentation (use analytics-engineer).
-
-  <example>
-  Context: On-call team is drowning in noisy alerts.
-  user: "Nossos alertas no Datadog estao virando ruido, ninguem responde mais"
-  assistant: "I'll use the monitoring-specialist agent to retune thresholds and remove noisy/duplicate alerts."
-  <commentary>
-  Alert noise tuning is the agent's core remit.
-  </commentary>
-  </example>
-
-  <example>
+  Monitoring specialist. PROACTIVELY use when tuning alerts, configuring APM, building dashboards, tracking SLO/SLA health, or correlating incidents across Grafana, Datadog, New Relic, and similar tools. Trigger on "monitoring", "alert noise", "APM", "dashboard", or "SLO tracking". NOT for implementation of logs/traces in code (use observability-engineer) or product analytics instrumentation (use analytics-engineer).<example>
   Context: A new service needs an SLO dashboard.
   user: "Build a Grafana SLO dashboard for the payments API"
   assistant: "I'll use the monitoring-specialist agent to design the SLO panels and burn-rate alerts."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: blue
+
 ---
 
 # Monitoring Specialist Agent

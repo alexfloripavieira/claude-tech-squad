@@ -1,18 +1,7 @@
 ---
 name: security-engineer
 description: |
-  Security implementation specialist. PROACTIVELY use when building OAuth/OIDC, MFA, WAF rules, hardening controls, SAST/DAST integration, or other security features in the system. Trigger on "implement auth hardening", "MFA", "OIDC", "security feature", or "WAF rule". NOT for audit-style review only (use security-reviewer) or deep offensive assessment (use ethical-hacker).
-
-  <example>
-  Context: Team needs to add MFA to the admin login.
-  user: "Implementar MFA no login do admin"
-  assistant: "I'll use the security-engineer agent to design and implement TOTP/MFA enrollment and verification."
-  <commentary>
-  Building auth-hardening features is the agent's core remit.
-  </commentary>
-  </example>
-
-  <example>
+  Security implementation specialist. PROACTIVELY use when building OAuth/OIDC, MFA, WAF rules, hardening controls, SAST/DAST integration, or other security features in the system. Trigger on "implement auth hardening", "MFA", "OIDC", "security feature", or "WAF rule". NOT for audit-style review only (use security-reviewer) or deep offensive assessment (use ethical-hacker).<example>
   Context: SAST needs to be wired into CI.
   user: "Integrate SAST in our pipeline"
   assistant: "I'll use the security-engineer agent to add the SAST step and triage gates."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: opus
 color: red
+
 ---
 
 # Security Engineer Agent

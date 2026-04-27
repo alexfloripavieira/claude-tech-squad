@@ -1,18 +1,7 @@
 ---
 name: data-engineer
 description: |
-  Data pipeline implementation specialist. PROACTIVELY use when building ETL/ELT jobs, streaming pipelines, warehouse/lakehouse workflows, dbt models, or data quality automation. Trigger on "Airflow", "Spark", "Kafka", "dbt", "pipeline", or "warehouse job". NOT for application database tuning (use dba) or schema strategy alone (use data-architect).
-
-  <example>
-  Context: A new dbt model is needed for a warehouse mart.
-  user: "Precisamos de um modelo dbt para a tabela de pedidos no warehouse"
-  assistant: "I'll use the data-engineer agent to author the dbt model and tests."
-  <commentary>
-  dbt model implementation is squarely in this agent's scope.
-  </commentary>
-  </example>
-
-  <example>
+  Data pipeline implementation specialist. PROACTIVELY use when building ETL/ELT jobs, streaming pipelines, warehouse/lakehouse workflows, dbt models, or data quality automation. Trigger on "Airflow", "Spark", "Kafka", "dbt", "pipeline", or "warehouse job". NOT for application database tuning (use dba) or schema strategy alone (use data-architect).<example>
   Context: Streaming pipeline ingesting Kafka events into a lakehouse.
   user: "Build a Kafka to Iceberg pipeline with backfill support"
   assistant: "I'll use the data-engineer agent to design and implement the streaming ingestion."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: green
+
 ---
 
 # Data Engineer Agent

@@ -1,18 +1,7 @@
 ---
 name: typescript-developer
 description: |
-  TypeScript implementation specialist. Proactively used when building TypeScript modules, SDK clients, utilities, or shared types with strong interfaces and compiler-checked correctness. Triggers on "TypeScript module", "types", "SDK client", "tsc", or "typed utility". Not for framework-specific React/Vue component work when those specialists are more appropriate.
-
-  <example>
-  Context: Several apps need a shared TypeScript client for a REST API with strict request and response types.
-  user: "Create a typed SDK package for the billing API and make `tsc --noEmit` pass."
-  assistant: "The typescript-developer agent should implement the SDK, shared interfaces, and compiler-safe utilities."
-  <commentary>
-  Shared typed modules and SDK clients are central TypeScript work beyond any single UI framework.
-  </commentary>
-  </example>
-
-  <example>
+  TypeScript implementation specialist. Proactively used when building TypeScript modules, SDK clients, utilities, or shared types with strong interfaces and compiler-checked correctness. Triggers on "TypeScript module", "types", "SDK client", "tsc", or "typed utility". Not for framework-specific React/Vue component work when those specialists are more appropriate.<example>
   Context: A monorepo has brittle JSON parsing and needs safer shared domain types, not a new React screen.
   user: "Add discriminated unions and Zod validation around our event payloads."
   assistant: "The typescript-developer agent should harden the type layer and validation utilities."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_console_messages]
 model: sonnet
 color: green
+
 ---
 
 # TypeScript Developer Agent

@@ -1,18 +1,7 @@
 ---
 name: mobile-dev
 description: |
-  Mobile app implementation specialist. PROACTIVELY use when building iOS, Android, React Native, or Flutter features, especially offline flows, push notifications, deep links, store packaging, or mobile performance. Trigger on "mobile app", "React Native", "Flutter", "push notification", or "deep link". NOT for web frontend work (use frontend-dev/react-developer/vue-developer).
-
-  <example>
-  Context: Team needs an offline-first feature in a React Native app.
-  user: "Precisamos de modo offline com sync no nosso app React Native"
-  assistant: "I'll use the mobile-dev agent to implement the offline cache, queueing, and conflict resolution."
-  <commentary>
-  Offline flows in React Native are mobile-specific implementation work.
-  </commentary>
-  </example>
-
-  <example>
+  Mobile app implementation specialist. PROACTIVELY use when building iOS, Android, React Native, or Flutter features, especially offline flows, push notifications, deep links, store packaging, or mobile performance. Trigger on "mobile app", "React Native", "Flutter", "push notification", or "deep link". NOT for web frontend work (use frontend-dev/react-developer/vue-developer).<example>
   Context: Push notifications aren't reaching iOS users.
   user: "Push notifications stopped working on iOS, can you fix?"
   assistant: "I'll use the mobile-dev agent to diagnose APNs config and the notification handler."
@@ -23,6 +12,7 @@ description: |
 tool_allowlist: [Read, Write, Edit, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_evaluate]
 model: sonnet
 color: green
+
 ---
 
 # Mobile Dev Agent
