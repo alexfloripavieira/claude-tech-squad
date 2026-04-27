@@ -2,24 +2,6 @@
 name: dba
 description: |
   Database administration specialist. PROACTIVELY use when evaluating indexes, query plans, migration safety, locking behavior, rollback feasibility, or operational database performance. Trigger on "slow query", "index", "migration risk", "deadlock", or "database tuning". NOT for warehouse/ETL pipelines (use data-engineer) or product-level analytics instrumentation (use analytics-engineer).
-
-  <example>
-  Context: A migration needs to add a column to a 200M-row table without downtime.
-  user: "Como fazer essa migration sem travar a tabela?"
-  assistant: "I'll use the dba agent to assess locking risk and propose a safe online migration plan."
-  <commentary>
-  Migration safety and locking analysis is core DBA work.
-  </commentary>
-  </example>
-
-  <example>
-  Context: A production query is slow and the plan looks suspicious.
-  user: "This query takes 8s, can we tune it?"
-  assistant: "I'll use the dba agent to read the EXPLAIN plan and recommend index or rewrite changes."
-  <commentary>
-  Query plan and indexing strategy is the canonical DBA trigger.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: blue

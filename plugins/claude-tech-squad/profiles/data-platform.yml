@@ -1,0 +1,36 @@
+name: data-platform
+description: Data engineering, ETL, warehouse, analytics
+detection:
+  required_any:
+    - file_exists: dbt_project.yml
+    - dir_exists: airflow/dags
+    - dir_exists: dags
+    - any_dep_matches: airflow|dbt|spark|prefect|dagster
+agents:
+  - pm
+  - po
+  - planner
+  - architect
+  - techlead
+  - data-architect
+  - data-engineer
+  - dba
+  - python-developer
+  - tdd-specialist
+  - test-planner
+  - qa
+  - code-reviewer
+  - reviewer
+  - code-quality
+  - design-principles-specialist
+  - security-reviewer
+  - privacy-reviewer
+  - compliance-reviewer
+  - performance-engineer
+  - observability-engineer
+  - analytics-engineer
+  - prd-author
+  - tasks-planner
+  - work-item-mapper
+  - business-analyst
+  - docs-writer

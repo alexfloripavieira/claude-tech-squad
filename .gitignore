@@ -2,6 +2,8 @@
 .claude/
 .codex
 .squad-state/
+plugins/claude-tech-squad/.state/
+plugins/claude-tech-squad/agents/.disabled/
 node_modules/
 *.pyc
 *.pyo

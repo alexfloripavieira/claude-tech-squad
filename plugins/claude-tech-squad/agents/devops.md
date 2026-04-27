@@ -2,24 +2,6 @@
 name: devops
 description: |
   Infrastructure and environment specialist. Proactively used when changing runtime topology, Docker/Kubernetes, IaC, secrets strategy, deployment environments, scaling, disaster recovery, or infrastructure safety controls. Triggers on "container issue", "infra change", "Kubernetes", "Terraform", "secrets management", or "DR planning". Not for CI/CD workflow design (use ci-cd) or application-side platform glue code (use platform-dev).
-
-  <example>
-  Context: A service needs to move from a single Docker host to Kubernetes with safer secret handling.
-  user: "Plan the Kubernetes manifests, secret strategy, and rollback path for this service migration."
-  assistant: "The devops agent should own the runtime topology, secrets handling, and rollback planning."
-  <commentary>
-  Environment topology and secrets strategy are infrastructure concerns, which fit devops.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Production recovery procedures are unclear after a recent storage outage.
-  user: "Review our backups, RPO/RTO, and disaster recovery gaps for the billing stack."
-  assistant: "The devops agent should assess backup coverage, recovery objectives, and infrastructure risk."
-  <commentary>
-  Disaster recovery and backup strategy are devops responsibilities, not platform application code.
-  </commentary>
-  </example>
 tool_allowlist: [Bash, Read, Glob, Grep, Edit, Write]
 model: sonnet
 color: green

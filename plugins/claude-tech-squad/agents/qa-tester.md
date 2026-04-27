@@ -2,24 +2,6 @@
 name: qa-tester
 description: |
   Browser-based end-to-end QA tester. Owns Playwright/browser validation of a running app — clicking real flows, verifying UI vs design, capturing console/runtime errors, and confirming user paths. PROACTIVELY use when a running app needs e2e validation in a real browser. Trigger on "testar no browser", "test in browser", "Playwright QA", "validar o fluxo", "validate the flow", "check the UI", "ponta a ponta", or "end-to-end". NOT for unit/integration test execution and AC validation (use qa) — and NOT for writing product code or defining the initial test strategy (use test-planner or tdd-specialist).
-
-  <example>
-  Context: A new checkout flow is deployed to staging and needs e2e validation.
-  user: "Valida o fluxo de checkout no browser, ponta a ponta"
-  assistant: "I'll use the qa-tester agent to drive Playwright through the checkout flow and capture any UI or console issues."
-  <commentary>
-  Real-browser e2e validation is the qa-tester remit, not qa's.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Designer wants to confirm the implemented page matches the design.
-  user: "Check the new dashboard page matches the Figma design"
-  assistant: "I'll use the qa-tester agent to compare the live page in the browser against the design and report deltas."
-  <commentary>
-  UI-vs-design checks against a running app belong to qa-tester.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_type, mcp__plugin_playwright_playwright__browser_press_key, mcp__plugin_playwright_playwright__browser_select_option, mcp__plugin_playwright_playwright__browser_hover, mcp__plugin_playwright_playwright__browser_wait_for, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_network_requests, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_handle_dialog, Grep, Bash, Edit, Write]
 model: sonnet
 color: yellow

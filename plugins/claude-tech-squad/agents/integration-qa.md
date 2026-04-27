@@ -2,24 +2,6 @@
 name: integration-qa
 description: |
   Integration and end-to-end quality specialist. Validates contracts, cross-service flows, external dependencies, environments, and system-level regressions. Trigger when work crosses service boundaries or hits external dependencies — phrases like "teste de integracao", "end-to-end test", "contract test", "validar fluxo entre servicos", "system regression". NOT for unit tests of a single function (use qa-engineer) or single-service component tests (use the relevant dev agent's tests).
-
-  <example>
-  Context: A new flow spans three services and needs end-to-end validation.
-  user: "Preciso validar o fluxo de checkout que passa por cart, payments e orders"
-  assistant: "I'll use the integration-qa agent to validate cross-service contracts, end-to-end flow, and system-level regressions."
-  <commentary>
-  Cross-service end-to-end flow validation maps to integration-qa.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Contract change in an external dependency may break consumers.
-  user: "The third-party shipping API updated — verify our contract still holds"
-  assistant: "I'll use the integration-qa agent to run contract tests against the updated external dependency and report regressions."
-  <commentary>
-  External dependency contract validation is the integration-qa scope.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: yellow

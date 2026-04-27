@@ -1,0 +1,39 @@
+name: react-typescript
+description: React + TypeScript frontend with Node/API backend
+detection:
+  required_with:
+    - package_json_dep: react
+    - file_exists: tsconfig.json
+agents:
+  - pm
+  - po
+  - planner
+  - architect
+  - techlead
+  - frontend-architect
+  - frontend-dev
+  - react-developer
+  - typescript-developer
+  - backend-architect
+  - backend-dev
+  - api-designer
+  - tdd-specialist
+  - test-planner
+  - qa
+  - qa-tester
+  - code-reviewer
+  - reviewer
+  - code-quality
+  - design-principles-specialist
+  - design-system-engineer
+  - accessibility-reviewer
+  - ux-designer
+  - security-reviewer
+  - performance-engineer
+  - observability-engineer
+  - prd-author
+  - tasks-planner
+  - work-item-mapper
+  - business-analyst
+  - docs-writer
+  - release

@@ -2,33 +2,6 @@
 name: platform-dev
 description: |
   Platform engineering implementation specialist. Proactively used when building background workers, queues, service-adjacent operational tooling, operational integration glue, or observability hooks that bridge application code with platform services. Triggers on "worker", "job queue", "platform glue", "service integration", "queue consumer", or "runtime support tooling". Not for CI/CD pipelines (use ci-cd), general Python application scripts (use python-developer), or environment/infrastructure configuration (use devops).
-
-  <example>
-  Context: The application needs a worker that syncs subscription events from Stripe into internal services.
-  user: "Implement a retrying background job for Stripe webhooks and emit metrics on failures."
-  assistant: "The platform-dev agent should build the worker code, queue handling, and observability hooks."
-  <commentary>
-  Code that bridges app behavior with queues and external services fits platform-dev.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Engineers need an internal tool that replays failed jobs from a queue without changing cluster topology.
-  user: "Add a small admin CLI to inspect and replay dead-letter jobs."
-  assistant: "The platform-dev agent should implement the queue tooling and service integration logic."
-  <commentary>
-  This is runtime support tooling around live platform services, not generic scripting or developer onboarding automation.
-  </commentary>
-  </example>
-
-  <example>
-  Context: A billing service must enqueue outbound partner syncs and retry them safely after partial failures.
-  user: "Add the queue consumer and retry flow for partner sync jobs."
-  assistant: "The platform-dev agent should own the worker implementation and queue-backed integration behavior."
-  <commentary>
-  Queue consumers and retrying operational integrations are platform-dev responsibilities, not general python-developer work.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: sonnet
 color: green

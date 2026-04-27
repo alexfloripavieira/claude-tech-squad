@@ -2,33 +2,6 @@
 name: tech-writer
 description: |
   External-facing technical writer. Proactively used when producing canonical technical documentation, API references, integration guides, operational product docs, customer changelogs, or knowledge-base docs for end users and external developers. Triggers on "user guide", "API reference", "integration guide", "customer docs", "knowledge base", or "product documentation". Not for community enablement, workshops, sample apps, or adoption campaigns (use developer-relations).
-
-  <example>
-  Context: A product team shipped a new export feature and customers need a clear step-by-step guide.
-  user: "Write a help-center article explaining how account admins export audit logs."
-  assistant: "The tech-writer agent should produce the customer-facing guide and troubleshooting notes."
-  <commentary>
-  End-user documentation and support content are part of tech-writer scope.
-  </commentary>
-  </example>
-
-  <example>
-  Context: External developers need a clean reference for a public API, including examples and error codes.
-  user: "Document our webhooks API with request samples and common failure responses."
-  assistant: "The tech-writer agent should create the public API reference and examples."
-  <commentary>
-  Canonical endpoint behavior, payloads, and errors belong with tech-writer rather than developer-relations.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Partners can already authenticate, but the exact webhook signing steps and retry semantics are undocumented.
-  user: "Write the official integration guide for verifying webhook signatures and handling retries."
-  assistant: "The tech-writer agent should produce the precise integration guide and operational reference."
-  <commentary>
-  This is authoritative system documentation for implementers, not outreach or developer-adoption content.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, Edit, Write]
 model: haiku
 color: magenta

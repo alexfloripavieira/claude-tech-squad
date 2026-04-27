@@ -2,24 +2,6 @@
 name: ml-engineer
 description: |
   Machine learning implementation specialist. Proactively used when building training pipelines, fine-tuning models, feature engineering workflows, model registry/release flows, or production monitoring for drift. Triggers on "train model", "fine-tune", "MLOps", "feature engineering", or "drift detection". Not for prompt-only LLM product work (use prompt-engineer or ai-engineer) or data pipeline plumbing alone (use data-engineer).
-
-  <example>
-  Context: A fraud team wants to retrain a classifier weekly and promote versions through a registry with rollback.
-  user: "Set up the training pipeline, model registry flow, and drift checks for our fraud model."
-  assistant: "The ml-engineer agent should implement the retraining workflow, registry promotion gates, and monitoring."
-  <commentary>
-  Model training, promotion, and drift monitoring are ML engineering responsibilities.
-  </commentary>
-  </example>
-
-  <example>
-  Context: A support bot is underperforming because the team lacks labeled data and feature pipelines, not because of prompt wording.
-  user: "We need a labeled dataset and a fine-tuned classifier for ticket routing."
-  assistant: "The ml-engineer agent should design the labeling workflow, feature engineering, and fine-tuning plan."
-  <commentary>
-  This is a supervised-model problem, which separates ml-engineer from prompt-engineer and rag-engineer.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write]
 model: opus
 color: green

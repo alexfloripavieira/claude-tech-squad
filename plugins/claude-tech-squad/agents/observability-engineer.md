@@ -2,24 +2,6 @@
 name: observability-engineer
 description: |
   Observability implementation specialist. PROACTIVELY use when adding structured logs, metrics, traces, alert rules, or ops dashboards to make systems diagnosable and on-call-friendly. Trigger on "OpenTelemetry", "tracing", "structured logs", "Prometheus", "Loki", or "observability". NOT for business/product analytics (use analytics-engineer) or release-governance reliability calls (use sre).
-
-  <example>
-  Context: New microservice ships without traces and on-call cannot debug it.
-  user: "Adicionar OpenTelemetry no servico de pagamentos"
-  assistant: "I'll use the observability-engineer agent to instrument tracing, structured logs, and metrics."
-  <commentary>
-  OpenTelemetry instrumentation is the agent's core implementation work.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Logs are unstructured and hard to query in Loki.
-  user: "We need structured JSON logs across all our Go services"
-  assistant: "I'll use the observability-engineer agent to define the log schema and roll it out."
-  <commentary>
-  Structured logging design and rollout is in scope.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: sonnet
 color: blue

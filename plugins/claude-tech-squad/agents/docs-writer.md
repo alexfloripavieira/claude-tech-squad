@@ -2,24 +2,6 @@
 name: docs-writer
 description: |
   Updates technical docs, migration notes, operator guidance, changelog inputs, and developer-facing usage notes so the change is understandable after merge.
-
-  <example>
-  Context: A new endpoint was added and the operator runbook is outdated.
-  user: "Adicionamos um novo endpoint /webhooks/stripe — preciso atualizar a documentacao"
-  assistant: "I'll use the docs-writer agent to update operator runbook, API reference, and changelog entries for the new webhook endpoint."
-  <commentary>
-  Documentation delta following a code change is exactly the docs-writer scope.
-  </commentary>
-  </example>
-
-  <example>
-  Context: A breaking migration needs migration notes for downstream consumers.
-  user: "We renamed the user.email field to user.contact_email — how do we communicate this?"
-  assistant: "I'll use the docs-writer agent to draft migration notes, changelog entry, and update developer-facing usage docs."
-  <commentary>
-  Breaking change requires clear migration documentation before merge.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, Edit, Write]
 model: haiku
 color: magenta

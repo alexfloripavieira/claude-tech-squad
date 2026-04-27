@@ -2,24 +2,6 @@
 name: ethical-hacker
 description: |
   Deep ethical-offensive security specialist covering 16 dimensions — compliance (LGPD/GDPR/PCI/HIPAA/SOC2/ISO27001), data leak surface, AppSec (OWASP/CWE), IAM, crypto, network, cloud/IaC, supply chain, AI/ML, mobile, ops resilience, DevSecOps, web defenses, DoS, insider threat, observability security. Produces threat models, attack chains, LGPD non-conformity matrix, vulnerability register. Read-only — never weaponizes. PROACTIVELY use when user asks for "auditoria LGPD", "pentest", "ethical hacking", "vazamento de dados", "data leak", "deep security analysis", "find vulnerabilities", "teste de invasao", "auditoria de seguranca completa". NOT for static-tool-only scans (security-reviewer) or LLM-only threats (llm-safety-reviewer). Full 16-dimension scope detailed in body.
-
-  <example>
-  Context: Brazilian fintech needs full LGPD assessment plus attack chain analysis before launch.
-  user: "Preciso de uma auditoria LGPD completa e teste de invasao do nosso app de pagamentos"
-  assistant: "I'll use the ethical-hacker agent to produce the 16-dimension threat model, LGPD non-conformity matrix, and attack chain register."
-  <commentary>
-  Triggers for "auditoria LGPD" and "teste de invasao" map directly to ethical-hacker.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Engineering lead suspects a data leak surface across cloud and supply chain.
-  user: "We need a deep security analysis — possible vazamento de dados across S3, IAM, and our npm deps"
-  assistant: "I'll use the ethical-hacker agent to map the data-leak surface across cloud, IAM, and supply chain dimensions and chain findings into exploitable scenarios."
-  <commentary>
-  Cross-dimension data leak with attack chains is the ethical-hacker scope.
-  </commentary>
-  </example>
 tool_allowlist: [Bash, Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: red

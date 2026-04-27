@@ -2,24 +2,6 @@
 name: jira-confluence-specialist
 description: |
   Specialist for Jira and Confluence delivery artifacts. Structures epics, stories, subtasks, acceptance criteria, implementation updates, release notes, ADR summaries, and knowledge-base pages.
-
-  <example>
-  Context: A delivered feature needs Jira closeout and a Confluence release note page.
-  user: "Fechei o epic de notificacoes — precisa atualizar Jira e publicar release notes no Confluence"
-  assistant: "I'll use the jira-confluence-specialist agent to update Jira issues, post implementation updates, and publish the Confluence release notes page."
-  <commentary>
-  Jira+Confluence closeout artifacts are the specialist's scope.
-  </commentary>
-  </example>
-
-  <example>
-  Context: A new initiative needs an epic broken down into stories with acceptance criteria.
-  user: "Break down our SSO initiative into a Jira epic with stories"
-  assistant: "I'll use the jira-confluence-specialist agent to structure the epic, stories, subtasks, and acceptance criteria in Jira."
-  <commentary>
-  Backlog structuring in Jira is in scope.
-  </commentary>
-  </example>
 tool_allowlist: [mcp__plugin_atlassian_atlassian__createJiraIssue, mcp__plugin_atlassian_atlassian__editJiraIssue, mcp__plugin_atlassian_atlassian__getJiraIssue, mcp__plugin_atlassian_atlassian__addCommentToJiraIssue, mcp__plugin_atlassian_atlassian__searchJiraIssuesUsingJql, mcp__plugin_atlassian_atlassian__getJiraProjectIssueTypesMetadata, mcp__plugin_atlassian_atlassian__getVisibleJiraProjects, mcp__plugin_atlassian_atlassian__createConfluencePage, mcp__plugin_atlassian_atlassian__updateConfluencePage, mcp__plugin_atlassian_atlassian__getConfluencePage, mcp__plugin_atlassian_atlassian__getConfluenceSpaces, mcp__plugin_atlassian_atlassian__atlassianUserInfo, mcp__plugin_atlassian_atlassian__getAccessibleAtlassianResources, mcp__plugin_atlassian_atlassian__transitionJiraIssue, mcp__plugin_atlassian_atlassian__lookupJiraAccountId, mcp__plugin_atlassian_atlassian__getIssueLinkTypes, mcp__plugin_atlassian_atlassian__createIssueLink, Read, Glob, Grep, Edit, Write]
 model: haiku
 color: magenta

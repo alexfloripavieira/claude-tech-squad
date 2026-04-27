@@ -1,0 +1,44 @@
+name: django-react
+description: Django backend + React frontend (typical SaaS web stack)
+detection:
+  required_any:
+    - file_exists: manage.py
+    - requirements_has: django
+  required_with:
+    - package_json_dep: react
+agents:
+  - pm
+  - po
+  - planner
+  - architect
+  - techlead
+  - backend-architect
+  - frontend-architect
+  - django-pm
+  - django-tech-lead
+  - django-backend
+  - django-frontend
+  - react-developer
+  - frontend-dev
+  - backend-dev
+  - tdd-specialist
+  - test-planner
+  - qa
+  - qa-tester
+  - code-reviewer
+  - reviewer
+  - code-quality
+  - design-principles-specialist
+  - security-reviewer
+  - privacy-reviewer
+  - performance-engineer
+  - observability-engineer
+  - dba
+  - data-architect
+  - prd-author
+  - inception-author
+  - tasks-planner
+  - work-item-mapper
+  - business-analyst
+  - docs-writer
+  - release

@@ -2,24 +2,6 @@
 name: llm-eval-specialist
 description: |
   LLM evaluation specialist. Owns evaluation frameworks, quality metrics, hallucination detection, retrieval quality assessment, regression testing for AI outputs, and production monitoring of model behavior.
-
-  <example>
-  Context: Team needs to validate a new RAG pipeline before launch.
-  user: "How do I measure if our RAG answers are faithful to the retrieved docs?"
-  assistant: "I'll use the llm-eval-specialist agent to design a faithfulness eval suite with golden datasets and regression baselines."
-  <commentary>
-  Faithfulness scoring and retrieval quality are core llm-eval-specialist responsibilities.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Production model quality drift suspected after a prompt change.
-  user: "Os outputs do nosso assistente parecem piores depois do último deploy. Como confirmar?"
-  assistant: "I'll use the llm-eval-specialist agent to run a regression eval against the prior baseline and quantify quality delta."
-  <commentary>
-  Regression testing of AI outputs against a baseline is exactly this agent's scope.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
 model: opus
 color: blue

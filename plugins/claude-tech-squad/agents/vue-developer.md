@@ -2,24 +2,6 @@
 name: vue-developer
 description: |
   Vue implementation specialist. Proactively used when building Vue 3 components, Composition API logic, Pinia state, router flows, or frontend tests in Vue apps. Triggers on "Vue component", "Composition API", "Pinia", "Vue route", or "frontend in Vue". NOT for React components (use react-developer), Django Templates (use django-frontend), or pure architecture (use frontend-architect).
-
-  <example>
-  Context: An operations console needs a new Vue 3 route with Pinia state and Composition API-based filters.
-  user: "Build the incidents page in Vue with Pinia and router-based tabs."
-  assistant: "The vue-developer agent should implement the route, store updates, and component tests."
-  <commentary>
-  Vue-specific frontend work with Pinia and router flows belongs to vue-developer.
-  </commentary>
-  </example>
-
-  <example>
-  Context: A customer portal already uses Vue SFCs, and a checkout wizard needs reactive validation and async submission states.
-  user: "Fix this Vue form using Composition API and keep the Django backend integration working."
-  assistant: "The vue-developer agent should handle the Vue component logic, reactivity, and API interaction."
-  <commentary>
-  This scenario is clearly Vue implementation work rather than React or Django template work.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Write, Edit, Glob, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_wait_for, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_evaluate]
 model: sonnet
 color: green

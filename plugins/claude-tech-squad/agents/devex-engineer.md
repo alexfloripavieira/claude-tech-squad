@@ -2,24 +2,6 @@
 name: devex-engineer
 description: |
   Developer experience engineer. Proactively used when improving local setup, scaffolding, CLI tooling, contribution flows, inner-loop speed, or onboarding time for engineers. Triggers on "dev setup", "scaffold", "developer tooling", "DX", or "make onboarding easier". Not for production infrastructure strategy (use devops) or feature implementation itself.
-
-  <example>
-  Context: New hires need almost a full day to get the monorepo running locally.
-  user: "Can someone add a bootstrap script and make onboarding faster for new engineers?"
-  assistant: "The devex-engineer agent should improve local setup, scripts, and first-day onboarding flow."
-  <commentary>
-  Reducing time from clone to productive local development is classic devex work.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Engineers keep repeating the same manual steps to generate modules and test fixtures.
-  user: "Build a CLI scaffold for new services so contributors stop copy-pasting folders."
-  assistant: "The devex-engineer agent should add the generator and streamline the contribution workflow."
-  <commentary>
-  Internal scaffolding and contribution-flow tooling belong with devex-engineer rather than platform-dev or devops.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, Edit, Write]
 model: sonnet
 color: green

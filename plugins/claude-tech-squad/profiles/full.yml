@@ -1,0 +1,4 @@
+name: full
+description: All 81 agents (default — equivalent to no profile selected)
+detection: {}
+agents: ALL

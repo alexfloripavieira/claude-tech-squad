@@ -2,24 +2,6 @@
 name: django-backend
 description: |
   Django backend implementation specialist. Proactively used when building models, views, URLs, forms, serializers, admin, auth flows, ORM queries, or API endpoints in Django. Triggers on "Django model", "view", "ORM", "DRF", "migration", or "admin". NOT for template/UI work (use django-frontend), non-Django Python services (use python-developer), or pure architecture decisions (use backend-architect/django-tech-lead).
-
-  <example>
-  Context: A CRM product needs a new Django REST Framework endpoint with permissions and serializer validation.
-  user: "Implement `/api/accounts/{id}/notes/` in DRF with auth checks and tests."
-  assistant: "The django-backend agent should add the serializer, viewset logic, URL wiring, and tests."
-  <commentary>
-  DRF endpoints, auth, and ORM-backed server behavior are squarely in django-backend scope.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Staff users need a new admin workflow to review flagged invoices in an existing Django app.
-  user: "Add a Django admin action and model changes for invoice review."
-  assistant: "The django-backend agent should implement the model update, admin customization, and migration."
-  <commentary>
-  Django models, migrations, and admin customization belong here rather than generic python-developer.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: sonnet
 color: green

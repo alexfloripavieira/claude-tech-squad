@@ -2,24 +2,6 @@
 name: design-system-engineer
 description: |
   Design system specialist. PROACTIVELY use when working on component libraries, design tokens, Storybook, cross-app visual consistency, or the handoff contract between design tools and frontend code. Trigger on "design system", "component library", "tokens", "Storybook", or "shared UI primitives". NOT for one-off feature UX flows (use ux-designer) or product-page implementation (use react-developer/vue-developer/frontend-dev).
-
-  <example>
-  Context: Three products use different button styles and spacing scales, and the team wants shared tokens plus Storybook coverage.
-  user: "Define the token strategy and shared button/input primitives so web and admin stay visually consistent."
-  assistant: "I'll use the design-system-engineer agent to shape the token architecture, component API, and Storybook contract."
-  <commentary>
-  Shared primitives and token governance route to this agent instead of a feature-specific UX role.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Designers renamed Figma components and frontend needs a reliable mapping to code props before the next release.
-  user: "We need a Figma-to-code contract for the new card, badge, and modal components, plus theming guidance."
-  assistant: "I'll use the design-system-engineer agent to define the naming contract, theming rules, and component-library guidance."
-  <commentary>
-  Design-tool handoff and reusable component contracts are concrete triggers for this specialist.
-  </commentary>
-  </example>
 tool_allowlist: [Read, Glob, Grep, Bash, Edit, Write, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs]
 model: sonnet
 color: blue
