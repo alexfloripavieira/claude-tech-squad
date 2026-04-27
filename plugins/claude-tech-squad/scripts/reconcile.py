@@ -132,12 +132,28 @@ def load_yaml(path: Path) -> dict:
     return parse_yaml_subset(path.read_text(encoding="utf-8"))
 
 
-def list_all_agents(agents_dir: Path) -> set[str]:
+def list_all_agents(agents_dir: Path, disabled_dir: Path) -> set[str]:
     active = {p.stem for p in agents_dir.glob("*.md")}
-    disabled_dir = agents_dir / ".disabled"
     if disabled_dir.exists():
         active |= {p.stem for p in disabled_dir.glob("*.md")}
     return active
+
+
+def migrate_legacy_disabled(agents_dir: Path, disabled_dir: Path) -> int:
+    legacy = agents_dir / ".disabled"
+    if not legacy.exists() or not legacy.is_dir():
+        return 0
+    disabled_dir.mkdir(parents=True, exist_ok=True)
+    moved = 0
+    for path in legacy.glob("*.md"):
+        target = disabled_dir / path.name
+        path.replace(target)
+        moved += 1
+    try:
+        legacy.rmdir()
+    except OSError:
+        pass
+    return moved
 
 
 def resolve_enabled_set(
@@ -187,7 +203,7 @@ def reconcile(
     plugin_root: Path, project_root: Path | None, verbose: bool = False
 ) -> int:
     agents_dir = plugin_root / "agents"
-    disabled_dir = agents_dir / ".disabled"
+    disabled_dir = plugin_root / ".agent-storage" / "disabled"
     profiles_dir = plugin_root / "profiles"
 
     if not agents_dir.is_dir():
@@ -197,6 +213,13 @@ def reconcile(
         if verbose:
             print("[reconcile] profiles dir missing — skipping (no-op)")
         return 0
+
+    migrated = migrate_legacy_disabled(agents_dir, disabled_dir)
+    if verbose and migrated:
+        print(
+            f"[reconcile] migrated {migrated} agents from legacy agents/.disabled/ "
+            f"to .agent-storage/disabled/"
+        )
 
     config_path = find_user_config(project_root)
     if config_path is None:
@@ -208,10 +231,10 @@ def reconcile(
         return 0
 
     config = load_yaml(config_path)
-    all_agents = list_all_agents(agents_dir)
+    all_agents = list_all_agents(agents_dir, disabled_dir)
     enabled, profile_name = resolve_enabled_set(config, profiles_dir, all_agents)
 
-    disabled_dir.mkdir(exist_ok=True)
+    disabled_dir.mkdir(parents=True, exist_ok=True)
     moved_to_disabled = 0
     moved_to_active = 0
 

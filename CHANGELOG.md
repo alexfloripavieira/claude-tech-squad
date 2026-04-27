@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.63.1] - 2026-04-27 — Fix disabled agents still loading via .disabled/ subfolder
+
+### Fixed
+
+- Critical: Claude Code recurses into `agents/.disabled/` and loads agents with a `.disabled:` prefix, so the v5.63.0 reconciler did not actually disable agents — it only renamed them. Confirmed via `/context` showing entries like `claude-tech-squad:.disabled:vue-developer: 165 tokens`.
+- The reconciler now stores disabled agents at `<plugin_root>/.agent-storage/disabled/` (sibling of `agents/`, fully outside the agent scan path). Agents in this directory are never loaded by Claude Code.
+- Added automatic migration from the legacy `agents/.disabled/` location on first run of the new reconciler. Existing installations transparently move their disabled agents to the new path.
+
+### Operational notes
+
+- After upgrading to 5.63.1, restart Claude Code (or run any `/claude-tech-squad:setup`/`enable`/`disable` command) so the SessionStart hook re-runs the reconciler and migration occurs.
+- Run `/context` to confirm: there should be no `claude-tech-squad:.disabled:*` entries in the agent list.
+
 ## [5.63.0] - 2026-04-27 — Agent profile system + stack-aware setup
 
 ### Added

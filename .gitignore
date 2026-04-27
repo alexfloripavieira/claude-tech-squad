@@ -4,6 +4,7 @@
 .squad-state/
 plugins/claude-tech-squad/.state/
 plugins/claude-tech-squad/agents/.disabled/
+plugins/claude-tech-squad/.agent-storage/
 node_modules/
 *.pyc
 *.pyo
