@@ -1,5 +1,37 @@
 # Changelog
 
+## [5.64.0] - 2026-04-27 — Per-agent model overrides
+
+### Added
+
+- New `model_overrides` block in `.claude-tech-squad.yml` lets each project pin specific Claude model versions per agent or in bulk by current short name.
+- `model_overrides.bulk`: maps a short model name (e.g. `opus`) to a target ID (e.g. `claude-opus-4-6`), applied to every agent currently set to that short name.
+- `model_overrides.per_agent`: maps a single agent name to a target model. Takes precedence over `bulk`.
+- `scripts/reconcile.py` now patches the `model:` field of active agents on every SessionStart, idempotently. State file records `model_overrides_applied` count.
+- Use case: pin Opus 4.6 instead of 4.7, or downgrade rarely-used Opus agents to Sonnet/Haiku for cost.
+
+### Example
+
+```yaml
+profile: full
+overrides:
+  enable: []
+  disable: [vue-developer, mobile-dev]
+
+model_overrides:
+  bulk:
+    opus: claude-opus-4-6
+  per_agent:
+    code-reviewer: sonnet
+    rag-engineer: sonnet
+    docs-writer: haiku
+```
+
+### Backward compatibility
+
+- Zero breaking changes. Repos without a `model_overrides` block are unaffected — existing agent `model:` values are preserved.
+- Plugin auto-update overwrites agent files, but the SessionStart reconciler reapplies your overrides every session.
+
 ## [5.63.1] - 2026-04-27 — Fix disabled agents still loading via .disabled/ subfolder
 
 ### Fixed

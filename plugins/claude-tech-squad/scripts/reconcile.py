@@ -21,6 +21,7 @@ Env vars:
 from __future__ import annotations
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -253,15 +254,49 @@ def reconcile(
     active_count = len(list(agents_dir.glob("*.md")))
     disabled_count = len(list(disabled_dir.glob("*.md")))
 
-    write_state(plugin_root, profile_name, active_count, disabled_count)
+    model_changes = apply_model_overrides(agents_dir, config)
+
+    write_state(plugin_root, profile_name, active_count, disabled_count, model_changes)
 
     if verbose:
         print(
             f"[reconcile] profile={profile_name} "
             f"active={active_count} disabled={disabled_count} "
-            f"moved_disabled={moved_to_disabled} moved_active={moved_to_active}"
+            f"moved_disabled={moved_to_disabled} moved_active={moved_to_active} "
+            f"model_overrides_applied={model_changes}"
         )
     return 0
+
+
+def apply_model_overrides(agents_dir: Path, config: dict) -> int:
+    block = config.get("model_overrides") or {}
+    per_agent = block.get("per_agent") or {}
+    bulk = block.get("bulk") or {}
+    if not per_agent and not bulk:
+        return 0
+
+    model_re = re.compile(r"^model:\s*(\S+)\s*$", re.MULTILINE)
+    changed = 0
+
+    for path in agents_dir.glob("*.md"):
+        agent_name = path.stem
+        target_model = per_agent.get(agent_name)
+        if target_model is None and bulk:
+            content = path.read_text(encoding="utf-8")
+            m = model_re.search(content)
+            if m:
+                current_short = m.group(1).strip()
+                target_model = bulk.get(current_short)
+        if target_model is None:
+            continue
+
+        content = path.read_text(encoding="utf-8")
+        new_content, count = model_re.subn(f"model: {target_model}", content, count=1)
+        if count and new_content != content:
+            path.write_text(new_content, encoding="utf-8")
+            changed += 1
+
+    return changed
 
 
 def promote_all_agents(agents_dir: Path, disabled_dir: Path, verbose: bool) -> None:
@@ -275,7 +310,13 @@ def promote_all_agents(agents_dir: Path, disabled_dir: Path, verbose: bool) -> N
         print(f"[reconcile] restored {moved} agents to active (full mode)")
 
 
-def write_state(plugin_root: Path, profile: str, active: int, disabled: int) -> None:
+def write_state(
+    plugin_root: Path,
+    profile: str,
+    active: int,
+    disabled: int,
+    model_changes: int = 0,
+) -> None:
     state_dir = plugin_root / ".state"
     state_dir.mkdir(exist_ok=True)
     state_file = state_dir / "reconcile.json"
@@ -286,6 +327,7 @@ def write_state(plugin_root: Path, profile: str, active: int, disabled: int) -> 
         "profile": profile,
         "active_agents": active,
         "disabled_agents": disabled,
+        "model_overrides_applied": model_changes,
         "reconciled_at": int(time.time()),
     }
     state_file.write_text(json.dumps(payload, indent=2))
