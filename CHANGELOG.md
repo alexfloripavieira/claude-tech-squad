@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.66.0] - 2026-05-10 — Automated feature release
+
+### Added
+
+- Add UserPromptSubmit hook to gate dev-flow skills outside tmux
+
+### Changed
+
+- Merge pull request #48 from alexfloripavieira/feat/dev-flow-tmux-gate
 ## [5.65.0] - 2026-05-10 — Automated feature release
 
 ### Added
