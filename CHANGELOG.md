@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.67.0] - 2026-05-10 — Automated feature release
+
+### Added
+
+- Enforce pt-BR + per-agent worktree as hard requirements across all skills
+- Wire hierarchical worktree + pt-BR + cross-talk into all dev-flow skills
+
+### Changed
+
+- Merge pull request #50 from alexfloripavieira/feat/orchestration-wiring
+- Align plugin.json to current main release (5.66.0)
+- Leave version + CHANGELOG to release automation
 ## [5.66.0] - 2026-05-10 — Automated feature release
 
 ### Added
