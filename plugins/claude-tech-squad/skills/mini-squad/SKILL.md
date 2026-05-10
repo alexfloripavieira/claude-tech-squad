@@ -120,7 +120,8 @@ For every teammate:
 1. Wait for structured output.
 2. If empty/error/invalid: emit `[Teammate Retry] <name>`, re-spawn once with identical prompt.
 3. If second attempt also fails: consult `fallback_matrix.mini-squad.<name>`. If no fallback or fallback fails, emit `[Gate] Teammate Failure | <name> failed twice` and surface `[R]etry / [S]kip / [X]Abort`.
-4. Skipping the dev: STOP — no implementation possible. Skipping reviewer: log risk, allow user to override.
+4. Skipping the dev: STOP — no implementation possible.
+5. **Skipping the reviewer is FORBIDDEN as a silent bypass.** Reviewer no-show requires the lead to (a) emit `[Gate] Reviewer Bypass Requested | reason=<...> | [A]ccept-with-risk / [R]espawn / [X]Abort`, (b) wait for explicit user choice, and (c) record the choice in `sep_log.bypasses_observed[]`. The lead MUST NOT mark reviewer as "BYPASSED" in the SEP log without an explicit user A/R/X response — that pattern hid recurring reviewer-agent failures across multiple runs.
 
 ## Visual Reporting Contract
 
@@ -281,6 +282,7 @@ branch — that is the user's call.
   - `cts_phases_completed: [skill-init, agent-spawn, agent-monitor, agent-cleanup, skill-finalize]`
   - `worktrees: [...]` (one entry per agent spawn with `path`, `branch`, `commits_ahead`, `merged`, `final_status`)
   - `timeouts_observed: [...]` (empty list if none — explicit field required)
+  - `bypasses_observed: [...]` (one entry per silenced/skipped teammate: `{agent, reason, user_decision: A|R|X, gate_emitted: true}`). EMPTY LIST IF NONE — explicit field required. Marking any agent as "BYPASSED" without a `[Gate] Reviewer Bypass Requested` and explicit user choice is a contract violation. See `runtime-policy.yaml::failure_handling.bypass_policy` for the forbidden-agent list.
 
 
 

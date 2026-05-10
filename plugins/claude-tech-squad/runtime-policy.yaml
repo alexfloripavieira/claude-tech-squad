@@ -21,6 +21,26 @@ failure_handling:
   agent_max_runtime_seconds: 900    # 15 min per Agent() spawn
   skill_max_runtime_seconds: 7200   # 2 h per skill run end-to-end
   idle_seconds: 300                 # no progress signal for 5 min -> stall
+  # Anti-silent-bypass policy. Introduced 2026-05-10 after a /mini-squad
+  # run silently marked the reviewer teammate as "BYPASSED" because it
+  # idled twice; the SKILL.md text "Skipping reviewer: log risk, allow
+  # user to override" let the lead skip the user gate. Reviewer
+  # regression went undetected across multiple runs.
+  bypass_policy:
+    silent_bypass_forbidden: true
+    bypass_requires_user_gate: true
+    user_gate_template: "[Gate] Reviewer Bypass Requested | agent={{agent}} | reason={{reason}} | [A]ccept-with-risk / [R]espawn / [X]Abort"
+    sep_log_field: bypasses_observed     # mandatory list field
+    bypass_forbidden_agents:
+      - reviewer
+      - code-reviewer
+      - security-reviewer
+      - privacy-reviewer
+      - accessibility-reviewer
+      - tdd-specialist
+      - test-automation-engineer
+      - qa
+      - qa-tester
   on_timeout:
     operator_emit: "[Teammate Timeout] agent={{agent}} | reason={{reason}} | age_seconds={{age}}"
     sep_log_field: "timeouts_observed"
