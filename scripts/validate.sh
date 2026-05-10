@@ -801,4 +801,43 @@ for key in 'auto_launch_tmux:' 'mode_resolution:' 'detection:' 'enforcement_by_m
   fi
 done
 
+
+# Dev-flow SKILL.md files MUST embed the four CTS-PHASE tags so the
+# lead orchestrator wires init/spawn/cleanup/finalize on every run.
+DEV_FLOW_SKILLS=(squad implement discovery refactor mini-squad tech-debt-audit pentest-deep incident-postmortem iac-review pr-review llm-eval)
+for s in "${DEV_FLOW_SKILLS[@]}"; do
+  f="$PLUGIN_DIR/skills/$s/SKILL.md"
+  test -f "$f" || { echo "Missing dev-flow skill file: $f"; exit 1; }
+  for tag in "CTS-PHASE: skill-init" "CTS-PHASE: agent-spawn" "CTS-PHASE: agent-cleanup" "CTS-PHASE: skill-finalize"; do
+    if ! grep -qF "$tag" "$f"; then
+      echo "skills/$s/SKILL.md missing orchestration tag: $tag"
+      exit 1
+    fi
+  done
+  for helper in init-skill-branch.sh spawn-agent-worktree.sh cleanup-agent-worktree.sh finalize-skill.sh; do
+    if ! grep -qF "$helper" "$f"; then
+      echo "skills/$s/SKILL.md does not reference helper: $helper"
+      exit 1
+    fi
+  done
+  if ! grep -qF "language_policy.spawn_prompt_preamble" "$f"; then
+    echo "skills/$s/SKILL.md does not reference language_policy.spawn_prompt_preamble"
+    exit 1
+  fi
+done
+
+# skill-active-guard hook must exist + be executable + be registered
+GUARD="$PLUGIN_DIR/hooks/skill-active-guard.sh"
+test -f "$GUARD" || { echo "Missing hook: hooks/skill-active-guard.sh"; exit 1; }
+test -x "$GUARD" || { echo "Hook not executable: hooks/skill-active-guard.sh"; exit 1; }
+grep -q "skill-active-guard.sh" "$PLUGIN_DIR/hooks/hooks.json" \
+  || { echo "hooks.json does not register skill-active-guard.sh"; exit 1; }
+
+# dev-flow-tmux-gate hook same checks
+GATE="$PLUGIN_DIR/hooks/dev-flow-tmux-gate.sh"
+test -f "$GATE" || { echo "Missing hook: hooks/dev-flow-tmux-gate.sh"; exit 1; }
+test -x "$GATE" || { echo "Hook not executable: hooks/dev-flow-tmux-gate.sh"; exit 1; }
+grep -q "dev-flow-tmux-gate.sh" "$PLUGIN_DIR/hooks/hooks.json" \
+  || { echo "hooks.json does not register dev-flow-tmux-gate.sh"; exit 1; }
+
 echo "claude-tech-squad validation passed (v$PLUGIN_VERSION, $AGENT_COUNT agents)"
