@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.69.1] - 2026-05-10 — Automated maintenance release
+
+### Fixed
+
+- Orchestrator must commit SEP log itself + guard hook allows it (#53)
 ## [5.69.0] - 2026-05-10 — Automated feature release
 
 ### Added
