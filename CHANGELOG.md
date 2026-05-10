@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.69.0] - 2026-05-10 — Automated feature release
+
+### Added
+
+- Doom-loop idle/recovery-prompt patterns + python-developer toolchain preflight (#52)
 ## [5.68.0] - 2026-05-10 — Automated feature release
 
 ### Added
