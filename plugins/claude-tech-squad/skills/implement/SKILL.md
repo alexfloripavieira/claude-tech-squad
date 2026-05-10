@@ -117,10 +117,11 @@ If the policy file is missing or unreadable, stop and surface `[Gate] Runtime Po
 
 The lead orchestrator MUST execute the four phases below in order on every
 run of this skill. Skipping any phase is a contract violation. The SEP log
-MUST record `cts_phases_completed: [skill-init, agent-spawn, agent-cleanup, skill-finalize]`
-plus `language_policy_applied: pt-BR`. `scripts/validate.sh` greps each
-dev-flow SKILL.md for the phase tags `CTS-PHASE: skill-init`, `CTS-PHASE: agent-spawn`,
-`CTS-PHASE: agent-cleanup`, and `CTS-PHASE: skill-finalize` to enforce wiring.
+MUST record `cts_phases_completed: [skill-init, agent-spawn, agent-cleanup, skill-finalize]`,
+`language_policy_applied: pt-BR`, and `timeouts_observed: [...]`. `scripts/validate.sh`
+greps each dev-flow SKILL.md for the phase tags `CTS-PHASE: skill-init`,
+`CTS-PHASE: agent-spawn`, `CTS-PHASE: agent-monitor`, `CTS-PHASE: agent-cleanup`,
+and `CTS-PHASE: skill-finalize` to enforce wiring.
 
 ### Phase A — Skill Branch Init (CTS-PHASE: skill-init)
 
@@ -128,11 +129,14 @@ Run BEFORE any `Agent(...)` call:
 
 ```bash
 INIT_OUT=$(bash ${CLAUDE_PLUGIN_ROOT}/bin/init-skill-branch.sh implement)
-# parse: skill_branch=<...> base_branch=<...> base_commit=<...>
+# parse: skill_branch=<...> base_branch=<...> base_commit=<...> watchdog_pid=<...>
 ```
 
 - Exit 3 → tree dirty → emit `[Preflight Failed] main worktree dirty` and STOP.
 - On success emit `[Skill Branch Created] skill_branch=<...> base_branch=<...> base_commit=<...>`.
+- A background watchdog daemon is launched and its pid recorded. The watchdog
+  enforces the per-agent and per-skill runtime caps as a last-resort safety
+  net. THE WATCHDOG DOES NOT REPLACE THE LEAD'S MONITORING DUTY — see Phase B.1.
 - Persist `skill_branch` value for Phases B and D.
 
 ### Phase B — Per-Agent Spawn Wrap (CTS-PHASE: agent-spawn)
@@ -141,7 +145,7 @@ For EVERY `Agent(...)` invocation in this skill (teammate or inline mode):
 
 ```bash
 SPAWN_OUT=$(bash ${CLAUDE_PLUGIN_ROOT}/bin/spawn-agent-worktree.sh implement <agent_name> <agent_id>)
-# parse: path=<...> branch=<...> base=<...>
+# parse: path=<...> branch=<...> base=<...> spawned_at=<epoch>
 ```
 
 The Agent spawn `prompt` MUST begin with, in this exact order:
@@ -155,21 +159,70 @@ The Agent spawn `prompt` MUST begin with, in this exact order:
    - `instruction: cd into worktree_path before any Read/Edit/Write/Bash. ...`
 3. The role-specific spawn prompt body that this SKILL.md defines below.
 
-Emit `[Worktree Spawned] agent=<...> | path=<...> | branch=<...>`.
+Emit `[Worktree Spawned] agent=<...> | path=<...> | branch=<...> | spawned_at=<epoch>`.
+Record `spawned_at` per agent — Phase B.1 needs it.
+
+### Phase B.1 — Active Monitoring (CTS-PHASE: agent-monitor) — LEAD'S FIRST-LINE DUTY
+
+This is what the orchestrator exists for. The watchdog is the OS-level
+backstop; the lead is the first responder.
+
+For every spawned agent the lead MUST:
+
+1. **Track wall-clock since `spawned_at`.** Cap per agent is
+   `runtime-policy.yaml::failure_handling.agent_max_runtime_seconds`
+   (default 900s = 15 minutes). Skill-level cap is `skill_max_runtime_seconds`
+   (default 7200s = 2 hours).
+
+2. **Never block-wait indefinitely on a single agent.** Between status
+   checks, do other work (other teammates' messages, gate handling) or
+   sleep in short increments — never sit in an unbounded wait. If your
+   runtime offers a polling primitive, use it; otherwise emit a status
+   probe every ~120s.
+
+3. **Detect stalls.** A teammate is considered stalled if EITHER:
+   - wall-clock since `spawned_at` exceeds the per-agent cap, OR
+   - no progress signal (SendMessage, tool call, partial output) for >
+     `failure_handling.idle_seconds` (default 300s).
+
+4. **On stall:**
+   - Emit `[Teammate Timeout] agent=<...> | reason=<runtime_cap|idle> | age_seconds=<n>`.
+   - Send `pkill -f -- "--agent-id <agent>@<skill>"` (or equivalent) to
+     terminate the agent process.
+   - Run `bash ${CLAUDE_PLUGIN_ROOT}/bin/cleanup-agent-worktree.sh <path>`
+     to remove the worktree (merge of partial work optional; merge failure
+     non-fatal here).
+   - Decrement retry budget. If budget remains and the failure mode is
+     recoverable, respawn (Phase B again, fresh `spawned_at`). Otherwise
+     open `[Gate] Teammate Failure | agent=<...> | reason=timeout |
+     [R]espawn / [S]kip / [X]Abort`.
+   - Append `{agent, reason, age_seconds, action}` to the SEP log's
+     `timeouts_observed[]`.
+
+5. **Never wait for human input from a subagent.** If a subagent emits a
+   recovery prompt ("What should Claude do instead?"), the lead treats it
+   as `reason=idle` and triggers the stall handler. Subagents MUST NOT
+   block the skill on interactive prompts.
+
+The watchdog daemon spawned in Phase A enforces the same caps independently;
+if the lead misses a stall (e.g. it crashed or is itself stuck), the
+watchdog kills the agent and writes a `.killed` marker. The lead MUST
+inspect `ai-docs/.squad-log/.agents/*.killed` on its next tick and reflect
+the kill in the SEP log.
 
 ### Phase C — Per-Agent Cleanup (CTS-PHASE: agent-cleanup)
 
-Immediately after the Agent returns its `result_contract` (or after the
-final retry budget is exhausted, or on skill abort):
+Immediately after the Agent returns its `result_contract` (or after Phase
+B.1 stall handling, or on skill abort):
 
 ```bash
-CLEANUP_OUT=$(bash ${CLAUDE_PLUGIN_ROOT}/bin/cleanup-agent-worktree.sh <worktree_path>)
+CLEANUP_OUT=$(CTS_LEAD_OK=1 bash ${CLAUDE_PLUGIN_ROOT}/bin/cleanup-agent-worktree.sh <worktree_path>)
 ```
 
 - Exit 0 → emit `[Worktree Cleanup] agent=<...> | merged=<true|false> | commits_ahead=<n> | branch_deleted=<branch>`.
 - Exit 4 → merge conflict → emit `[Worktree Cleanup Conflict]` and open `[Gate] Worktree Merge Conflict | [R]esolve / [A]bort`. Worktree and branch are preserved until the user resolves.
 
-This phase runs ONCE PER AGENT SPAWN and is non-skippable, even on teammate failure.
+This phase runs ONCE PER AGENT SPAWN (including timed-out spawns) and is non-skippable.
 
 ### Phase D — Skill Finalize (CTS-PHASE: skill-finalize)
 
@@ -177,10 +230,10 @@ After the last agent finishes, after the SEP log is written, and before
 returning control to the user:
 
 ```bash
-FINAL_OUT=$(bash ${CLAUDE_PLUGIN_ROOT}/bin/finalize-skill.sh "$skill_branch")
+FINAL_OUT=$(CTS_LEAD_OK=1 bash ${CLAUDE_PLUGIN_ROOT}/bin/finalize-skill.sh "$skill_branch")
 ```
 
-- Exit 0 → emit `[Skill Finalized] skill_branch=<...> | orphan_worktrees=0 | orphan_branches=0`.
+- Exit 0 → emit `[Skill Finalized] skill_branch=<...> | orphan_worktrees=0 | orphan_branches=0`. Sentinel is removed; watchdog exits on its next tick.
 - Non-zero → STOP and surface the failing invariant to the user. Do NOT mark the skill complete.
 
 `finalize-skill.sh` does NOT push, merge to base, or delete the skill
@@ -195,8 +248,10 @@ branch — that is the user's call.
   follow `runtime-policy.yaml::language_policy.lead_to_user_preamble` (pt-BR).
 - SEP log MUST contain:
   - `language_policy_applied: pt-BR`
-  - `cts_phases_completed: [skill-init, agent-spawn, agent-cleanup, skill-finalize]`
+  - `cts_phases_completed: [skill-init, agent-spawn, agent-monitor, agent-cleanup, skill-finalize]`
   - `worktrees: [...]` (one entry per agent spawn with `path`, `branch`, `commits_ahead`, `merged`, `final_status`)
+  - `timeouts_observed: [...]` (empty list if none — explicit field required)
+
 
 
 ## Execution

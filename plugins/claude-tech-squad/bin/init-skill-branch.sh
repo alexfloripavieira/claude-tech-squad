@@ -50,7 +50,7 @@ if ! git checkout -b "$SKILL_BRANCH" "$BASE_COMMIT" >/dev/null 2>&1; then
 fi
 
 SENTINEL_DIR="${REPO_TOPLEVEL}/ai-docs/.squad-log"
-mkdir -p "$SENTINEL_DIR"
+mkdir -p "$SENTINEL_DIR" "$SENTINEL_DIR/.agents"
 SENTINEL="${SENTINEL_DIR}/.active-skill"
 WORKTREE_BASE="${CTS_WORKTREE_BASE:-${TMPDIR:-/tmp}/cts-worktrees}"
 {
@@ -63,5 +63,19 @@ WORKTREE_BASE="${CTS_WORKTREE_BASE:-${TMPDIR:-/tmp}/cts-worktrees}"
   printf 'started_at=%s\n' "$EPOCH"
 } >"$SENTINEL"
 
-printf 'skill_branch=%s base_branch=%s base_commit=%s\n' \
-  "$SKILL_BRANCH" "$ORIG_BRANCH" "$BASE_COMMIT"
+# Launch watchdog daemon (last-resort cap enforcer). Detach via setsid+nohup
+# so it survives the orchestrator shell. Plugin root injected so it can
+# locate sibling helpers.
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(readlink -f "$0")")")}"
+WATCHDOG="$PLUGIN_ROOT/bin/watchdog.sh"
+WATCHDOG_PID=""
+if [ -x "$WATCHDOG" ]; then
+  CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" \
+    nohup setsid bash "$WATCHDOG" "$REPO_TOPLEVEL" \
+      >>"$SENTINEL_DIR/.watchdog.log" 2>&1 &
+  WATCHDOG_PID=$!
+  echo "$WATCHDOG_PID" >"$SENTINEL_DIR/.watchdog.pid"
+fi
+
+printf 'skill_branch=%s base_branch=%s base_commit=%s watchdog_pid=%s\n' \
+  "$SKILL_BRANCH" "$ORIG_BRANCH" "$BASE_COMMIT" "$WATCHDOG_PID"
