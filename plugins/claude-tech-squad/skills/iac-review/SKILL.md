@@ -63,6 +63,19 @@ Long apply-plan reviews on large repos benefit from checkpoint tracking. Checkpo
 
 **Resume rule:** if restarted, read the highest completed checkpoint from the SEP log. If `static-analysis-complete` is set, skip rerunning scanners unless the IaC files have changed since the checkpoint timestamp. Always re-validate the apply-approval gate even on resume — operator approval is not cacheable.
 
+## Inter-Teammate Cross-Talk Protocol
+
+Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh`.
+
+**Required pairs (iac-review) — adversarial trade-off:**
+- `cloud-architect` ↔ `cost-optimizer` (architecture vs cost trade-off)
+- `cloud-architect` ↔ `security-engineer` (architecture vs blast radius)
+- `devops` ↔ `sre` (deploy path vs reliability impact)
+
+**Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block.
+
+**Audit:** lead dumps mailbox to `sep_log.mailbox[]`. Zero outbound `SendMessage` to a required peer triggers the Teammate Failure Protocol with `reason: cross-talk-missing` and opens `[Gate] Cross-Talk Missing | pair: <a>↔<b> | [R]espawn / [A]ccept / [X]Abort`.
+
 ## Execution
 
 ## Teammate Failure Protocol

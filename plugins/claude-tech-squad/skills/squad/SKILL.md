@@ -51,6 +51,22 @@ This workflow creates a single team that persists across all phases:
 
 Do NOT use `Agent` without `team_name` — that runs an inline subagent, not a visible teammate pane.
 
+## Inter-Teammate Cross-Talk Protocol
+
+Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh` (`hard_requirement: true`).
+
+**Required pairs (squad):**
+- `security-reviewer` ↔ `performance-engineer` (adversarial review)
+- `security-reviewer` ↔ `privacy-reviewer` (adversarial review)
+- `code-reviewer` ↔ `accessibility-reviewer` (adversarial review)
+- `backend-dev` ↔ `frontend-dev` (cross-layer handoff)
+- `backend-dev` ↔ `test-automation-engineer` (cross-layer handoff)
+- `frontend-dev` ↔ `test-automation-engineer` (cross-layer handoff)
+
+**Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block listing the teammate names this teammate must message before completing. Example: `peers: [security-reviewer, accessibility-reviewer]`.
+
+**Audit:** lead dumps the team mailbox to `sep_log.mailbox[]` (sender, recipient, timestamp, body_hash). A teammate returning `result_contract` with zero outbound `SendMessage` to a required peer triggers the Teammate Failure Protocol with `reason: cross-talk-missing` and opens `[Gate] Cross-Talk Missing | pair: <a>↔<b> | [R]espawn / [A]ccept / [X]Abort`.
+
 ## Operator Visibility Contract
 
 Emit explicit lifecycle lines for every preflight, team create, phase, teammate spawn/done/retry, fallback, gate, checkpoint, batch, token usage, and rollover event.

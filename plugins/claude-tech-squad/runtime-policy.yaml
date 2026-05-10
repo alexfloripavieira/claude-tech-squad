@@ -45,6 +45,7 @@ cost_guardrails:
     implement_max_tokens: 4000000
     squad_max_tokens: 6000000
     hotfix_max_tokens: 1000000
+    mini_squad_max_tokens: 800000
     default_max_tokens: 1500000
   cost_tracking:
     track_per_teammate: true
@@ -187,6 +188,279 @@ entropy_management:
     stale_threshold_days: 7
     on_detection: "emit [Preflight Warning] {{count}} orphaned discovery(ies) found older than {{days}} days — consider running /factory-retrospective"
 
+agent_worktrees:
+  description: >
+    Hierarchical worktree contract:
+      1. At skill preflight, the orchestrator runs init-skill-branch.sh
+         to create `cts/skill/<skill>-<epoch>` IN THE MAIN PROJECT
+         WORKTREE (no separate worktree for the orchestrator). Every
+         spawn during this skill derives from this branch because
+         spawn-agent-worktree.sh uses HEAD as base.
+      2. Each Agent() spawn gets its own isolated per-agent worktree
+         under ${CTS_WORKTREE_BASE:-${TMPDIR:-/tmp}/cts-worktrees}.
+         Agents do all Read/Edit/Write/Bash inside that worktree and
+         commit there if they want their work preserved.
+      3. When an agent returns its result_contract, cleanup-agent-
+         worktree.sh MERGES the agent's branch back into the
+         orchestrator's skill branch (in the main worktree) using
+         --no-ff so the agent boundary is preserved in history. After a
+         successful merge the agent worktree AND the agent branch are
+         removed.
+      4. At skill end, finalize-skill.sh asserts that NO per-agent
+         worktree and NO `cts/<skill>/...` branch survive — only the
+         project's main worktree on the skill branch remains, holding
+         the consolidated work, ready for the user to PR/merge.
+    finalize-skill.sh does NOT push, merge to main, or delete the
+    skill branch — that decision belongs to the user.
+  enabled: true
+  hard_requirement: true
+  granularity: per_agent_spawn
+  base_dir_env: CTS_WORKTREE_BASE
+  default_base_dir: ${TMPDIR:-/tmp}/cts-worktrees
+  skill_branch_template: "cts/skill/{{skill}}-{{epoch}}"
+  agent_branch_template: "cts/{{skill}}/{{agent}}-{{epoch}}-{{agent_id}}"
+  worktree_path_template: "{{base_dir}}/cts-{{skill}}-{{agent}}-{{epoch}}-{{agent_id}}"
+  init_helper: ${CLAUDE_PLUGIN_ROOT}/bin/init-skill-branch.sh
+  spawn_helper: ${CLAUDE_PLUGIN_ROOT}/bin/spawn-agent-worktree.sh
+  cleanup_helper: ${CLAUDE_PLUGIN_ROOT}/bin/cleanup-agent-worktree.sh
+  finalize_helper: ${CLAUDE_PLUGIN_ROOT}/bin/finalize-skill.sh
+  preflight_requirements:
+    main_worktree_clean: true
+    failure_action: "[Preflight Failed] main worktree dirty. Commit/stash before running this skill."
+  cleanup_on:
+    result_contract_received: true
+    teammate_failure_after_retries: true
+    skill_aborted: true
+  merge_strategy:
+    flag: --no-ff
+    commit_message_template: "merge: agent worktree {{agent_branch}} into {{skill_branch}}"
+    on_conflict:
+      action: "leave_in_progress"
+      operator_gate: "[Gate] Worktree Merge Conflict | agent={{agent}} branch={{agent_branch}} | resolve in {{worktree_path}} then re-run cleanup. Options: [R]esolve / [A]bort"
+  branch_lifecycle:
+    agent_branch_after_successful_merge: deleted
+    agent_branch_on_unresolved_conflict: preserved_until_resolved
+    skill_branch_after_finalize: preserved_for_user_pr
+    base_branch: untouched
+  cross_talk_handoff:
+    description: >
+      When a cross-talk pair (e.g. tdd-specialist ↔ dev) needs to
+      exchange a file (e.g. the failing test), they coordinate via
+      SendMessage carrying the commit SHA, branch name, and file path.
+      The receiving agent fetches the sender's branch into its own
+      worktree and checks out the requested files. Sender's branch
+      will already exist locally because all per-agent branches share
+      the same git repository.
+    required_message_fields: [from_branch, commit_sha, file_paths]
+    receiver_action_template: >
+      git fetch . {{from_branch}}:{{from_branch}} 2>/dev/null || true;
+      git checkout {{from_branch}} -- {{file_paths}}
+  spawn_prompt_inject:
+    fields_appended_to_every_prompt:
+      - "skill_branch: {{skill_branch}}"
+      - "worktree_path: {{worktree_path}}"
+      - "branch: {{agent_branch}}"
+      - "base_commit: {{base_sha}}"
+      - "instruction: cd into worktree_path before any Read/Edit/Write/Bash. All file operations are scoped to this worktree. Commit your changes inside this worktree if you want them preserved after cleanup — they will be merged back into skill_branch with --no-ff."
+  operator_emit:
+    on_init: "[Skill Branch Created] skill_branch={{skill_branch}} | base_branch={{base_branch}} | base_commit={{base_commit}}"
+    on_spawn: "[Worktree Spawned] agent={{agent}} | path={{path}} | branch={{branch}}"
+    on_cleanup_merged: "[Worktree Cleanup] agent={{agent}} | merged={{merged}} | commits_ahead={{n}} | branch_deleted={{branch}}"
+    on_cleanup_no_commits: "[Worktree Cleanup] agent={{agent}} | no_commits | branch_deleted={{branch}}"
+    on_cleanup_conflict: "[Worktree Cleanup Conflict] agent={{agent}} | branch={{branch}} | resolve in {{path}}"
+    on_finalize: "[Skill Finalized] skill_branch={{skill_branch}} | orphan_worktrees={{wts}} | orphan_branches={{br}} | clean={{clean}}"
+  audit_in_sep_log:
+    field_name: worktrees
+    schema:
+      - agent: <name>
+      - path: <abs_path>
+      - agent_branch: <branch>
+      - base_commit: <sha>
+      - merged: <true|false>
+      - commits_ahead: <int>
+      - final_status: <merged_and_deleted|deleted_no_commits|preserved_unresolved>
+    extra_top_level_field: skill_branch
+
+language_policy:
+  description: >
+    All natural-language communication produced by teammates and the
+    orchestrator MUST be in Portuguese (pt-BR). This applies to
+    teammate-to-teammate SendMessage bodies, teammate result_contract
+    narrative fields, lead-to-user reports, gate prompts, status
+    summaries, and SEP log narrative sections. Code, commit messages,
+    PR titles/bodies, file paths, identifier names, log tags
+    (`[Preflight Start]` etc.), structured YAML keys, and shell commands
+    REMAIN in English to preserve tooling compatibility and the
+    project's Conventional Commits convention.
+  default_locale: pt-BR
+  hard_requirement: true
+  applies_to:
+    teammate_to_teammate_messages: pt-BR
+    teammate_result_contract_narrative: pt-BR    # blockers, next_action, evidence narratives
+    lead_to_user_reports: pt-BR
+    gate_prompts: pt-BR
+    sep_log_narrative_fields: pt-BR
+    operator_visibility_lines: en                 # tag grammar fixed by contract
+  exempt_from_locale:
+    - structured_yaml_keys
+    - log_tag_grammar
+    - tool_invocations_and_shell_commands
+    - identifier_names_and_file_paths
+    - commit_messages_and_pr_titles
+    - code_blocks
+  spawn_prompt_preamble: |
+    LANGUAGE POLICY (pt-BR — hard requirement from runtime-policy.yaml):
+    Toda sua comunicação em linguagem natural DEVE ser em português do Brasil.
+    Isso inclui: mensagens via SendMessage para outros teammates, campos
+    narrativos do result_contract (blockers, next_action, evidências),
+    explicações, justificativas e quaisquer respostas livres.
+    Mantenha em inglês: código, commits, PRs, paths, identificadores,
+    tags de log (ex.: [Preflight Start]), chaves YAML estruturadas e
+    comandos shell. Em caso de conflito entre clareza técnica e idioma,
+    use o termo técnico em inglês entre crases e explique em português.
+  lead_to_user_preamble: |
+    Você é o orquestrador desta skill. Toda comunicação ao usuário —
+    relatórios de progresso, gates, decisões, resumos finais — DEVE ser
+    em português do Brasil. Tags de operador (`[Preflight Start]`,
+    `[Teammate Done]`, etc.) permanecem em inglês conforme contrato.
+  enforcement:
+    on_spawn: >
+      The orchestrator MUST inject `spawn_prompt_preamble` as the first
+      block of every Agent() spawn prompt (teammate or inline mode).
+    on_lead_output: >
+      The orchestrator MUST follow `lead_to_user_preamble` when emitting
+      any user-facing line that is not a contract-fixed log tag.
+    audit_in_sep_log: >
+      Every SEP log MUST record `language_policy_applied: pt-BR` to
+      confirm the preamble was injected.
+
+agent_teams:
+  description: >
+    Native Agent Teams contract. When tmux is available, teammates run
+    in their own tmux pane, own context window, and communicate
+    directly with each other via SendMessage. When tmux is absent, the
+    plugin falls back to inline subagent spawns. Mode is resolved at
+    preflight by ${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh.
+  enabled: true
+  hard_requirement: false
+  preferred_mode: teammate
+  required_env:
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
+  required_claude_code_version: "2.1.32"
+  display_mode: tmux
+  detection:
+    helper: ${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh
+    order: [tmux_binary, inside_tmux, agent_teams_env_flag, claude_code_version]
+    checks:
+      tmux_binary: "command -v tmux >/dev/null 2>&1"
+      inside_tmux: "[ -n \"${TMUX:-}\" ]"
+      agent_teams_env_flag: "[ \"${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}\" = \"1\" ]"
+      claude_code_version: "claude --version 2>/dev/null | awk '{print $1}'"
+    emit_line: "[Team Mode Resolved] mode=<teammate|inline> | tmux=<bool> | inside_tmux=<bool> | flag=<bool> | version=<x.y.z>"
+  mode_resolution:
+    teammate:
+      when: "tmux_binary == true AND agent_teams_env_flag == true AND claude_code_version >= 2.1.32"
+      action: >
+        If `inside_tmux == false`, auto-launch detached tmux session
+        and re-attach the lead before TeamCreate. If `inside_tmux ==
+        true`, reuse the current session.
+    inline:
+      when: "tmux_binary == false OR agent_teams_env_flag == false OR claude_code_version < 2.1.32"
+      action: >
+        Fall back to inline `Agent(subagent_type=...)` spawns in the
+        main session. Cross-talk protocol degrades to "log-only": the
+        lead simulates mailbox in the SEP log but does NOT block on
+        missing pairs.
+      operator_warning: >
+        [Team Mode] inline | reason=<missing_dependency> | tmux upgrade
+        recommended: install tmux + `export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
+        + Claude Code >= 2.1.32. The pipeline will run, but multi-pane
+        visibility and adversarial cross-talk gates are downgraded.
+  auto_launch_tmux:
+    enabled: true
+    description: >
+      When tmux binary is present but the lead is NOT already inside a
+      tmux session (host terminal is plain bash, VS Code terminal,
+      Windows Terminal, Ghostty, etc.), the plugin creates a fresh
+      detached session and re-attaches the lead inside it before
+      TeamCreate. This makes the tmux experience independent of the
+      host terminal.
+    session_name_template: "cts-{{skill}}-{{epoch}}"
+    create_command: "tmux new-session -d -s {{session_name}} -x 220 -y 50"
+    attach_command: "tmux switch-client -t {{session_name}} 2>/dev/null || tmux attach-session -t {{session_name}}"
+    cleanup_on_team_delete: true
+    operator_emit: "[Tmux Auto-Launch] session={{session_name}} | host_terminal={{host}}"
+  team_size:
+    default_min: 3
+    default_max: 5
+    per_skill:
+      squad: { min: 5, max: 9 }
+      implement: { min: 4, max: 7 }
+      discovery: { min: 4, max: 7 }
+      refactor: { min: 3, max: 5 }
+      tech-debt-audit: { min: 5, max: 6 }
+      pentest-deep: { min: 4, max: 6 }
+  cross_talk_protocol:
+    description: >
+      Teammates MUST exchange at least one SendMessage with another
+      teammate before completing their task, when the protocol applies.
+      The lead enforces this by inspecting the SEP log mailbox section.
+    required_for_skills: [squad, implement, refactor, tech-debt-audit, pentest-deep, discovery, incident-postmortem, llm-eval, iac-review, pr-review]
+    enforcement_by_mode:
+      teammate: blocking   # missing pair opens user gate
+      inline: warning      # missing pair logged, pipeline continues
+    minimum_inter_teammate_messages: 1
+    patterns:
+      adversarial_review:
+        description: >
+          Reviewers (security, performance, accessibility, compliance)
+          must SendMessage to each other to challenge findings before
+          synthesizing. The lead does NOT relay — teammates talk direct.
+        applies_to: [squad, implement, refactor, tech-debt-audit, pentest-deep]
+        required_pairs:
+          - [security-reviewer, performance-engineer]
+          - [security-reviewer, privacy-reviewer]
+          - [code-reviewer, accessibility-reviewer]
+      hypothesis_debate:
+        description: >
+          For investigation/debug tasks with competing hypotheses, every
+          teammate must attempt to disprove at least one peer's theory
+          via SendMessage. Consensus emerges from debate, not from lead
+          synthesis. Mirrors the "scientific debate" pattern from the
+          Agent Teams docs.
+        applies_to: [tech-debt-audit, pentest-deep]
+      cross_layer_handoff:
+        description: >
+          When work spans frontend + backend + tests, the implementing
+          teammates message each other directly to negotiate contracts
+          (API shapes, fixtures, error envelopes) rather than round-
+          tripping through the lead.
+        applies_to: [squad, implement, refactor]
+        required_pairs:
+          - [backend-dev, frontend-dev]
+          - [backend-dev, test-automation-engineer]
+          - [frontend-dev, test-automation-engineer]
+  plan_approval:
+    description: >
+      Teammates that modify code must run in plan mode and request lead
+      approval before implementation. The lead approves only when the
+      plan declares test coverage and the changed-files set.
+    required_for_roles: [tdd-specialist, backend-dev, frontend-dev, mobile-dev, platform-dev, data-engineer, ml-engineer, ai-engineer, rag-engineer]
+    rejection_criteria:
+      - missing test coverage section
+      - touches > 1 file owned by another teammate (file-conflict guard)
+      - mutates database schema without dba sign-off
+  mailbox_audit:
+    description: >
+      Before writing the SEP log, the lead dumps the team mailbox to
+      sep_log.mailbox[] (sender, recipient, timestamp, body_hash). This
+      is the data source for the cross_talk_protocol enforcement check.
+    required_in_sep_log: true
+    field_name: mailbox
+  cleanup:
+    only_lead_may_cleanup: true
+    on_orphaned_tmux_session: "emit [Cleanup Warning] orphan tmux session {{name}} — run `tmux kill-session -t {{name}}`"
+
 tool_allowlists:
   description: >
     Default tool allowlists per agent category. Agents may override
@@ -246,6 +520,31 @@ severity_policy:
     - documentation improvement
 
 fallback_matrix:
+  mini-squad:
+    tdd-specialist:
+      - claude-tech-squad:test-planner
+    backend-dev:
+      - claude-tech-squad:python-developer
+      - claude-tech-squad:django-backend
+    django-backend:
+      - claude-tech-squad:python-developer
+    react-developer:
+      - claude-tech-squad:frontend-dev
+      - claude-tech-squad:typescript-developer
+    vue-developer:
+      - claude-tech-squad:frontend-dev
+    typescript-developer:
+      - claude-tech-squad:javascript-developer
+    python-developer:
+      - claude-tech-squad:backend-dev
+    javascript-developer:
+      - claude-tech-squad:typescript-developer
+    test-automation-engineer:
+      - claude-tech-squad:tdd-specialist
+    code-reviewer:
+      - claude-tech-squad:reviewer
+    reviewer:
+      - claude-tech-squad:code-reviewer
   discovery:
     prd-author:
       - claude-tech-squad:pm

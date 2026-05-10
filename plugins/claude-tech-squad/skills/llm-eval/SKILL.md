@@ -57,6 +57,19 @@ verification_checklist:
 
 **BLOCKING thresholds (mandatory user gate):** any metric regression above `runtime-policy.yaml:eval_thresholds.<metric>_regression_max`. Defaults: faithfulness/relevance ≥ 5pp drop, toxicity any uptick, bias 3pp drop, injection-resistance any drop.
 
+## Inter-Teammate Cross-Talk Protocol
+
+Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh`.
+
+**Required pairs (llm-eval) — adversarial review:**
+- `llm-eval-specialist` ↔ `llm-safety-reviewer` (capability vs safety trade-off)
+- `llm-cost-analyst` ↔ `llm-eval-specialist` (cost regression vs quality regression)
+- `prompt-engineer` ↔ `llm-safety-reviewer` (prompt fix vs jailbreak surface)
+
+**Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block.
+
+**Audit:** lead dumps mailbox to `sep_log.mailbox[]`. Zero outbound `SendMessage` to a required peer triggers the Teammate Failure Protocol with `reason: cross-talk-missing` and opens `[Gate] Cross-Talk Missing | pair: <a>↔<b> | [R]espawn / [A]ccept / [X]Abort`.
+
 ## Execution
 
 ## Teammate Failure Protocol
