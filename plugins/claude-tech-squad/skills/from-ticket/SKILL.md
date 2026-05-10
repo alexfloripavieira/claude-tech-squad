@@ -240,3 +240,20 @@ Read {{ticket_id}} ({{issue_type}}, {{priority}}), classified as {{tier}}, recom
 Emit: `[SEP Log Written] ai-docs/.squad-log/{{filename}}`
 
 The local helper can write this planning SEP log directly with `--write-sep-log`. Post-execution ticket comments, status transitions, and external API mutations still require explicit user confirmation.
+
+## Language Policy (CTS hard requirement)
+
+This skill does NOT spawn `Agent(...)` so the per-agent worktree phases do
+not apply. However, `runtime-policy.yaml::language_policy` is a HARD
+REQUIREMENT and applies to ALL user-facing output of this skill:
+
+- All natural-language output (gate prompts, status messages, summaries,
+  narrative report fields) MUST be in **pt-BR**.
+- The lead MUST follow `language_policy.lead_to_user_preamble` literally.
+- Any audit/SEP artifact this skill writes MUST record
+  `language_policy_applied: pt-BR`.
+
+Tags of operator visibility (`[Preflight Start]`, `[Skill Finalized]`,
+etc.), structured YAML keys, file paths, identifiers, commit messages,
+and shell commands REMAIN in English per
+`language_policy.exempt_from_locale`.
