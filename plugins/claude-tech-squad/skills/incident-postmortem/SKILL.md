@@ -37,6 +37,21 @@ Structured blameless post-mortem workflow. Use after an incident has been resolv
 - After a `/hotfix` or `/cloud-debug` resolution
 - When the user says: "post-mortem", "postmortem", "retrospectiva do incidente", "análise do incidente", "rca", "root cause analysis"
 
+## Inter-Teammate Cross-Talk Protocol
+
+Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh`.
+
+**Required pairs (incident-postmortem) — hypothesis debate:**
+- `sre` ↔ `incident-manager` (timeline reconciliation)
+- `security-engineer` ↔ `sre` (was this a security event hidden as ops?)
+- `dba` ↔ `backend-architect` (data-layer vs app-layer root cause)
+
+Each lens MUST attempt to disprove at least one peer's RCA hypothesis via `SendMessage` before submitting findings.
+
+**Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block.
+
+**Audit:** lead dumps mailbox to `sep_log.mailbox[]`. Zero outbound `SendMessage` to a required peer triggers the Teammate Failure Protocol with `reason: cross-talk-missing` and opens `[Gate] Cross-Talk Missing | pair: <a>↔<b> | [R]espawn / [A]ccept / [X]Abort`.
+
 ## Execution
 
 ## Teammate Failure Protocol

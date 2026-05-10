@@ -54,6 +54,19 @@ Emit these trace lines so the operator can follow the test-guarded refactor and 
 - `[Team Deleted] refactor-team | cleanup complete` (or `[Team Cleanup Warning]` on failure)
 - `[SEP Log Written] ai-docs/.squad-log/<filename>`
 
+## Inter-Teammate Cross-Talk Protocol
+
+Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh` (`hard_requirement: true`).
+
+**Required pairs (refactor):**
+- `design-principles-specialist` ↔ `tdd-specialist` (refactor plan vs characterization tests)
+- `tdd-specialist` ↔ `test-automation-engineer` (test inventory handoff)
+- `code-reviewer` ↔ `security-reviewer` (adversarial review of changed diffs)
+
+**Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block listing teammate names this teammate must message before completing.
+
+**Audit:** lead dumps team mailbox to `sep_log.mailbox[]`. A teammate returning `result_contract` with zero outbound `SendMessage` to a required peer triggers the Teammate Failure Protocol with `reason: cross-talk-missing` and opens `[Gate] Cross-Talk Missing | pair: <a>↔<b> | [R]espawn / [A]ccept / [X]Abort`.
+
 ## Visual Reporting Contract
 
 - After every teammate returns, pipe its Result Contract `metrics` JSON to `${CLAUDE_PLUGIN_ROOT}/scripts/render-teammate-card.sh` and print the card inline. Respect `observability.teammate_cards.format` (ascii | compact | silent) from `runtime-policy.yaml`.

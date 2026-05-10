@@ -72,7 +72,33 @@ bash scripts/dogfood-report.sh
 
 **Namespace enforcement** — all `subagent_type` values in skills must use the `claude-tech-squad:` prefix.
 
-**Runtime policy keys** — `runtime-policy.yaml` must contain: `version:`, `retry_budgets:`, `severity_policy:`, `fallback_matrix:`, `checkpoint_resume:`, `reliability_metrics:`, `cost_guardrails:`, `doom_loop_detection:`, `auto_advance:`, `entropy_management:`, `tool_allowlists:`, `observability:`.
+**Runtime policy keys** — `runtime-policy.yaml` must contain: `version:`, `retry_budgets:`, `severity_policy:`, `fallback_matrix:`, `checkpoint_resume:`, `reliability_metrics:`, `cost_guardrails:`, `doom_loop_detection:`, `auto_advance:`, `entropy_management:`, `agent_teams:`, `tool_allowlists:`, `observability:`.
+
+**Hierarchical worktree flow (hard requirement)** — controlled by `runtime-policy.yaml::agent_worktrees` and four helpers under `plugins/claude-tech-squad/bin/`:
+
+1. **Skill init** — orchestrator runs `init-skill-branch.sh <skill>`, which (in the project's MAIN worktree) verifies the working tree is clean, then `git checkout -b cts/skill/<skill>-<epoch>`. The orchestrator owns the main worktree on this skill branch for the entire run; it does not get a separate worktree of its own. Output: `skill_branch=... base_branch=... base_commit=...`. Operator emits `[Skill Branch Created]`.
+2. **Per-agent spawn** — for every `Agent(...)`, orchestrator runs `spawn-agent-worktree.sh <skill> <agent> [id]` to create an isolated worktree under `${CTS_WORKTREE_BASE:-${TMPDIR:-/tmp}/cts-worktrees}` on branch `cts/<skill>/<agent>-<epoch>-<id>`, derived from the orchestrator's HEAD (i.e. the skill branch). The fields `skill_branch`, `worktree_path`, `branch`, `base_commit` are injected into the spawn prompt via `agent_worktrees.spawn_prompt_inject`. The agent does all Read/Edit/Write/Bash inside its worktree and commits there if it wants the work preserved. Operator emits `[Worktree Spawned]`.
+3. **Per-agent cleanup** — when an agent returns its `result_contract` (or on teammate-failure / skill-abort), orchestrator runs `cleanup-agent-worktree.sh <path>`. The helper:
+   - Computes `commits_ahead` against the skill branch.
+   - If > 0: merges the agent branch into the skill branch in the main worktree using `--no-ff` (commit message `merge: agent worktree <agent_branch> into <skill_branch>`).
+   - Removes the per-agent worktree (`git worktree remove --force`).
+   - Deletes the agent branch unconditionally on successful merge (its commits now live on the skill branch).
+   - On merge conflict: leaves the merge in progress, exits 4, emits `[Worktree Cleanup Conflict]`, and the orchestrator opens `[Gate] Worktree Merge Conflict | [R]esolve / [A]bort`. Agent worktree and branch are preserved until the user resolves.
+4. **Skill finalize** — `finalize-skill.sh <skill_branch> [base_branch]` asserts the invariant: zero per-agent worktrees survive, zero `cts/<skill>/...` branches survive (only `cts/skill/<skill>-<epoch>` remains), main worktree is clean, and the orchestrator is still on the skill branch. Non-zero exit if any check fails. Emits `[Skill Finalized]`. The helper does NOT push, merge to main, or delete the skill branch — that decision belongs to the user.
+
+**Cross-talk file handoff** — pairs that need to share a file (e.g. `tdd-specialist` ↔ `dev` exchanging the failing test) send `from_branch + commit_sha + file_paths` via `SendMessage`. Receiver fetches with `git fetch . <branch>:<branch> 2>/dev/null || true; git checkout <branch> -- <paths>` inside its own worktree. The sender's branch is always reachable locally because all agent branches live in the same repo.
+
+**SEP log audit** — `worktrees[]` per agent (`agent_branch`, `path`, `commits_ahead`, `merged`, `final_status: merged_and_deleted | deleted_no_commits | preserved_unresolved`) plus a top-level `skill_branch` field.
+
+**Language policy (pt-BR — hard requirement)** — `runtime-policy.yaml::language_policy.default_locale: pt-BR`. All natural-language communication from teammates and from the orchestrator to the user MUST be in Portuguese (pt-BR): SendMessage bodies, `result_contract` narrative fields (`blockers`, `next_action`, evidence narratives), gate prompts, lead-to-user reports, and SEP log narrative sections. **Stays in English:** code, commit messages, PR titles/bodies, file paths, identifier names, structured YAML keys, log tag grammar (`[Preflight Start]` etc.), and shell commands. The orchestrator injects `language_policy.spawn_prompt_preamble` as the first block of every `Agent(...)` spawn prompt and follows `language_policy.lead_to_user_preamble` for its own user-facing output. Every SEP log records `language_policy_applied: pt-BR`.
+
+**Inter-Teammate Cross-Talk Protocol** — every skill listed in `agent_teams.cross_talk_protocol.required_for_skills` must declare `## Inter-Teammate Cross-Talk Protocol` in its SKILL.md, enumerate `Required pairs`, reference `SendMessage`, and define `cross-talk-missing` as a Teammate Failure reason. Teammates communicate **directly with each other**, not only through the lead.
+
+**Mode resolution at preflight** — `bin/detect-team-mode.sh` runs before TeamCreate and prints `mode=<teammate|inline> tmux=<0|1> inside_tmux=<0|1> flag=<0|1> version=<x.y.z>`.
+- **teammate mode** (preferred) — fires when tmux binary present, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, Claude Code ≥ 2.1.32. If `inside_tmux=0`, the orchestrator auto-launches a detached session `cts-<skill>-<epoch>` and re-attaches the lead before TeamCreate, making tmux UX independent of the host terminal (plain bash, VS Code terminal, Windows Terminal, Ghostty, etc.).
+- **inline mode** (fallback) — fires when any prerequisite is missing. Lead spawns inline `Agent(subagent_type=...)` in the main session. Cross-talk gate is **downgraded to warning-only** (`enforcement_by_mode.inline: warning`); pipeline continues.
+
+Operator visibility: every skill emits `[Team Mode Resolved] mode=<...> | tmux=<...> | inside_tmux=<...> | flag=<...> | version=<...>` and, on auto-launch, `[Tmux Auto-Launch] session=<...> | host_terminal=<...>`.
 
 **Harness Engineering enforcement** — validate.sh runs 39 checks including:
 - Self-Verification Protocol in all 81 agents
@@ -166,6 +192,7 @@ Not every skill invocation requires a full TeamCreate + Agent spawn cycle. The r
 |---|---|---|
 | `/claude-tech-squad:bug-fix` | **Yes, when scope is 1–2 files** | Cost-optimized for small, well-scoped defects. The skill still writes a SEP log and runs tests. |
 | `/claude-tech-squad:hotfix` | **Yes** | Emergency path — speed matters, skill still enforces its own gates. |
+| `/claude-tech-squad:mini-squad` | **Mode-aware** | 3 teammates (tdd + dev + reviewer). Auto-uses tmux teammate mode when available, inline fallback when not. Scope guard blocks auth/billing/schema/new-public-endpoint changes — those force escalation to `/implement` or `/squad`. ~20% of `/squad` token cost. |
 | `/claude-tech-squad:implement` | **No — MUST spawn teammates** | Progressive disclosure, reviewer/QA/conformance/UAT gates depend on separate teammate contexts. |
 | `/claude-tech-squad:squad` | **No — MUST spawn teammates** | Full pipeline; multi-lens review is the entire value. |
 | `/claude-tech-squad:discovery` | **No — MUST spawn teammates** | Specialist bench is the point. |

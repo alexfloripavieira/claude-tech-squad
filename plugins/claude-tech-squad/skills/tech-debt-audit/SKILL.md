@@ -41,6 +41,22 @@ If any operation requires one of these actions, STOP and surface the decision to
 - Dependency-only check — use `/dependency-check`
 - Acting on debt — use `/refactor` (for one module) or `/squad` (for cross-cutting work)
 
+## Inter-Teammate Cross-Talk Protocol
+
+Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh` (`hard_requirement: true`).
+
+**Required pairs (tech-debt-audit) — hypothesis debate pattern:**
+- `code-quality` ↔ `design-principles` (debate root cause vs symptom)
+- `security` ↔ `performance` (adversarial: trade-offs)
+- `dba` ↔ `code-quality` (data-layer hotspot debate)
+- `design-principles` ↔ `performance` (challenge each other's lens before analyst synthesis)
+
+Each teammate MUST attempt to disprove at least one peer's finding via `SendMessage` before submitting its `result_contract`. The `tech-debt-analyst` (final synthesis) reads the mailbox and reports surviving findings — those that withstood debate — as high-confidence.
+
+**Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block listing teammate names this teammate must message before completing.
+
+**Audit:** lead dumps team mailbox to `sep_log.mailbox[]`. A teammate returning `result_contract` with zero outbound `SendMessage` to a required peer triggers the Teammate Failure Protocol with `reason: cross-talk-missing` and opens `[Gate] Cross-Talk Missing | pair: <a>↔<b> | [R]espawn / [A]ccept / [X]Abort`.
+
 ## Execution
 
 Follow these steps exactly.

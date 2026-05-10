@@ -20,6 +20,21 @@ If the discovery package came from `/squad` or marks TDD as required, TDD is man
 
 Use `TeamCreate` then `Agent` with `team_name` + `name` + `subagent_type` to spawn each specialist in its own tmux pane. Use `SendMessage` to communicate, `TaskCreate` / `TaskUpdate` to track work. **Do NOT use `Agent` without `team_name`** — that runs an inline subagent, not a visible pane.
 
+## Inter-Teammate Cross-Talk Protocol
+
+Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh` (`hard_requirement: true`).
+
+**Required pairs (implement):**
+- `backend-dev` ↔ `frontend-dev` (cross-layer handoff: API contract, error envelope, fixtures)
+- `backend-dev` ↔ `test-automation-engineer` (cross-layer handoff: integration fixtures)
+- `frontend-dev` ↔ `test-automation-engineer` (cross-layer handoff: e2e selectors)
+- `code-reviewer` ↔ `security-reviewer` (adversarial review)
+- `code-reviewer` ↔ `performance-engineer` (adversarial review)
+
+**Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block listing the teammate names this teammate must message before completing.
+
+**Audit:** lead dumps the team mailbox to `sep_log.mailbox[]`. A teammate returning `result_contract` with zero outbound `SendMessage` to a required peer triggers the Teammate Failure Protocol with `reason: cross-talk-missing` and opens `[Gate] Cross-Talk Missing | pair: <a>↔<b> | [R]espawn / [A]ccept / [X]Abort`.
+
 ## Operator Visibility Contract
 
 Emit one line for every teammate action. Required line types: `[Preflight Start|Warning|Passed]`, `[Team Created]`, `[Teammate Spawned|Done|Retry]`, `[Fallback Invoked]`, `[Resume From]`, `[Checkpoint Saved]`, `[Gate]`, `[Batch Spawned]`, `[Token Usage]`, `[Context Advisory]`, `[Rollover Accepted|Declined]`, `[Health Check]`, `[SEP Log Written]`. Full grammar in `references/runtime-resilience.md` and `references/gates-catalog.md`.

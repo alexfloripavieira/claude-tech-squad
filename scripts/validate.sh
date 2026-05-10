@@ -73,6 +73,7 @@ REQUIRED_SKILLS=(
   discovery
   implement
   squad
+  mini-squad
   bug-fix
   inception
   security-audit
@@ -399,7 +400,7 @@ for script in render-teammate-card.sh render-pipeline-board.sh; do
   fi
 done
 
-for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:' '^checkpoint_resume:' '^reliability_metrics:' '^work_item_taxonomy:' '^delivery_gates:'; do
+for key in '^version:' '^retry_budgets:' '^severity_policy:' '^fallback_matrix:' '^checkpoint_resume:' '^reliability_metrics:' '^work_item_taxonomy:' '^delivery_gates:' '^agent_teams:'; do
   if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
     echo "runtime-policy.yaml missing required key matching: $key"
     exit 1
@@ -648,7 +649,7 @@ grep -q '\${CLAUDE_PLUGIN_ROOT}' "$PLUGIN_DIR/hooks/settings-template.json" || {
 }
 
 # ── Mandatory test gate contract ────────────────────────────────────────────
-MANDATORY_TEST_GATE_SKILLS=(squad implement refactor bug-fix hotfix)
+MANDATORY_TEST_GATE_SKILLS=(squad implement refactor bug-fix hotfix mini-squad)
 DEV_AGENTS_RE='claude-tech-squad:(backend-dev|frontend-dev|django-backend|react-developer|vue-developer|mobile-dev|python-developer|typescript-developer|javascript-developer|shell-developer)'
 
 for skill in "${MANDATORY_TEST_GATE_SKILLS[@]}"; do
@@ -728,5 +729,76 @@ if [ -n "$NAMESPACE_VIOLATIONS" ]; then
   echo "$NAMESPACE_VIOLATIONS"
   exit 1
 fi
+
+# ── Agent Teams: Inter-Teammate Cross-Talk Protocol ─────────────────────────
+# Skills in agent_teams.cross_talk_protocol.required_for_skills must declare
+# the protocol section, list required pairs, and reference SendMessage as a
+# teammate-to-teammate primitive (not just a tool name).
+CROSS_TALK_SKILLS=(squad implement discovery refactor tech-debt-audit pentest-deep incident-postmortem llm-eval iac-review pr-review)
+for skill in "${CROSS_TALK_SKILLS[@]}"; do
+  skill_md="$SKILLS_DIR/$skill/SKILL.md"
+  if ! grep -q '^## Inter-Teammate Cross-Talk Protocol' "$skill_md"; then
+    echo "Cross-talk: $skill SKILL.md missing '## Inter-Teammate Cross-Talk Protocol' section"
+    exit 1
+  fi
+  if ! grep -q 'SendMessage' "$skill_md"; then
+    echo "Cross-talk: $skill SKILL.md must reference SendMessage as inter-teammate primitive"
+    exit 1
+  fi
+  if ! grep -qE 'Required pairs' "$skill_md"; then
+    echo "Cross-talk: $skill SKILL.md missing 'Required pairs' enumeration"
+    exit 1
+  fi
+  if ! grep -q 'cross-talk-missing' "$skill_md"; then
+    echo "Cross-talk: $skill SKILL.md missing failure reason 'cross-talk-missing'"
+    exit 1
+  fi
+done
+
+# Runtime-policy must define cross_talk_protocol with required pairs and patterns
+for key in 'cross_talk_protocol:' 'minimum_inter_teammate_messages:' 'mailbox_audit:' 'hard_requirement:'; do
+  if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
+    echo "runtime-policy.yaml agent_teams missing key: $key"
+    exit 1
+  fi
+done
+
+# tmux must be the preferred display mode (auto-detected at runtime)
+if ! grep -qE '^[[:space:]]*display_mode:[[:space:]]*tmux' "$PLUGIN_DIR/runtime-policy.yaml"; then
+  echo "runtime-policy.yaml agent_teams.display_mode must be 'tmux' (preferred)"
+  exit 1
+fi
+# Mode-resolution helper must exist and be executable
+DETECT_HELPER="$PLUGIN_DIR/bin/detect-team-mode.sh"
+test -f "$DETECT_HELPER" || { echo "Missing helper: bin/detect-team-mode.sh"; exit 1; }
+test -x "$DETECT_HELPER" || { echo "Helper not executable: bin/detect-team-mode.sh"; exit 1; }
+# Per-agent git worktree: init + spawn + cleanup + finalize helpers
+for helper in init-skill-branch.sh spawn-agent-worktree.sh cleanup-agent-worktree.sh finalize-skill.sh; do
+  path="$PLUGIN_DIR/bin/$helper"
+  test -f "$path" || { echo "Missing helper: bin/$helper"; exit 1; }
+  test -x "$path" || { echo "Helper not executable: bin/$helper"; exit 1; }
+done
+for key in '^agent_worktrees:' 'granularity: per_agent_spawn' 'init_helper:' 'spawn_helper:' 'cleanup_helper:' 'finalize_helper:' 'merge_strategy:' 'branch_lifecycle:'; do
+  if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
+    echo "runtime-policy.yaml agent_worktrees missing key: $key"
+    exit 1
+  fi
+done
+
+# Language policy: Portuguese (pt-BR) for natural-language agent + lead output
+for key in '^language_policy:' 'default_locale: pt-BR' 'spawn_prompt_preamble:' 'lead_to_user_preamble:'; do
+  if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
+    echo "runtime-policy.yaml language_policy missing key: $key"
+    exit 1
+  fi
+done
+
+# Auto-launch + inline fallback must be declared
+for key in 'auto_launch_tmux:' 'mode_resolution:' 'detection:' 'enforcement_by_mode:'; do
+  if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
+    echo "runtime-policy.yaml agent_teams missing key: $key"
+    exit 1
+  fi
+done
 
 echo "claude-tech-squad validation passed (v$PLUGIN_VERSION, $AGENT_COUNT agents)"
