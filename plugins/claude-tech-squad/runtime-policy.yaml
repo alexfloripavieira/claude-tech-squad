@@ -114,6 +114,28 @@ doom_loop_detection:
       description: the same test or lint error appears in consecutive retries unchanged
       condition: "error_signature(retry_N) == error_signature(retry_N-1)"
       action: halt_and_fallback
+    - name: idle_teammate
+      description: >
+        A spawned teammate has emitted no SendMessage, no tool call, and no
+        partial output for longer than failure_handling.idle_seconds (default 300s).
+        Distinct from the per-agent wall-clock cap — this fires earlier when
+        the teammate is silent but not yet at the runtime cap. Introduced
+        after the 2026-05-10 incident where a python-developer subagent
+        emitted a "What should Claude do instead?" recovery prompt and
+        then sat idle for 8 hours.
+      condition: "now - last_progress_signal(agent) > failure_handling.idle_seconds"
+      action: kill_and_open_gate
+      operator_emit: "[Doom Loop Detected] {{agent}} | pattern=idle_teammate | idle_seconds={{n}} — killing teammate and opening failure gate"
+    - name: recovery_prompt_loop
+      description: >
+        The teammate emitted a recovery prompt ("What should Claude do
+        instead?", "How would you like me to proceed?", etc.) — a sign it
+        is waiting for human input from within a subagent context. Subagents
+        MUST NOT block the skill on human input; the lead treats this as
+        an idle stall regardless of wall-clock age.
+      condition: "agent_output matches /What should Claude do instead\\?|How would you like me to proceed/i"
+      action: kill_and_open_gate
+      operator_emit: "[Doom Loop Detected] {{agent}} | pattern=recovery_prompt_loop — subagent attempted to block on human input"
   on_detection: "emit [Doom Loop Detected] {{agent}} | pattern={{rule_name}} | retries={{count}} — halting retry cycle and invoking fallback"
   escalation: surface unresolved gate to user with doom loop evidence
 

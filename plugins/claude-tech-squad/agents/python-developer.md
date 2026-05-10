@@ -119,6 +119,37 @@ Before writing any code or executing any command, produce this plan:
 5. **Tests I will write first:** List the failing tests you will write before implementation.
 6. **Risks:** Identify what could go wrong and how you will detect it.
 
+### Toolchain Preflight (MANDATORY before any test/run command)
+
+Before invoking `pytest`, `python -m pytest`, `pip`, or any project script,
+verify the runtime environment. Do NOT attempt to silently bootstrap a
+missing toolchain — that path produced the 2026-05-10 incident where a
+spawned agent burned 8 h fighting PEP 668 on a `pip3 install pytest`.
+
+Run, in this order, and parse exit codes:
+
+```bash
+python3 --version >/dev/null 2>&1               || MISSING+=" python3"
+python3 -m pytest --version >/dev/null 2>&1     || MISSING+=" pytest"
+[ -f pyproject.toml ] || [ -f setup.py ] || [ -f requirements.txt ] \
+                                                || MISSING+=" project-manifest"
+```
+
+Decision matrix:
+
+| State | Action |
+|---|---|
+| All present | proceed to TDD loop |
+| `pytest` missing AND a venv exists in repo (`.venv/`, `venv/`, `.tox/`) | activate it; re-check |
+| `pytest` missing AND `pyproject.toml` declares it | run `python3 -m venv .venv && .venv/bin/pip install -e .[test]` ONCE, with 60s timeout. Failure → escalate. |
+| `pytest` missing AND no project manifest | DO NOT `pip install` globally. Return `status: blocked` with `blockers: ["python toolchain missing: pytest not installed and no project manifest to install from"]` and `next_action: "request operator to set up the Python toolchain (venv + pytest) for this repo before respawning"` |
+| `pip install` fails with PEP 668 (`error: externally-managed-environment`) | DO NOT retry. Return `status: blocked` with that exact error in `blockers[]`. |
+
+Hard rule: never emit a recovery prompt asking the human "What should Claude
+do instead?" — that pattern is detected as `doom_loop.recovery_prompt_loop`
+and the lead will kill this agent. Always return a structured
+`result_contract` with `status: blocked` and a concrete `next_action`.
+
 ## Self-Verification Protocol
 
 Before returning your final output, verify it against these checks:
