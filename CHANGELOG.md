@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.65.0] - 2026-05-10 — Automated feature release
+
+### Added
+
+- Native Agent Teams flow with cross-talk, mode resolution, /mini-squad and hierarchical worktrees
+
+### Changed
+
+- Merge pull request #47 from alexfloripavieira/feat/agent-teams-cross-talk-worktrees
 ## [5.64.0] - 2026-04-27 — Per-agent model overrides
 
 ### Added
