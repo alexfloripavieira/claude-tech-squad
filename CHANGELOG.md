@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.69.2] - 2026-05-10 — Automated maintenance release
+
+### Fixed
+
+- Forbid silent reviewer bypass; require explicit [Gate] Reviewer Bypass (#54)
 ## [5.69.1] - 2026-05-10 — Automated maintenance release
 
 ### Fixed
