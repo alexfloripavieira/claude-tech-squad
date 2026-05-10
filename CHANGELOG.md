@@ -1,5 +1,20 @@
 # Changelog
 
+## [5.66.0] - 2026-05-10 — Hard runtime caps with watchdog
+
+### Added
+
+- `bin/watchdog.sh` — OS-level daemon launched detached by `init-skill-branch.sh`, enforces per-agent (default 900s = 15 min) and per-skill (default 7200s = 2 h) runtime caps. Kills runaway teammate processes, removes worktrees, writes `.killed` and `.skill-timed-out` markers. Self-exits when the active-skill sentinel disappears.
+- `hooks/stale-skill-detector.sh` — SessionStart hook that detects orphaned skill state (sentinel age > cap OR watchdog dead) and prints a one-line recovery banner. Purely advisory; never blocks.
+- `failure_handling.agent_max_runtime_seconds`, `skill_max_runtime_seconds`, `idle_seconds`, `on_timeout.*` in `runtime-policy.yaml`. Subagents MUST NOT block the skill on interactive prompts.
+- Phase B.1 `agent-monitor` orchestration block embedded in all eleven dev-flow SKILL.md files. Lead obligated to track `spawned_at`, never block-wait indefinitely on a single Agent, detect stalls via wall-clock OR idle-seconds, `pkill -f -- "--agent-id <agent>@<skill>"`, run cleanup, respawn or open failure gate. Recovery prompts treated as `reason=idle`.
+- `scripts/validate.sh` enforces the new `CTS-PHASE: agent-monitor` tag plus `agent_max_runtime_seconds`, `Teammate Timeout`, `watchdog` keywords; asserts watchdog + stale-skill-detector exist, executable, registered.
+
+### Fixed
+
+- `bin/finalize-skill.sh` cleanliness check excludes `ai-docs/.squad-log/`; orphan-branches `grep -v` wrapped to survive `set -e` when no orphans remain.
+- Closes incident 2026-05-10 where `/mini-squad` waited 8+ hours on a subagent recovery prompt with no orchestrator timeout.
+
 ## [5.65.0] - 2026-05-10 — Automated feature release
 
 ### Added
