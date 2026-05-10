@@ -169,10 +169,27 @@ CLEANUP_OUT=$(CTS_LEAD_OK=1 bash ${CLAUDE_PLUGIN_ROOT}/bin/cleanup-agent-worktre
 
 This phase runs ONCE PER AGENT SPAWN (including timed-out spawns) and is non-skippable.
 
+### Phase C.5 — SEP Log Commit (CTS-PHASE: sep-commit)
+
+After the SEP log file is written under `ai-docs/.squad-log/<skill>-<timestamp>.md`
+and BEFORE Phase D finalize, the lead MUST commit it on the skill branch.
+Without this commit, finalize-skill.sh will see a dirty main worktree and
+abort. The skill-active-guard hook is wired to allow these specific git
+operations when scoped to `ai-docs/.squad-log/`.
+
+```bash
+CTS_LEAD_OK=1 git -C "$REPO_TOPLEVEL" add ai-docs/.squad-log/
+CTS_LEAD_OK=1 git -C "$REPO_TOPLEVEL" commit -m "chore(squad-log): pr-review SEP log"
+```
+
+The lead MUST NOT delegate this step to the user — that defeats the
+orchestration contract. If the commit fails, surface a `[Gate] SEP Log
+Commit Failed` instead of asking the user to run the commands manually.
+
 ### Phase D — Skill Finalize (CTS-PHASE: skill-finalize)
 
-After the last agent finishes, after the SEP log is written, and before
-returning control to the user:
+After the last agent finishes, after the SEP log is written and committed,
+and before returning control to the user:
 
 ```bash
 FINAL_OUT=$(CTS_LEAD_OK=1 bash ${CLAUDE_PLUGIN_ROOT}/bin/finalize-skill.sh "$skill_branch")

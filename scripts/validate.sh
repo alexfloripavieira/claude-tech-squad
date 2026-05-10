@@ -808,7 +808,7 @@ DEV_FLOW_SKILLS=(squad implement discovery refactor mini-squad tech-debt-audit p
 for s in "${DEV_FLOW_SKILLS[@]}"; do
   f="$PLUGIN_DIR/skills/$s/SKILL.md"
   test -f "$f" || { echo "Missing dev-flow skill file: $f"; exit 1; }
-  for tag in "CTS-PHASE: skill-init" "CTS-PHASE: agent-spawn" "CTS-PHASE: agent-monitor" "CTS-PHASE: agent-cleanup" "CTS-PHASE: skill-finalize"; do
+  for tag in "CTS-PHASE: skill-init" "CTS-PHASE: agent-spawn" "CTS-PHASE: agent-monitor" "CTS-PHASE: agent-cleanup" "CTS-PHASE: sep-commit" "CTS-PHASE: skill-finalize"; do
     if ! grep -qF "$tag" "$f"; then
       echo "skills/$s/SKILL.md missing orchestration tag: $tag"
       exit 1

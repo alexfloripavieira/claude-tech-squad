@@ -101,7 +101,17 @@ case "$TOOL_NAME" in
       exit 0
     fi
     # Allow CTS helpers (lead invokes them on main worktree intentionally)
-    if printf '%s' "$CMD" | grep -qE 'bin/(spawn-agent-worktree|cleanup-agent-worktree|finalize-skill|init-skill-branch)\.sh'; then
+    if printf '%s' "$CMD" | grep -qE 'bin/(spawn-agent-worktree|cleanup-agent-worktree|finalize-skill|init-skill-branch|watchdog)\.sh'; then
+      exit 0
+    fi
+    # Allow lead's SEP log lifecycle on main worktree: git add/commit limited
+    # to ai-docs/.squad-log/ paths. Lead writes the SEP log there and commits
+    # it on the skill branch before finalize. Match either explicit pathspec
+    # or commit subjects scoped to the squad log namespace.
+    if printf '%s' "$CMD" | grep -qE 'git[[:space:]]+(add|commit)[^|;&]*ai-docs/\.squad-log'; then
+      exit 0
+    fi
+    if printf '%s' "$CMD" | grep -qE 'git[[:space:]]+commit[^|;&]*"[^"]*squad-log'; then
       exit 0
     fi
     # Block obvious main-worktree mutators
