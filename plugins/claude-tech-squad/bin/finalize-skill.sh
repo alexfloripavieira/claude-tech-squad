@@ -60,4 +60,8 @@ if [ "$ORPHAN_WTS" -gt 0 ]; then exit 2; fi
 if [ "$ORPHAN_BRANCHES" -gt 0 ]; then exit 3; fi
 if [ "$CLEAN" = "false" ]; then exit 4; fi
 if [ "$ON_SKILL" = "false" ]; then exit 5; fi
+
+# Clear active-skill sentinel so the skill-active-guard hook stops blocking
+rm -f "${REPO_TOPLEVEL}/ai-docs/.squad-log/.active-skill" 2>/dev/null || true
+
 exit 0

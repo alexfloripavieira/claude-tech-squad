@@ -49,5 +49,19 @@ if ! git checkout -b "$SKILL_BRANCH" "$BASE_COMMIT" >/dev/null 2>&1; then
   exit 4
 fi
 
+SENTINEL_DIR="${REPO_TOPLEVEL}/ai-docs/.squad-log"
+mkdir -p "$SENTINEL_DIR"
+SENTINEL="${SENTINEL_DIR}/.active-skill"
+WORKTREE_BASE="${CTS_WORKTREE_BASE:-${TMPDIR:-/tmp}/cts-worktrees}"
+{
+  printf 'skill=%s\n' "$SAFE_SKILL"
+  printf 'skill_branch=%s\n' "$SKILL_BRANCH"
+  printf 'base_branch=%s\n' "$ORIG_BRANCH"
+  printf 'base_commit=%s\n' "$BASE_COMMIT"
+  printf 'worktree_base=%s\n' "$WORKTREE_BASE"
+  printf 'repo_toplevel=%s\n' "$REPO_TOPLEVEL"
+  printf 'started_at=%s\n' "$EPOCH"
+} >"$SENTINEL"
+
 printf 'skill_branch=%s base_branch=%s base_commit=%s\n' \
   "$SKILL_BRANCH" "$ORIG_BRANCH" "$BASE_COMMIT"
