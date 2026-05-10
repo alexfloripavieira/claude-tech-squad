@@ -814,7 +814,7 @@ for s in "${DEV_FLOW_SKILLS[@]}"; do
       exit 1
     fi
   done
-  for keyword in "agent_max_runtime_seconds" "Teammate Timeout" "watchdog"; do
+  for keyword in "agent_max_runtime_seconds" "Teammate Timeout" "watchdog" "bypasses_observed"; do
     if ! grep -qF "$keyword" "$f"; then
       echo "skills/$s/SKILL.md missing monitoring keyword: $keyword"
       exit 1
@@ -838,12 +838,18 @@ test -f "$WATCHDOG" || { echo "Missing helper: bin/watchdog.sh"; exit 1; }
 test -x "$WATCHDOG" || { echo "Helper not executable: bin/watchdog.sh"; exit 1; }
 
 # Runtime policy: hard caps
-for key in 'agent_max_runtime_seconds:' 'skill_max_runtime_seconds:' 'idle_seconds:'; do
+for key in 'agent_max_runtime_seconds:' 'skill_max_runtime_seconds:' 'idle_seconds:' 'bypass_policy:' 'silent_bypass_forbidden:' 'bypass_forbidden_agents:'; do
   if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
     echo "runtime-policy.yaml failure_handling missing key: $key"
     exit 1
   fi
 done
+
+# No SKILL.md may say "Skipping reviewer: log risk, allow user to override"
+if grep -rn "log risk, allow user to override" "$PLUGIN_DIR/skills/" 2>/dev/null; then
+  echo "Silent reviewer bypass loophole found in a SKILL.md — must use [Gate] Reviewer Bypass Requested"
+  exit 1
+fi
 
 # stale-skill-detector hook
 STALE="$PLUGIN_DIR/hooks/stale-skill-detector.sh"
