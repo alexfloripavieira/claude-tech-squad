@@ -93,5 +93,15 @@ if [ -n "$BRANCH" ]; then
   git -C "$REPO_TOPLEVEL" branch -D "$BRANCH" >/dev/null 2>&1 || true
 fi
 
+# Remove watchdog spawn marker (if any) — branch name encodes agent+id.
+SENTINEL_DIR="$REPO_TOPLEVEL/ai-docs/.squad-log"
+if [ -d "$SENTINEL_DIR/.agents" ] && [ -n "${BRANCH:-}" ]; then
+  # BRANCH = cts/<skill>/<agent>-<epoch>-<id>
+  TAIL="${BRANCH#cts/*/}"
+  AGENT_PART="${TAIL%-*-*}"
+  ID_PART="${TAIL##*-}"
+  rm -f "$SENTINEL_DIR/.agents/${AGENT_PART}-${ID_PART}.spawned" 2>/dev/null || true
+fi
+
 printf 'removed=%s branch=%s merged=%s commits_ahead=%s conflict=%s\n' \
   "$WORKTREE_PATH" "${BRANCH:-unknown}" "$MERGED" "$COMMITS_AHEAD" "$CONFLICT"

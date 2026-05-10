@@ -41,17 +41,21 @@ ORPHAN_WTS=$(git worktree list --porcelain | awk '
 ')
 
 # Count surviving per-agent branches under cts/<skill>/...
-ORPHAN_BRANCHES=$(git for-each-ref --format='%(refname:short)' refs/heads/cts/ 2>/dev/null \
-  | grep -v "^${SKILL_BRANCH}$" \
-  | wc -l \
-  | tr -d ' ')
+ORPHAN_BRANCHES=$({
+  git for-each-ref --format='%(refname:short)' refs/heads/cts/ 2>/dev/null || true
+} | { grep -v "^${SKILL_BRANCH}$" || true; } | wc -l | tr -d ' ')
 
 CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "DETACHED")
 ON_SKILL=false
 [ "$CURRENT_BRANCH" = "$SKILL_BRANCH" ] && ON_SKILL=true
 
 CLEAN=true
-[ -n "$(git status --porcelain)" ] && CLEAN=false
+# Exclude ai-docs/.squad-log/ from cleanliness check — those files are
+# orchestration metadata (sentinel, watchdog log, agent markers) that
+# legitimately exist during the run. CLAUDE.md mandates they are
+# gitignored in production repos.
+DIRTY=$(git status --porcelain -- . ':(exclude)ai-docs/.squad-log' 2>/dev/null || true)
+[ -n "$DIRTY" ] && CLEAN=false
 
 printf 'skill_branch=%s orphan_worktrees=%s orphan_branches=%s main_worktree_clean=%s on_skill_branch=%s\n' \
   "$SKILL_BRANCH" "$ORPHAN_WTS" "$ORPHAN_BRANCHES" "$CLEAN" "$ON_SKILL"
@@ -61,7 +65,22 @@ if [ "$ORPHAN_BRANCHES" -gt 0 ]; then exit 3; fi
 if [ "$CLEAN" = "false" ]; then exit 4; fi
 if [ "$ON_SKILL" = "false" ]; then exit 5; fi
 
+# Kill watchdog daemon before clearing sentinel (defense in depth: it would
+# self-exit on next tick anyway when the sentinel disappears).
+WATCHDOG_PID_FILE="${REPO_TOPLEVEL}/ai-docs/.squad-log/.watchdog.pid"
+if [ -f "$WATCHDOG_PID_FILE" ]; then
+  WD_PID=$(cat "$WATCHDOG_PID_FILE" 2>/dev/null || echo "")
+  if [ -n "$WD_PID" ] && kill -0 "$WD_PID" 2>/dev/null; then
+    kill -TERM "$WD_PID" 2>/dev/null || true
+  fi
+  rm -f "$WATCHDOG_PID_FILE" 2>/dev/null || true
+fi
+
 # Clear active-skill sentinel so the skill-active-guard hook stops blocking
 rm -f "${REPO_TOPLEVEL}/ai-docs/.squad-log/.active-skill" 2>/dev/null || true
+
+# Prune spawned markers (cleanup-agent-worktree handles per-marker removal,
+# but be defensive — leftover .spawned files would mislead future runs).
+rm -f "${REPO_TOPLEVEL}/ai-docs/.squad-log/.agents/"*.spawned 2>/dev/null || true
 
 exit 0

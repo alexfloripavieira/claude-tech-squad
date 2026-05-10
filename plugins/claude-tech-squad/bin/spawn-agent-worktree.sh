@@ -50,4 +50,19 @@ if ! git -C "$REPO_TOPLEVEL" worktree add -b "$BRANCH" "$WORKTREE_PATH" "$BASE_S
   exit 3
 fi
 
-printf 'path=%s branch=%s base=%s\n' "$WORKTREE_PATH" "$BRANCH" "$BASE_SHA"
+# Watchdog spawn marker — used by bin/watchdog.sh to enforce the per-agent
+# runtime cap. Markers live next to the active-skill sentinel.
+SENTINEL_DIR="$REPO_TOPLEVEL/ai-docs/.squad-log"
+mkdir -p "$SENTINEL_DIR/.agents"
+MARKER="$SENTINEL_DIR/.agents/${SAFE_AGENT}-${SAFE_ID}.spawned"
+{
+  printf 'agent=%s\n' "$SAFE_AGENT"
+  printf 'agent_id=%s\n' "$SAFE_ID"
+  printf 'skill=%s\n' "$SAFE_SKILL"
+  printf 'path=%s\n' "$WORKTREE_PATH"
+  printf 'branch=%s\n' "$BRANCH"
+  printf 'spawned_at=%s\n' "$EPOCH"
+} >"$MARKER"
+
+printf 'path=%s branch=%s base=%s spawned_at=%s\n' \
+  "$WORKTREE_PATH" "$BRANCH" "$BASE_SHA" "$EPOCH"

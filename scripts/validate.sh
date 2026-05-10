@@ -808,9 +808,15 @@ DEV_FLOW_SKILLS=(squad implement discovery refactor mini-squad tech-debt-audit p
 for s in "${DEV_FLOW_SKILLS[@]}"; do
   f="$PLUGIN_DIR/skills/$s/SKILL.md"
   test -f "$f" || { echo "Missing dev-flow skill file: $f"; exit 1; }
-  for tag in "CTS-PHASE: skill-init" "CTS-PHASE: agent-spawn" "CTS-PHASE: agent-cleanup" "CTS-PHASE: skill-finalize"; do
+  for tag in "CTS-PHASE: skill-init" "CTS-PHASE: agent-spawn" "CTS-PHASE: agent-monitor" "CTS-PHASE: agent-cleanup" "CTS-PHASE: skill-finalize"; do
     if ! grep -qF "$tag" "$f"; then
       echo "skills/$s/SKILL.md missing orchestration tag: $tag"
+      exit 1
+    fi
+  done
+  for keyword in "agent_max_runtime_seconds" "Teammate Timeout" "watchdog"; do
+    if ! grep -qF "$keyword" "$f"; then
+      echo "skills/$s/SKILL.md missing monitoring keyword: $keyword"
       exit 1
     fi
   done
@@ -825,6 +831,26 @@ for s in "${DEV_FLOW_SKILLS[@]}"; do
     exit 1
   fi
 done
+
+# Watchdog daemon must exist + be executable
+WATCHDOG="$PLUGIN_DIR/bin/watchdog.sh"
+test -f "$WATCHDOG" || { echo "Missing helper: bin/watchdog.sh"; exit 1; }
+test -x "$WATCHDOG" || { echo "Helper not executable: bin/watchdog.sh"; exit 1; }
+
+# Runtime policy: hard caps
+for key in 'agent_max_runtime_seconds:' 'skill_max_runtime_seconds:' 'idle_seconds:'; do
+  if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
+    echo "runtime-policy.yaml failure_handling missing key: $key"
+    exit 1
+  fi
+done
+
+# stale-skill-detector hook
+STALE="$PLUGIN_DIR/hooks/stale-skill-detector.sh"
+test -f "$STALE" || { echo "Missing hook: hooks/stale-skill-detector.sh"; exit 1; }
+test -x "$STALE" || { echo "Hook not executable: hooks/stale-skill-detector.sh"; exit 1; }
+grep -q "stale-skill-detector.sh" "$PLUGIN_DIR/hooks/hooks.json" \
+  || { echo "hooks.json does not register stale-skill-detector.sh"; exit 1; }
 
 # skill-active-guard hook must exist + be executable + be registered
 GUARD="$PLUGIN_DIR/hooks/skill-active-guard.sh"

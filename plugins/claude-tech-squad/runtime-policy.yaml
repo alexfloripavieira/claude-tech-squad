@@ -11,6 +11,21 @@ docs_lookup:
 failure_handling:
   structural_retry_same_prompt_max: 2
   fallback_attempt_max: 1
+  # Hard wall-clock caps. Introduced after a 2026-05-10 incident where a
+  # python-developer agent waited 8+ hours on a self-interrupt prompt
+  # ("What should Claude do instead?") with no orchestrator timeout. The
+  # lead orchestrator MUST enforce these caps as its first-line monitoring
+  # duty (see SKILL.md Phase B.1); bin/watchdog.sh is the OS-level
+  # backstop that kills runaway teammate processes even if the lead
+  # crashes or stalls.
+  agent_max_runtime_seconds: 900    # 15 min per Agent() spawn
+  skill_max_runtime_seconds: 7200   # 2 h per skill run end-to-end
+  idle_seconds: 300                 # no progress signal for 5 min -> stall
+  on_timeout:
+    operator_emit: "[Teammate Timeout] agent={{agent}} | reason={{reason}} | age_seconds={{age}}"
+    sep_log_field: "timeouts_observed"
+    action: "kill agent process (pkill -f -- '--agent-id <agent>@<skill>'), run cleanup-agent-worktree.sh, decrement retry budget, respawn or open [Gate] Teammate Failure"
+    interactive_prompt_policy: "subagent recovery prompts ('What should Claude do instead?') are treated as reason=idle and trigger the stall handler immediately — subagents MUST NOT block the skill on human input"
   unresolved_action_gate:
     options: [R, S, X]
     meanings:
