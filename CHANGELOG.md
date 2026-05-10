@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.68.0] - 2026-05-10 — Automated feature release
+
+### Added
+
+- Hard 15-min per-agent and 2h per-skill runtime caps with watchdog
+
+### Changed
+
+- Merge pull request #51 from alexfloripavieira/feat/agent-watchdog-timeouts
+- Merge branch 'main' into feat/agent-watchdog-timeouts
+- Add CHANGELOG entry for 5.66.0 to satisfy verify-release
 ## [5.67.0] - 2026-05-10 — Automated feature release
 
 ### Added
