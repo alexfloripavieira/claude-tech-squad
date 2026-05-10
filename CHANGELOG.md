@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.67.0] - 2026-05-10 — pt-BR + worktree mandate enforced across all skills
+
+### Added
+
+- `skills/_shared/orchestration-contract.md` — canonical CTS Orchestration Contract (skill-init → agent-spawn → agent-cleanup → skill-finalize) referenced by every skill.
+- 14 agent-spawning skills (`bug-fix`, `cloud-debug`, `dependency-check`, `factory-retrospective`, `hotfix`, `inception`, `migration-plan`, `multi-service`, `onboarding`, `prompt-review`, `release`, `rollover`, `security-audit`, `test-bootstrap`) now embed the full Orchestration Contract block with hard requirements: pt-BR `language_policy.spawn_prompt_preamble` injection on every Agent spawn, and per-agent worktree isolation via `bin/spawn-agent-worktree.sh` + `bin/cleanup-agent-worktree.sh`.
+- 5 non-spawning skills (`cost-estimate`, `dashboard`, `from-ticket`, `pre-commit-lint`, `resume-from-rollover`) embed a Language Policy clause requiring pt-BR for all user-facing output (worktree phases skipped — no Agent spawns).
+
+### Changed
+
+- pt-BR is now a HARD REQUIREMENT (`language_policy.hard_requirement: true`) for every skill in the catalog: teammate ↔ teammate SendMessage, teammate result_contract narrative, lead → user reports, gate prompts, SEP narrative. English remains for code, commits, PR titles, paths, identifiers, log tags, YAML keys, shell commands per `language_policy.exempt_from_locale`.
+- Per-agent worktree isolation is now a HARD REQUIREMENT (`agent_worktrees.hard_requirement: true`) for every Agent spawn in any skill that calls `Agent(...)`. Each spawn gets its own branch under `cts/<skill>/<agent>-<epoch>-<id>` and its own worktree under `${CTS_WORKTREE_BASE:-${TMPDIR:-/tmp}/cts-worktrees}`, merged back via `--no-ff` on cleanup.
+- SEP logs MUST now record `language_policy_applied: pt-BR` and `cts_phases_completed: [skill-init, agent-spawn, agent-cleanup, skill-finalize]` plus a `worktrees: [...]` audit array for spawning skills.
+
 ## [5.65.0] - 2026-05-10 — Automated feature release
 
 ### Added

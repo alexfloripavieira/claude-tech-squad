@@ -101,3 +101,46 @@ teammates:
     tokens_input: 0
     tokens_output: 0
 ```
+
+## Orchestration Contract — Mandatory Phases (CTS hard requirement)
+
+This skill inherits the canonical CTS Orchestration Contract defined in
+`skills/_shared/orchestration-contract.md`. The lead orchestrator MUST
+execute the four phases (skill-init → agent-spawn → agent-cleanup →
+skill-finalize) on every run, and MUST prepend
+`runtime-policy.yaml::language_policy.spawn_prompt_preamble` to every
+`Agent(...)` prompt.
+
+Both invariants are HARD REQUIREMENTS (non-skippable):
+
+- `language_policy.hard_requirement: true` — all natural-language output in **pt-BR**
+  (teammate ↔ teammate via SendMessage, teammate result_contract narrative,
+  lead → user reports, gate prompts, SEP log narrative).
+- `agent_worktrees.hard_requirement: true` — every `Agent(...)` spawn MUST
+  receive its own per-agent worktree via
+  `${CLAUDE_PLUGIN_ROOT}/bin/spawn-agent-worktree.sh` and MUST be cleaned
+  up via `${CLAUDE_PLUGIN_ROOT}/bin/cleanup-agent-worktree.sh`.
+
+Required helper sequence per spawn:
+
+```bash
+# Phase A (once, before any Agent spawn) — CTS-PHASE: skill-init
+INIT_OUT=$(bash ${CLAUDE_PLUGIN_ROOT}/bin/init-skill-branch.sh <skill-name>)
+
+# Phase B (per Agent spawn) — CTS-PHASE: agent-spawn
+SPAWN_OUT=$(bash ${CLAUDE_PLUGIN_ROOT}/bin/spawn-agent-worktree.sh <skill-name> <agent_name> <agent_id>)
+# Inject pt-BR preamble + 5 worktree fields at top of Agent() prompt.
+
+# Phase C (after each Agent returns) — CTS-PHASE: agent-cleanup
+CLEANUP_OUT=$(bash ${CLAUDE_PLUGIN_ROOT}/bin/cleanup-agent-worktree.sh <worktree_path>)
+
+# Phase D (once, after last agent + SEP log) — CTS-PHASE: skill-finalize
+FINAL_OUT=$(bash ${CLAUDE_PLUGIN_ROOT}/bin/finalize-skill.sh "$skill_branch")
+```
+
+SEP log MUST contain:
+- `language_policy_applied: pt-BR`
+- `cts_phases_completed: [skill-init, agent-spawn, agent-cleanup, skill-finalize]`
+- `worktrees: [...]` (one entry per agent spawn with `path`, `branch`, `commits_ahead`, `merged`, `final_status`)
+
+See `skills/_shared/orchestration-contract.md` for the full canonical contract.
