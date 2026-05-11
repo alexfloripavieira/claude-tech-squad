@@ -17,6 +17,7 @@
 #   2 — not a git repo
 #   3 — main worktree dirty (untracked or modified files); user must commit/stash first
 #   4 — git checkout -b failed
+#   6 — HEAD is on a leftover cts/ branch (use CTS_ALLOW_NESTED_INIT=1 to override)
 
 set -euo pipefail
 
@@ -39,6 +40,44 @@ fi
 
 ORIG_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)
 BASE_COMMIT=$(git rev-parse HEAD)
+
+# Refuse to start a new skill on top of a leftover CTS branch. Observed
+# 2026-05-11: a run init'd with base_branch=cts/skill/<prev-skill>-<...>
+# because the prior run never returned the working tree to main. The
+# user MUST land or discard the previous skill branch before starting a
+# new one — otherwise this run's history would dangle off the previous
+# one and base_branch in the SEP log would mislead. Operator override
+# via CTS_ALLOW_NESTED_INIT=1 if intentional (e.g. stacked-skill demos).
+case "$ORIG_BRANCH" in
+  cts/skill/*|cts/*-*-*)
+    if [ "${CTS_ALLOW_NESTED_INIT:-}" != "1" ]; then
+      cat >&2 <<EOF
+init-skill-branch: HEAD is on a CTS branch ($ORIG_BRANCH).
+
+Refusing to init a new skill on top of a previous skill or agent branch.
+That would make base_branch in the SEP log point at orphan history and
+cause spurious merge conflicts downstream.
+
+Recover by landing or discarding the previous skill:
+
+  # OPTION A — land it
+  git checkout <base, e.g. main>
+  git merge --no-ff $ORIG_BRANCH
+  git branch -D $ORIG_BRANCH
+
+  # OPTION B — discard it
+  git checkout <base, e.g. main>
+  git branch -D $ORIG_BRANCH
+
+Then re-run the skill.
+
+Override (intentional stacked-skill scenarios only):
+  CTS_ALLOW_NESTED_INIT=1 ${0##*/} $SKILL
+EOF
+      exit 6
+    fi
+    ;;
+esac
 
 EPOCH=$(date +%s)
 SAFE_SKILL="${SKILL//[^a-zA-Z0-9-]/-}"
