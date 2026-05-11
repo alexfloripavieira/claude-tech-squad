@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.69.3] - 2026-05-11 — Automated maintenance release
+
+### Fixed
+
+- Explicit gates can't auto-resolve from session prefs; cross-talk via git; cleanup (#55)
 ## [5.69.2] - 2026-05-10 — Automated maintenance release
 
 ### Fixed
