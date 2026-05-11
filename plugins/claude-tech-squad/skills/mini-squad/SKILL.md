@@ -412,19 +412,58 @@ Emit `[Test Gate] tdd=PASS | test-automation=<status>`.
 
 ### Step 8 — Reviewer Verdict
 
+The reviewer is the most frequently stalled teammate. The spawn prompt
+below is the result of multiple post-mortems — keep it explicit. Lead
+MUST inject `skill_branch`, `base_commit`, and the per-agent worktree
+fields per Phase B. Reviewer MUST fetch the diff itself; never rely
+on `{{aggregated_diff}}` being inlined.
+
 ```
 Agent(
   team_name="mini-squad",
   name="reviewer",
   subagent_type="claude-tech-squad:{{reviewer_agent}}",
   prompt="""
-Review the diff for correctness, readability, and obvious risks.
+[language_policy.spawn_prompt_preamble injected by Phase B]
+[worktree fields injected by Phase B: skill_branch, worktree_path, branch, base_commit]
 
-Changed files: {{files_touched}}
-Diff: {{aggregated_diff}}
+ROLE: code reviewer for a TDD-completed mini-squad delivery.
 
-Return verdict: PASS | FAIL | CONDITIONAL with structured findings.
-Do NOT chain. Do NOT use Agent tool.
+MANDATORY FIRST ACTIONS (in this exact order — no thinking, just do):
+  1. cd into worktree_path.
+  2. Run: git fetch . {{skill_branch}}:{{skill_branch}} 2>/dev/null || true
+  3. Run: git diff {{base_commit}}..{{skill_branch}} --stat
+  4. Run: git diff {{base_commit}}..{{skill_branch}}
+  5. Run: git log --oneline {{base_commit}}..{{skill_branch}}
+
+If any of steps 3-5 returns empty output, IMMEDIATELY return:
+  result_contract:
+    status: blocked
+    confidence: high
+    next_action: "lead must verify skill_branch was committed before reviewer spawn"
+    blockers: ["empty diff — no changes detected on skill_branch vs base_commit"]
+DO NOT pause. DO NOT emit "How would you like me to proceed?" — that
+matches doom_loop.recovery_prompt_loop and the lead will kill you.
+
+REVIEW SCOPE (in pt-BR):
+  - Correctness: do tests cover the spec? do implementations match spec?
+  - Readability: naming, structure, comments where invariants need it
+  - Risks: obvious security/data/regression issues for the changed files
+
+DELIVERABLE: return WITHIN 5 MINUTES of spawn (wall-clock). The lead
+enforces the per-agent runtime cap (failure_handling.agent_max_runtime_seconds)
+but you should target much faster. Structured findings:
+
+  result_contract:
+    status: completed
+    confidence: high|medium|low
+    verdict: PASS | FAIL | CONDITIONAL
+    findings: [{file, line, severity: critical|major|minor, message}]
+    next_action: "lead may finalize"
+
+Do NOT chain. Do NOT use Agent tool. Do NOT install dependencies.
+Read the diff with git; respond with the contract. That is the
+entire job.
 """
 )
 ```
@@ -433,6 +472,9 @@ Emit `[Reviewer Verdict] <PASS|FAIL|CONDITIONAL>`.
 
 If FAIL: surface findings, ask user `[R]efix / [O]verride / [X]Abort`.
 If CONDITIONAL: surface conditions, ask user `[A]pply / [O]verride / [X]Abort`.
+If `status: blocked` (empty diff): the lead messed up Step 7 (dev did
+not commit on skill_branch) — STOP and surface the gap, do NOT
+respawn the reviewer.
 
 ### Step 9 — Team Cleanup (teammate mode)
 

@@ -119,6 +119,25 @@ Before writing any code or executing any command, produce this plan:
 5. **Tests I will write first:** List the failing tests you will write before implementation.
 6. **Risks:** Identify what could go wrong and how you will detect it.
 
+### Cross-Talk File Handoff (MANDATORY when paired with tdd-specialist)
+
+When you are the dev half of a tdd-specialist ↔ dev pair, you receive
+a `SendMessage` from tdd with `from_branch`, `commit_sha`, and
+`file_paths`. Do NOT copy or rewrite those test files in your worktree.
+Pull them via git so the later --no-ff merge into the skill branch
+treats them as one canonical version:
+
+```bash
+cd "$worktree_path"
+git fetch . "$from_branch":"$from_branch" 2>/dev/null || true
+git checkout "$from_branch" -- $file_paths
+```
+
+Copying the tests by hand has produced merge conflicts on
+`tests/test_core.py` in multiple past runs (2026-05-10, 2026-05-11)
+which the lead had to resolve with `--theirs`, losing other dev
+changes. The git path is mandatory.
+
 ### Toolchain Preflight (MANDATORY before any test/run command)
 
 Before invoking `pytest`, `python -m pytest`, `pip`, or any project script,
