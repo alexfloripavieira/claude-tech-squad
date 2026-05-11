@@ -82,5 +82,15 @@ rm -f "${REPO_TOPLEVEL}/ai-docs/.squad-log/.active-skill" 2>/dev/null || true
 # Prune spawned markers (cleanup-agent-worktree handles per-marker removal,
 # but be defensive — leftover .spawned files would mislead future runs).
 rm -f "${REPO_TOPLEVEL}/ai-docs/.squad-log/.agents/"*.spawned 2>/dev/null || true
+rm -f "${REPO_TOPLEVEL}/ai-docs/.squad-log/.agents/"*.killed 2>/dev/null || true
+
+# Sweep $CTS_WORKTREE_BASE for leftover non-worktree files (debug scripts
+# created mid-run by the lead, stray logs, etc.). Worktrees themselves
+# were removed by cleanup-agent-worktree.sh — anything still here is
+# garbage. Only sweeps files directly inside the base dir, not nested.
+WORKTREE_BASE="${CTS_WORKTREE_BASE:-${TMPDIR:-/tmp}/cts-worktrees}"
+if [ -d "$WORKTREE_BASE" ]; then
+  find "$WORKTREE_BASE" -maxdepth 1 -type f -delete 2>/dev/null || true
+fi
 
 exit 0

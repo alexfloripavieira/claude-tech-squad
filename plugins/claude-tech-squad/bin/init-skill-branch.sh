@@ -52,6 +52,22 @@ fi
 SENTINEL_DIR="${REPO_TOPLEVEL}/ai-docs/.squad-log"
 mkdir -p "$SENTINEL_DIR" "$SENTINEL_DIR/.agents"
 SENTINEL="${SENTINEL_DIR}/.active-skill"
+
+# Ephemeral orchestration files must NEVER be committed. They are
+# rewritten on every skill run, and tracking them produces spurious
+# `D` entries in git status after cleanup, polluting the skill branch.
+# Idempotent: only create the gitignore if it's missing.
+SEP_GITIGNORE="$SENTINEL_DIR/.gitignore"
+if [ ! -f "$SEP_GITIGNORE" ]; then
+  cat >"$SEP_GITIGNORE" <<'IGN'
+# CTS orchestration ephemeral state — do not commit
+.active-skill
+.agents/
+.watchdog.pid
+.watchdog.log
+.skill-timed-out
+IGN
+fi
 WORKTREE_BASE="${CTS_WORKTREE_BASE:-${TMPDIR:-/tmp}/cts-worktrees}"
 {
   printf 'skill=%s\n' "$SAFE_SKILL"

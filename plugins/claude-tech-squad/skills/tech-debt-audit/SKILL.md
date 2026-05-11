@@ -212,7 +212,7 @@ branch — that is the user's call.
   - `cts_phases_completed: [skill-init, agent-spawn, agent-monitor, agent-cleanup, skill-finalize]`
   - `worktrees: [...]` (one entry per agent spawn with `path`, `branch`, `commits_ahead`, `merged`, `final_status`)
   - `timeouts_observed: [...]` (empty list if none — explicit field required)
-  - `bypasses_observed: [...]` (one entry per silenced/skipped teammate: `{agent, reason, user_decision: A|R|X, gate_emitted: true}`). EMPTY LIST IF NONE — explicit field required. Marking any agent as "BYPASSED" without a `[Gate] Reviewer Bypass Requested` and explicit user choice is a contract violation. See `runtime-policy.yaml::failure_handling.bypass_policy` for the forbidden-agent list.
+  - `bypasses_observed: [...]` (one entry per silenced/skipped teammate: `{agent, reason, user_decision: A|R|X, gate_emitted: true}`). EMPTY LIST IF NONE — explicit field required. Marking any agent as "BYPASSED" without a `[Gate] Reviewer Bypass Requested` and explicit user choice is a contract violation. **`user_decision` MUST come from a fresh per-gate chat reply.** Session-level preferences (e.g. "no clarifying questions" directive, autonomous-run mode, prior similar bypass) DO NOT pre-authorize the gate. See `runtime-policy.yaml::failure_handling.bypass_policy.session_preferences_do_not_authorize` and `forbidden_auto_resolutions`.
 
 
 

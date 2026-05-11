@@ -29,6 +29,25 @@ failure_handling:
   bypass_policy:
     silent_bypass_forbidden: true
     bypass_requires_user_gate: true
+    # CRITICAL — added 2026-05-11 after a /mini-squad run silently
+    # auto-accepted a reviewer bypass citing the session-level
+    # "no clarifying questions" directive as authorization. Bypass
+    # gates require a FRESH per-gate user response. No session-level
+    # preference (e.g. autonomous-run mode, "no clarifying questions",
+    # auto-approve, --yes) pre-authorizes a bypass. The lead MUST
+    # block and wait for an explicit A/R/X reply in the chat.
+    session_preferences_do_not_authorize: true
+    forbidden_auto_resolutions:
+      - "no clarifying questions directive"
+      - "autonomous run mode"
+      - "user previously approved similar bypass"
+      - "trivial diff scope"
+      - "tests are green"
+    rationale: >
+      A reviewer/QA bypass is a structural risk acceptance, not a UX
+      friction. It MUST be authorized per-occurrence by the human in
+      the loop. The lead orchestrator surfacing the gate and waiting
+      is the entire point of the gate; auto-resolving defeats it.
     user_gate_template: "[Gate] Reviewer Bypass Requested | agent={{agent}} | reason={{reason}} | [A]ccept-with-risk / [R]espawn / [X]Abort"
     sep_log_field: bypasses_observed     # mandatory list field
     bypass_forbidden_agents:
