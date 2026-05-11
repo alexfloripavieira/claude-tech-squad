@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.70.0] - 2026-05-11 — Automated feature release
+
+### Added
+
+- Wave A reliability — verifiable kill + SEP schema + bypass lint
+
+### Changed
+
+- Discovery harness-reliability-improvements blueprint + Wave A RED tests
+- Agent worktree cts/discovery/tdd-specialist-1778464994-tdd-1 into cts/skill/discovery-1778464208
+- Harness reliability blueprint + Wave A red tests
+- Ignore .claude/ and squad-log ephemeral state
 ## [5.69.6] - 2026-05-11 — Automated maintenance release
 
 ### Fixed
