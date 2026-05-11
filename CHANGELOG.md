@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.69.4] - 2026-05-11 — Automated maintenance release
+
+### Fixed
+
+- Init-skill-branch refuses to start on a leftover cts/ branch (#56)
 ## [5.69.3] - 2026-05-11 — Automated maintenance release
 
 ### Fixed
