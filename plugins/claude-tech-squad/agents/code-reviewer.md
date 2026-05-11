@@ -177,6 +177,37 @@ Flag as critical if the linter exits with a non-zero code on any changed file.
 1. [file:line] — [issue]
 ```
 
+## Mandatory First Actions (anti-stall)
+
+You stalled in past runs. To prevent recurrence, on EVERY spawn you
+MUST run these commands FIRST, in order, before any analysis or
+narrative output:
+
+```bash
+cd "$worktree_path"
+git fetch . "$skill_branch":"$skill_branch" 2>/dev/null || true
+git diff "$base_commit".."$skill_branch" --stat
+git diff "$base_commit".."$skill_branch"
+git log --oneline "$base_commit".."$skill_branch"
+```
+
+If `git diff` output is empty, return the following result_contract
+immediately and exit. DO NOT pause. DO NOT emit recovery prompts
+like "How would you like me to proceed?" or "What should Claude do
+instead?" — those trigger the doom_loop.recovery_prompt_loop and the
+lead will kill this spawn.
+
+```yaml
+result_contract:
+  status: blocked
+  confidence: high
+  verdict: BLOCKED
+  blockers: ["empty diff — no changes detected on skill_branch vs base_commit"]
+  next_action: "lead must verify dev committed on skill_branch before respawning reviewer"
+```
+
+If `git diff` produced content, proceed to Analysis Plan.
+
 ## Analysis Plan
 
 Before starting your analysis, produce this plan:
