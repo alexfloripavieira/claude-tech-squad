@@ -885,4 +885,42 @@ test -x "$GATE" || { echo "Hook not executable: hooks/dev-flow-tmux-gate.sh"; ex
 grep -q "dev-flow-tmux-gate.sh" "$PLUGIN_DIR/hooks/hooks.json" \
   || { echo "hooks.json does not register dev-flow-tmux-gate.sh"; exit 1; }
 
+# ── M4: bypass-pattern lint ─────────────────────────────────────────────
+# Forbidden phrases that, if present in any SKILL.md, indicate a silent
+# bypass of the reviewer/QA gate. Lines marked with the trailing comment
+# `# bypass-lint: pattern-source` are legitimate policy references and
+# are excluded. Patterns live in runtime-policy.yaml::bypass_patterns
+# when yq is available; hardcoded fallback below otherwise.
+BYPASS_PATTERNS_FALLBACK=(
+  "session-level approval"
+  "skipping reviewer"
+  "skip the reviewer gate"
+  "autonomous run authorizes bypass"
+)
+BYPASS_PATTERNS=()
+if command -v yq >/dev/null 2>&1; then
+  while IFS= read -r p; do
+    [ -n "$p" ] && BYPASS_PATTERNS+=("$p")
+  done < <(yq '.bypass_patterns[]' "$PLUGIN_DIR/runtime-policy.yaml" 2>/dev/null || true)
+fi
+if [ "${#BYPASS_PATTERNS[@]}" -eq 0 ]; then
+  BYPASS_PATTERNS=("${BYPASS_PATTERNS_FALLBACK[@]}")
+fi
+
+BYPASS_HITS=""
+for pattern in "${BYPASS_PATTERNS[@]}"; do
+  while IFS=: read -r file line text; do
+    [ -z "$file" ] && continue
+    if printf '%s' "$text" | grep -q "# bypass-lint: pattern-source"; then
+      continue
+    fi
+    BYPASS_HITS+="$file:$line: $text"$'\n'
+  done < <(grep -rniE "$pattern" "$PLUGIN_DIR/skills" 2>/dev/null | grep -i "SKILL.md" || true)
+done
+if [ -n "$BYPASS_HITS" ]; then
+  echo "[Bypass Pattern Detected] SKILL.md contains forbidden bypass language:"
+  echo "$BYPASS_HITS"
+  exit 1
+fi
+
 echo "claude-tech-squad validation passed (v$PLUGIN_VERSION, $AGENT_COUNT agents)"

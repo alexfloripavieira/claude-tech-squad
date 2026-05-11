@@ -82,6 +82,21 @@ if [ "$ORPHAN_BRANCHES" -gt 0 ]; then exit 3; fi
 if [ "$CLEAN" = "false" ]; then exit 4; fi
 if [ "$ON_SKILL" = "false" ]; then exit 5; fi
 
+# ── M2: SEP log schema validation (AC3) ──
+# If a SEP log was written for this skill and the validator exists, run it.
+# Exit 6 on schema violation to halt pipeline. Missing validator = warning-only.
+SKILL_NAME=$(printf '%s' "$SKILL_BRANCH" | sed -nE 's|^cts/skill/(.+)-[0-9]+$|\1|p')
+VALIDATOR="${REPO_TOPLEVEL}/plugins/claude-tech-squad/bin/validate-sep-log.py"
+if [ -n "$SKILL_NAME" ] && [ -x "$VALIDATOR" ]; then
+  LATEST_SEP=$(ls -t "${REPO_TOPLEVEL}/ai-docs/.squad-log/"*-"${SKILL_NAME}"-*.md 2>/dev/null | head -1)
+  if [ -n "$LATEST_SEP" ] && [ -f "$LATEST_SEP" ]; then
+    if ! python3 "$VALIDATOR" "$LATEST_SEP" >&2; then
+      echo "[SEP Schema Violation] $LATEST_SEP failed schema validation" >&2
+      exit 6
+    fi
+  fi
+fi
+
 # Kill watchdog daemon before clearing sentinel (defense in depth: it would
 # self-exit on next tick anyway when the sentinel disappears).
 WATCHDOG_PID_FILE="${REPO_TOPLEVEL}/ai-docs/.squad-log/.watchdog.pid"

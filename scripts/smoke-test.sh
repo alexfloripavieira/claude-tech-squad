@@ -411,4 +411,18 @@ test -f "$PLUGIN_DIR/skills/test-bootstrap/SKILL.md" || {
   exit 1
 }
 
+# ── Harness reliability tests (M1, M2, M4) ───────────────────────────────
+bash "$ROOT/tests/watchdog-kill-test.sh" > /dev/null 2>&1 || {
+  echo "Smoke test failed: tests/watchdog-kill-test.sh"
+  exit 1
+}
+bash "$ROOT/tests/sep-log-schema-test.sh" > /dev/null 2>&1 || {
+  echo "Smoke test failed: tests/sep-log-schema-test.sh"
+  exit 1
+}
+bash "$ROOT/tests/bypass-lint-test.sh" > /dev/null 2>&1 || {
+  echo "Smoke test failed: tests/bypass-lint-test.sh"
+  exit 1
+}
+
 echo "claude-tech-squad smoke test passed"

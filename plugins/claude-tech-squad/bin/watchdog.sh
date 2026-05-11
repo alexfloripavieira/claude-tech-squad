@@ -24,6 +24,43 @@
 
 set -u
 
+# ── CLI mode: `watchdog.sh --kill <pid>` and `watchdog.sh --kill --simulate-failure <pid>` ──
+# Used by tests and by lead/operator to kill a specific PID with verification.
+# Emits [Kill Confirmed] or [Kill Failed] on stdout; on failure creates
+# ${CTS_WORKTREE_BASE}/.kill-failed-<pid> marker.
+if [ "${1:-}" = "--kill" ]; then
+  shift
+  SIMULATE_FAILURE=0
+  if [ "${1:-}" = "--simulate-failure" ]; then
+    SIMULATE_FAILURE=1
+    shift
+  fi
+  TARGET_PID="${1:?--kill requires <pid>}"
+  MARKER_DIR="${CTS_WORKTREE_BASE:-/tmp}"
+  mkdir -p "$MARKER_DIR" 2>/dev/null || true
+
+  if [ "$SIMULATE_FAILURE" = "1" ]; then
+    # Test hook: skip the actual kill so target stays alive; assert the failure path.
+    touch "$MARKER_DIR/.kill-failed-$TARGET_PID" 2>/dev/null || true
+    echo "[Kill Failed] pid=$TARGET_PID reason=simulate-failure marker=$MARKER_DIR/.kill-failed-$TARGET_PID"
+    exit 0
+  fi
+
+  kill -TERM "$TARGET_PID" 2>/dev/null || true
+  for delay in 0.2 0.5 1.0; do
+    sleep "$delay"
+    kill -0 "$TARGET_PID" 2>/dev/null || { echo "[Kill Confirmed] pid=$TARGET_PID via=SIGTERM"; exit 0; }
+  done
+  kill -KILL "$TARGET_PID" 2>/dev/null || true
+  for delay in 0.2 0.5 1.0; do
+    sleep "$delay"
+    kill -0 "$TARGET_PID" 2>/dev/null || { echo "[Kill Confirmed] pid=$TARGET_PID via=SIGKILL"; exit 0; }
+  done
+  touch "$MARKER_DIR/.kill-failed-$TARGET_PID" 2>/dev/null || true
+  echo "[Kill Failed] pid=$TARGET_PID reason=still-alive-after-SIGKILL marker=$MARKER_DIR/.kill-failed-$TARGET_PID"
+  exit 1
+fi
+
 REPO="${1:?repo toplevel required}"
 LOG_DIR="$REPO/ai-docs/.squad-log"
 SENTINEL="$LOG_DIR/.active-skill"

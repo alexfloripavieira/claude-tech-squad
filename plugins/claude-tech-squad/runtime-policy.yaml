@@ -93,6 +93,17 @@ failure_handling:
       - keep: user intent, constraints, result_contract requirement, verification_checklist requirement
     emit_on_invoke: "[Compact Retry] {{agent}} | variant={{retry_name}} | reason={{trigger}}"
 
+# M4: Forbidden bypass phrases scanned by scripts/validate.sh against every
+# plugins/claude-tech-squad/skills/**/SKILL.md. Lines bearing the trailing
+# comment "# bypass-lint: pattern-source" are excluded (legitimate policy
+# references). Patterns are case-insensitive substrings; keep concise so
+# downstream grep stays cheap.
+bypass_patterns:
+  - "session-level approval"
+  - "skipping reviewer"
+  - "skip the reviewer gate"
+  - "autonomous run authorizes bypass"
+
 cost_guardrails:
   token_budget:
     discovery_max_tokens: 2000000
