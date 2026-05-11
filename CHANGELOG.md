@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.69.6] - 2026-05-11 — Automated maintenance release
+
+### Fixed
+
+- Reviewer + 3 other audit agents missing Bash in tool_allowlist (root cause of stalls) (#58)
 ## [5.69.5] - 2026-05-11 — Automated maintenance release
 
 ### Fixed
