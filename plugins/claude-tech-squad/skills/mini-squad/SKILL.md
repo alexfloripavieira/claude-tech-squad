@@ -101,6 +101,18 @@ Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement 
 
 **Spawn-prompt rule:** tdd-specialist and dev spawn prompts MUST include a `peers:` block listing each other.
 
+**File handoff:** when dev needs the failing test that tdd wrote, dev MUST NOT copy or rewrite the file. The handoff uses git per `runtime-policy.yaml::agent_worktrees.cross_talk_handoff`:
+
+1. tdd-specialist commits the failing test on its worktree branch (e.g. `cts/mini-squad/tdd-specialist-...`).
+2. tdd-specialist sends a `SendMessage` to dev with `from_branch`, `commit_sha`, and `file_paths`.
+3. Dev (inside its own worktree) runs:
+   ```bash
+   git fetch . <from_branch>:<from_branch> 2>/dev/null || true
+   git checkout <from_branch> -- <file_paths>
+   ```
+
+This produces a single canonical version of the test file in the dev's branch. Copying the test by hand creates a duplicate that conflicts on the `--no-ff` merge into the skill branch, which has caused real merge-conflict cleanup work in past runs. The `git checkout` path keeps git aware that the file came from tdd's commit, so the later merge is a fast-forward of one and a no-op of the other.
+
 **Audit:** lead dumps mailbox to `sep_log.mailbox[]`. Zero outbound `SendMessage` between tdd↔dev triggers Teammate Failure Protocol with `reason: cross-talk-missing` and opens `[Gate] Cross-Talk Missing | pair: tdd-specialist↔<dev> | [R]espawn / [A]ccept / [X]Abort`.
 
 Reviewer is single-lens by design — no cross-talk required for `code-reviewer`.
@@ -282,7 +294,7 @@ branch — that is the user's call.
   - `cts_phases_completed: [skill-init, agent-spawn, agent-monitor, agent-cleanup, skill-finalize]`
   - `worktrees: [...]` (one entry per agent spawn with `path`, `branch`, `commits_ahead`, `merged`, `final_status`)
   - `timeouts_observed: [...]` (empty list if none — explicit field required)
-  - `bypasses_observed: [...]` (one entry per silenced/skipped teammate: `{agent, reason, user_decision: A|R|X, gate_emitted: true}`). EMPTY LIST IF NONE — explicit field required. Marking any agent as "BYPASSED" without a `[Gate] Reviewer Bypass Requested` and explicit user choice is a contract violation. See `runtime-policy.yaml::failure_handling.bypass_policy` for the forbidden-agent list.
+  - `bypasses_observed: [...]` (one entry per silenced/skipped teammate: `{agent, reason, user_decision: A|R|X, gate_emitted: true}`). EMPTY LIST IF NONE — explicit field required. Marking any agent as "BYPASSED" without a `[Gate] Reviewer Bypass Requested` and explicit user choice is a contract violation. **`user_decision` MUST come from a fresh per-gate chat reply.** Session-level preferences (e.g. "no clarifying questions" directive, autonomous-run mode, prior similar bypass) DO NOT pre-authorize the gate. See `runtime-policy.yaml::failure_handling.bypass_policy.session_preferences_do_not_authorize` and `forbidden_auto_resolutions`.
 
 
 
