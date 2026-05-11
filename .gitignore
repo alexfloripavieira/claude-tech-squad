@@ -34,3 +34,7 @@ __pycache__/
 .pytest_cache/
 dist/
 PRD.md
+# CTS orchestration — Claude Code workspace + ephemeral state
+ai-docs/.squad-log/.active-skill
+ai-docs/.squad-log/.watchdog.*
+ai-docs/.squad-log/.agents/
