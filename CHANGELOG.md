@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.69.5] - 2026-05-11 — Automated maintenance release
+
+### Fixed
+
+- Reviewer fetches own diff; anti-stall preflight; dev cross-talk via git (#57)
 ## [5.69.4] - 2026-05-11 — Automated maintenance release
 
 ### Fixed
