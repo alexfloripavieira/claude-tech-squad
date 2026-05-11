@@ -2,7 +2,7 @@
 name: accessibility-reviewer
 description: |
   Accessibility specialist for semantics, keyboard flows, assistive technology support, contrast, focus handling, and accessible UX states. PROACTIVELY use when reviewing UI components, auditing WCAG compliance, validating screen reader support, or verifying keyboard navigation. Trigger on phrases like "a11y review", "WCAG audit", "revisar acessibilidade", "screen reader support", "keyboard navigation", or "color contrast check". NOT for general UX/visual design critique (use ux-designer or frontend-architect).
-tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+tool_allowlist: [Read, Glob, Grep, Bash, WebSearch, WebFetch]
 model: sonnet
 color: blue
 ---

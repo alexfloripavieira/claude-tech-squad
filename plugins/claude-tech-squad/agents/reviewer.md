@@ -2,7 +2,7 @@
 name: reviewer
 description: |
   General code reviewer. PROACTIVELY use when you need a broad review for correctness, simplicity, maintainability, missing tests, regressions, or documentation drift before sign-off. Trigger on "review this change", "code review", "find risks", or "quality pass". NOT for security-specific review (use security-reviewer) or release-readiness governance (use release).
-tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+tool_allowlist: [Read, Glob, Grep, Bash, WebSearch, WebFetch]
 model: opus
 color: yellow
 ---
