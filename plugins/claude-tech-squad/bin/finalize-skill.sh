@@ -54,7 +54,24 @@ CLEAN=true
 # orchestration metadata (sentinel, watchdog log, agent markers) that
 # legitimately exist during the run. CLAUDE.md mandates they are
 # gitignored in production repos.
-DIRTY=$(git status --porcelain -- . ':(exclude)ai-docs/.squad-log' 2>/dev/null || true)
+# Exclude paths that are not part of the skill delivery from the
+# cleanliness check:
+#   - ai-docs/.squad-log/*: orchestration metadata (sentinel, watchdog,
+#     spawn markers) populated during the run.
+#   - .claude/*: Claude Code per-project workspace (session state, plan
+#     files, command output snapshots).
+#   - .gitignore at the repo root: written by init-skill-branch.sh if
+#     missing; lead may commit later, but finalize must not block on it.
+# Use -u (--untracked-files=all) so directories with only untracked
+# content surface as per-file entries rather than a single `?? dir/`
+# entry that defeats path-level excludes.
+DIRTY=$(git status --porcelain -u -- . \
+  ':(exclude)ai-docs/.squad-log' \
+  ':(exclude)ai-docs/.squad-log/**' \
+  ':(exclude).claude' \
+  ':(exclude).claude/**' \
+  ':(exclude).gitignore' \
+  2>/dev/null || true)
 [ -n "$DIRTY" ] && CLEAN=false
 
 printf 'skill_branch=%s orphan_worktrees=%s orphan_branches=%s main_worktree_clean=%s on_skill_branch=%s\n' \

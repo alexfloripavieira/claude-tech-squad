@@ -83,6 +83,7 @@ case "$TOOL_NAME" in
     case "$FILE_PATH" in
       "$WORKTREE_BASE"/*) exit 0 ;;
       "$REPO_TOPLEVEL"/ai-docs/.squad-log/*) exit 0 ;;
+      "$REPO_TOPLEVEL"/.gitignore) exit 0 ;;
     esac
     # Anything else inside the repo toplevel = direct main-worktree edit
     case "$FILE_PATH" in
@@ -112,6 +113,14 @@ case "$TOOL_NAME" in
       exit 0
     fi
     if printf '%s' "$CMD" | grep -qE 'git[[:space:]]+commit[^|;&]*"[^"]*squad-log'; then
+      exit 0
+    fi
+    # Allow lead to maintain top-level .gitignore (e.g. add .claude/ exclude
+    # so finalize sees a clean tree). git add/commit limited to .gitignore.
+    if printf '%s' "$CMD" | grep -qE 'git[[:space:]]+(add|commit)[^|;&]*\.gitignore'; then
+      exit 0
+    fi
+    if printf '%s' "$CMD" | grep -qE 'git[[:space:]]+commit[^|;&]*"[^"]*gitignore'; then
       exit 0
     fi
     # Block obvious main-worktree mutators

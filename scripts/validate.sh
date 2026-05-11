@@ -851,6 +851,19 @@ if grep -rn "log risk, allow user to override" "$PLUGIN_DIR/skills/" 2>/dev/null
   exit 1
 fi
 
+# Every agent in bypass_forbidden_agents MUST have Bash in its tool_allowlist
+# so it can run `git diff` / `git log` against the skill branch. Reviewers
+# without Bash silently stall — that bug caused 2026-05-11 incident where
+# the reviewer agent could not inspect the diff and timed out twice.
+for a in reviewer code-reviewer security-reviewer privacy-reviewer accessibility-reviewer tdd-specialist test-automation-engineer qa qa-tester; do
+  af="$PLUGIN_DIR/agents/$a.md"
+  test -f "$af" || { echo "Missing agent: $a"; exit 1; }
+  if ! grep -E "^tool_allowlist:" "$af" | grep -q "Bash"; then
+    echo "Agent $a is on bypass_forbidden_agents but has no Bash in tool_allowlist — cannot run git diff and will stall"
+    exit 1
+  fi
+done
+
 # stale-skill-detector hook
 STALE="$PLUGIN_DIR/hooks/stale-skill-detector.sh"
 test -f "$STALE" || { echo "Missing hook: hooks/stale-skill-detector.sh"; exit 1; }

@@ -107,6 +107,33 @@ if [ ! -f "$SEP_GITIGNORE" ]; then
 .skill-timed-out
 IGN
 fi
+
+# Top-level .gitignore for Claude Code's per-project workspace. Without
+# this, .claude/ shows up as untracked, finalize-skill.sh sees a dirty
+# tree, and the skill cannot close. Idempotent: append-only, and only
+# the missing lines are appended (never duplicates).
+TOP_GITIGNORE="$REPO_TOPLEVEL/.gitignore"
+need_lines=()
+grep -q '^\.claude/$' "$TOP_GITIGNORE" 2>/dev/null || need_lines+=('.claude/')
+grep -q '^ai-docs/\.squad-log/\.active-skill$' "$TOP_GITIGNORE" 2>/dev/null \
+  || need_lines+=('ai-docs/.squad-log/.active-skill')
+grep -q '^ai-docs/\.squad-log/\.watchdog\.\*$' "$TOP_GITIGNORE" 2>/dev/null \
+  || need_lines+=('ai-docs/.squad-log/.watchdog.*')
+grep -q '^ai-docs/\.squad-log/\.agents/$' "$TOP_GITIGNORE" 2>/dev/null \
+  || need_lines+=('ai-docs/.squad-log/.agents/')
+if [ ${#need_lines[@]} -gt 0 ]; then
+  {
+    [ -s "$TOP_GITIGNORE" ] && [ "$(tail -c1 "$TOP_GITIGNORE" 2>/dev/null)" != "" ] && echo
+    echo "# CTS orchestration — Claude Code workspace + ephemeral state"
+    printf '%s\n' "${need_lines[@]}"
+  } >>"$TOP_GITIGNORE"
+  # Commit the gitignore on the skill branch immediately so it is tracked
+  # by the time finalize-skill.sh runs its cleanliness check. Without
+  # this commit the new .gitignore shows up as `??` in git status and
+  # finalize exits 4.
+  git -C "$REPO_TOPLEVEL" add .gitignore >/dev/null 2>&1 || true
+  git -C "$REPO_TOPLEVEL" commit -m "chore(cts): ignore .claude/ and squad-log ephemeral state" >/dev/null 2>&1 || true
+fi
 WORKTREE_BASE="${CTS_WORKTREE_BASE:-${TMPDIR:-/tmp}/cts-worktrees}"
 {
   printf 'skill=%s\n' "$SAFE_SKILL"

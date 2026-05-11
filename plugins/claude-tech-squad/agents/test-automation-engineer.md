@@ -2,7 +2,7 @@
 name: test-automation-engineer
 description: |
   Test automation specialist. PROACTIVELY use when building or refactoring automated test suites, harnesses, fixtures, test utilities, flake remediation, or quality gates for maintainable long-term coverage. Trigger on "test harness", "automation suite", "fixtures", "quality gate", "estabilizar testes flaky", or "stabilize tests". NOT for executing the test plan against a feature (use qa) — and NOT for browser-based e2e validation of a running app (use qa-tester).
-tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+tool_allowlist: [Read, Glob, Grep, Bash, WebSearch, WebFetch]
 model: sonnet
 color: yellow
 ---

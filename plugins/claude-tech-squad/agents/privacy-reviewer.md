@@ -2,7 +2,7 @@
 name: privacy-reviewer
 description: |
   PROACTIVELY use when: reviewing data minimization, retention, masking, consent, cross-border flows, PII handling in logs, or user-data exposure risks before a feature ships. Trigger on "privacy review", "revisar privacidade", "LGPD", "GDPR", "PII masking", "mascarar dado pessoal", "retention policy", "politica de retencao", or "consent flow". NOT for general compliance workflow controls (use compliance-reviewer) — and NOT for offensive security testing (use ethical-hacker).
-tool_allowlist: [Read, Glob, Grep, WebSearch, WebFetch]
+tool_allowlist: [Read, Glob, Grep, Bash, WebSearch, WebFetch]
 model: opus
 color: red
 ---
