@@ -90,12 +90,10 @@ bloqueante. O modo `inline` é fallback válido: o workflow continua, mas a
 fiscalização de cross-talk é rebaixada para warning conforme
 `runtime-policy.yaml::agent_teams.cross_talk_protocol.enforcement_by_mode`.
 
-O hook `plugins/claude-tech-squad/hooks/dev-flow-tmux-gate.sh` intercepta
-invocações de skills de dev-flow quando tmux existe mas a sessão não está em
-teammate mode. Ele apresenta duas opções:
-
-- reinicializar dentro de tmux com Agent Teams;
-- continuar em inline relançando com `CTS_INLINE=1`.
+O hook `plugins/claude-tech-squad/hooks/dev-flow-tmux-gate.sh` já não
+interrompe a execução com uma escolha manual. Ele apenas deixa o prompt
+seguir; a resolução real de `teammate` versus `inline` acontece no preflight
+via `bin/detect-team-mode.sh`.
 
 ## Política De Idioma
 
