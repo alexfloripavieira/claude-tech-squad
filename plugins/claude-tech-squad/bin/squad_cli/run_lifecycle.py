@@ -701,12 +701,12 @@ def _duration_ms(started_at: str, ended_at: str) -> int:
 
 
 def _parse_team_mode(output: str) -> str:
-    for line in output.splitlines():
-        line = line.strip()
-        if line.startswith("mode="):
-            mode = line.split("=", 1)[1].strip()
-            if mode in {"inline", "teammate"}:
-                return mode
+    for token in output.split():
+        if "=" not in token:
+            continue
+        key, value = token.split("=", 1)
+        if key.strip() == "mode" and value.strip() in {"inline", "teammate"}:
+            return value.strip()
     return ""
 
 
