@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.71.1] - 2026-05-13 — Automated maintenance release
+
+### Changed
+
+- Centralize public surface and improve entry docs
 ## [5.71.0] - 2026-05-13 — Automated feature release
 
 ### Added
