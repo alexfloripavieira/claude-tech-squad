@@ -61,10 +61,12 @@ verification_checklist:
 
 Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh`.
 
-**Required pairs (llm-eval) — adversarial review:**
+**Required pairs (llm-eval) — adversarial_review / advogado do diabo:**
 - `llm-eval-specialist` ↔ `llm-safety-reviewer` (capability vs safety trade-off)
 - `llm-cost-analyst` ↔ `llm-eval-specialist` (cost regression vs quality regression)
 - `prompt-engineer` ↔ `llm-safety-reviewer` (prompt fix vs jailbreak surface)
+
+**Advogado do diabo:** these pairs MUST challenge assumptions, risks, alternatives, missing evidence, and quality/safety/cost trade-offs directly in pt-BR before synthesis. Record any objection that changes metric severity, rollout recommendation, prompt direction, or safety posture in the SEP log with mitigation and final decision.
 
 **Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block.
 

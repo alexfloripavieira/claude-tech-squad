@@ -61,10 +61,21 @@ This folder contains all operator and contributor documentation for `claude-tech
 claude plugin marketplace add alexfloripavieira/claude-tech-squad
 claude plugin install -s user claude-tech-squad@alexfloripavieira-plugins
 
-# Core commands
+# Core setup
+/claude-tech-squad:onboarding
+/claude-tech-squad:from-ticket PROJ-123
+/claude-tech-squad:dashboard
+
+# Core delivery
+/claude-tech-squad:bug-fix     # contained defect
+/claude-tech-squad:mini-squad  # small feature
 /claude-tech-squad:discovery   # shape the problem and produce a blueprint
+/claude-tech-squad:inception   # PRD -> TechSpec
 /claude-tech-squad:implement   # build from an approved blueprint
 /claude-tech-squad:squad       # end-to-end: discovery + implementation + release
+
+# Advanced catalog
+# See SKILL-SELECTOR.md for review, audit, AI, infra, migration, and release skills.
 
 # Validate before shipping
 bash scripts/validate.sh

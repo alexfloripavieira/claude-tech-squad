@@ -6,7 +6,7 @@ user-invocable: true
 
 # /squad — Full Technology Squad
 
-Run the complete end-to-end workflow. Every specialist runs as an independent teammate in its own tmux pane. Pipeline: discovery → blueprint → implementation → quality → docs → release.
+Run the complete end-to-end workflow. Prefer teammate mode, where every specialist runs as an independent teammate in its own tmux pane. If preflight resolves `mode=inline`, the workflow still runs correctly as inline subagents with the same gates, SEP logging, pt-BR language policy, and warning-only cross-talk enforcement. Pipeline: discovery → blueprint → implementation → quality → docs → release.
 
 Heavy reference material lives under `references/`. This SKILL.md is the orchestration spine; consult the referenced files for the full specifications.
 
@@ -42,26 +42,28 @@ When `/squad` is used for code changes, TDD is the default. Implementation begin
 
 ## Teammate Architecture
 
-This workflow creates a single team that persists across all phases:
+This workflow uses the execution mode resolved by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh`. In teammate mode it creates a single team that persists across all phases:
 
-1. `TeamCreate` — create the squad team (once, at start).
-2. `Agent` with `team_name` + `name` + `subagent_type` — spawn each specialist as a teammate.
-3. `SendMessage` — communicate with running teammates.
-4. `TaskCreate` + `TaskUpdate` — assign and track work.
+1. `mode=teammate` — `TeamCreate` creates the squad team once, then `Agent` with `team_name` + `name` + `subagent_type` spawns specialists as teammates.
+2. `mode=inline` — skip `TeamCreate` and spawn inline subagents while preserving specialist prompts, handoffs, gates, checkpoints, worktree isolation, and SEP logging.
+3. `SendMessage` — direct teammate communication in teammate mode; mailbox/audit warning in inline mode.
+4. `TaskCreate` + `TaskUpdate` — assign and track work when the backend supports it.
 
-Do NOT use `Agent` without `team_name` — that runs an inline subagent, not a visible teammate pane.
+Inline mode is valid when resolved by preflight. Do not downgrade delivery quality, gates, checkpoints, or logs just because no pane is visible.
 
 ## Inter-Teammate Cross-Talk Protocol
 
 Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh` (`hard_requirement: true`).
 
 **Required pairs (squad):**
-- `security-reviewer` ↔ `performance-engineer` (adversarial review)
-- `security-reviewer` ↔ `privacy-reviewer` (adversarial review)
-- `code-reviewer` ↔ `accessibility-reviewer` (adversarial review)
+- `security-reviewer` ↔ `performance-engineer` (adversarial_review / advogado do diabo: security vs performance trade-offs)
+- `security-reviewer` ↔ `privacy-reviewer` (adversarial_review / advogado do diabo: security vs privacy overlap)
+- `code-reviewer` ↔ `accessibility-reviewer` (adversarial_review / advogado do diabo: correctness vs accessibility impact)
 - `backend-dev` ↔ `frontend-dev` (cross-layer handoff)
 - `backend-dev` ↔ `test-automation-engineer` (cross-layer handoff)
 - `frontend-dev` ↔ `test-automation-engineer` (cross-layer handoff)
+
+**Advogado do diabo:** pairs marked as `adversarial_review` MUST challenge assumptions, risks, alternatives, missing evidence, and trade-offs directly in pt-BR before synthesis. Record any objection that changes severity, scope, or implementation direction in the SEP log with mitigation and final decision.
 
 **Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block listing the teammate names this teammate must message before completing. Example: `peers: [security-reviewer, accessibility-reviewer]`.
 

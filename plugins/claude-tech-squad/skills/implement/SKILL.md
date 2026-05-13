@@ -6,7 +6,7 @@ user-invocable: true
 
 # /implement — Build & Quality
 
-Implementation and quality validation from a Discovery & Blueprint Document. Each specialist runs as an independent teammate in its own tmux pane.
+Implementation and quality validation from a Discovery & Blueprint Document. Prefer teammate mode, where each specialist runs as an independent teammate in its own tmux pane. If preflight resolves `mode=inline`, the workflow still runs correctly as inline subagents with the same gates, SEP logging, pt-BR language policy, and warning-only cross-talk enforcement.
 
 ## Global Safety Contract
 
@@ -18,7 +18,7 @@ If the discovery package came from `/squad` or marks TDD as required, TDD is man
 
 ## Teammate Architecture
 
-Use `TeamCreate` then `Agent` with `team_name` + `name` + `subagent_type` to spawn each specialist in its own tmux pane. Use `SendMessage` to communicate, `TaskCreate` / `TaskUpdate` to track work. **Do NOT use `Agent` without `team_name`** — that runs an inline subagent, not a visible pane.
+Use the execution mode resolved by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh`. In `mode=teammate`, use `TeamCreate` then `Agent` with `team_name` + `name` + `subagent_type` to spawn each specialist in its own tmux pane. In `mode=inline`, skip `TeamCreate` and spawn inline subagents while preserving specialist prompts, handoffs, gates, worktree isolation, and SEP logging. Use `SendMessage`, `TaskCreate`, and `TaskUpdate` where the backend supports them.
 
 ## Inter-Teammate Cross-Talk Protocol
 
@@ -28,8 +28,10 @@ Teammates MUST exchange `SendMessage` with each other — not only with the lead
 - `backend-dev` ↔ `frontend-dev` (cross-layer handoff: API contract, error envelope, fixtures)
 - `backend-dev` ↔ `test-automation-engineer` (cross-layer handoff: integration fixtures)
 - `frontend-dev` ↔ `test-automation-engineer` (cross-layer handoff: e2e selectors)
-- `code-reviewer` ↔ `security-reviewer` (adversarial review)
-- `code-reviewer` ↔ `performance-engineer` (adversarial review)
+- `code-reviewer` ↔ `security-reviewer` (adversarial_review / advogado do diabo: correctness vs security assumptions)
+- `code-reviewer` ↔ `performance-engineer` (adversarial_review / advogado do diabo: correctness vs performance trade-offs)
+
+**Advogado do diabo:** pairs marked as `adversarial_review` MUST challenge assumptions, risks, alternatives, missing evidence, and trade-offs directly in pt-BR before synthesis. Record any objection that changes severity, scope, or implementation direction in the SEP log with mitigation and final decision.
 
 **Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block listing the teammate names this teammate must message before completing.
 

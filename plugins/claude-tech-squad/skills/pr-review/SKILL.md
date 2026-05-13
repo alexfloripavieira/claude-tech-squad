@@ -49,10 +49,12 @@ Emit these trace lines so the operator can follow the review bench and the SEP l
 
 Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh`.
 
-**Required pairs (pr-review) — adversarial review:**
+**Required pairs (pr-review) — adversarial_review / advogado do diabo:**
 - `code-reviewer` ↔ `security-reviewer` (logic vs security challenge)
 - `code-reviewer` ↔ `performance-engineer` (correctness vs perf trade-off)
 - `security-reviewer` ↔ `privacy-reviewer` (overlap detection: do not report same finding twice)
+
+**Advogado do diabo:** these pairs MUST challenge assumptions, risks, alternatives, missing evidence, and trade-offs directly in pt-BR before synthesis. Record any objection that changes severity, scope, or recommendation in the SEP log with mitigation and final decision.
 
 **Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block.
 

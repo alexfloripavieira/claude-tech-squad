@@ -6,7 +6,7 @@ user-invocable: true
 
 # /discovery — Discovery & Blueprint
 
-Run the planning phases before implementation. Each specialist runs as an independent teammate in its own tmux pane.
+Run the planning phases before implementation. Prefer teammate mode, where each specialist runs as an independent teammate in its own tmux pane. If preflight resolves `mode=inline`, the workflow still runs correctly as inline subagents with the same gates, SEP logging, pt-BR language policy, and warning-only cross-talk enforcement.
 
 ## Global Safety Contract
 
@@ -30,14 +30,14 @@ All technical decisions must be grounded in the repository's real stack, convent
 
 ## Teammate Architecture
 
-This workflow creates a team and spawns each specialist as a real teammate (separate tmux pane):
+This workflow uses the execution mode resolved by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh`:
 
-1. `TeamCreate` — create the discovery team
-2. `Agent` with `team_name` + `name` + `subagent_type` — spawn each specialist
-3. `SendMessage` — communicate with running teammates
-4. `TaskCreate` + `TaskUpdate` — assign and track work per teammate
+1. `mode=teammate` — `TeamCreate` creates the discovery team, then `Agent` with `team_name` + `name` + `subagent_type` spawns each specialist in its pane.
+2. `mode=inline` — skip `TeamCreate` and spawn inline subagents while preserving specialist prompts, handoffs, gates, worktree isolation, and SEP logging.
+3. `SendMessage` — direct teammate communication in teammate mode; mailbox/audit warning in inline mode.
+4. `TaskCreate` + `TaskUpdate` — assign and track work per teammate when the backend supports it.
 
-Do NOT use `Agent` without `team_name` — that runs an inline subagent, not a visible teammate pane.
+Inline mode is valid when resolved by preflight. Do not downgrade blueprint quality, gates, or logs just because no pane is visible.
 
 ## Inter-Teammate Cross-Talk Protocol
 
@@ -48,7 +48,9 @@ Teammates MUST exchange `SendMessage` with each other — not only with the lead
 - `architect` ↔ `backend-architect` (architectural debate)
 - `architect` ↔ `data-architect` (data boundary debate)
 - `test-planner` ↔ `tdd-specialist` (test strategy alignment)
-- `security-reviewer` ↔ `privacy-reviewer` (adversarial review)
+- `security-reviewer` ↔ `privacy-reviewer` (adversarial_review / advogado do diabo: security vs privacy assumptions)
+
+**Advogado do diabo:** pairs marked as `adversarial_review` MUST challenge assumptions, risks, alternatives, missing evidence, and trade-offs directly in pt-BR before synthesis. Record any objection that changes risk, scope, or blueprint direction in the SEP log with mitigation and final decision.
 
 **Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block listing the teammate names this teammate must message before completing.
 

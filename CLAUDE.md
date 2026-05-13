@@ -184,25 +184,37 @@ Every PR must declare its change class in the PR template. The class determines 
 
 ---
 
-## Inline execution policy (when skills may run without teammates)
+## Execution mode policy
 
-Not every skill invocation requires a full TeamCreate + Agent spawn cycle. The rule:
+Public operator surface is grouped in tiers. Keep this grouping aligned with
+`README.md`, `docs/GETTING-STARTED.md`, `docs/SKILL-SELECTOR.md`, and
+`docs/MANUAL.md` whenever adding or removing a user-invocable skill.
+
+| Tier | Skills |
+|---|---|
+| Core setup | `/onboarding`, `/from-ticket`, `/cost-estimate`, `/dashboard` |
+| Core delivery | `/bug-fix`, `/mini-squad`, `/discovery`, `/inception`, `/implement`, `/squad` |
+| Core operations | `/hotfix`, `/cloud-debug`, `/incident-postmortem`, `/release`, `/rollover`, `/resume-from-rollover` |
+| Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` |
+| Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` |
+
+Dev-flow skills are mode-aware. The preferred mode is `teammate` when Agent Teams/tmux prerequisites are available; otherwise `detect-team-mode.sh` resolves `mode=inline` and the run remains valid. Inline mode is a supported fallback, not a silent bypass. Preserve gates, SEP logging, pt-BR language policy, worktree isolation for `Agent(...)` spawns, and cross-talk auditing according to `runtime-policy.yaml`.
 
 | Skill | Inline allowed? | Rationale |
 |---|---|---|
 | `/claude-tech-squad:bug-fix` | **Yes, when scope is 1–2 files** | Cost-optimized for small, well-scoped defects. The skill still writes a SEP log and runs tests. |
 | `/claude-tech-squad:hotfix` | **Yes** | Emergency path — speed matters, skill still enforces its own gates. |
 | `/claude-tech-squad:mini-squad` | **Mode-aware** | 3 teammates (tdd + dev + reviewer). Auto-uses tmux teammate mode when available, inline fallback when not. Scope guard blocks auth/billing/schema/new-public-endpoint changes — those force escalation to `/implement` or `/squad`. ~20% of `/squad` token cost. |
-| `/claude-tech-squad:implement` | **No — MUST spawn teammates** | Progressive disclosure, reviewer/QA/conformance/UAT gates depend on separate teammate contexts. |
-| `/claude-tech-squad:squad` | **No — MUST spawn teammates** | Full pipeline; multi-lens review is the entire value. |
-| `/claude-tech-squad:discovery` | **No — MUST spawn teammates** | Specialist bench is the point. |
-| `/claude-tech-squad:refactor` | **No — MUST spawn teammates** | Characterization tests + reviewer gate. |
+| `/claude-tech-squad:implement` | **Mode-aware** | Prefer teammate mode for separate contexts; inline fallback remains valid with cross-talk warning-only and full gates/logging. |
+| `/claude-tech-squad:squad` | **Mode-aware** | Prefer teammate mode for the full bench; inline fallback remains valid with degraded visual separation. |
+| `/claude-tech-squad:discovery` | **Mode-aware** | Prefer teammate mode for the specialist bench; inline fallback remains valid with the same blueprint outputs. |
+| `/claude-tech-squad:refactor` | **Mode-aware** | Prefer teammate mode for characterization + review; inline fallback remains valid with full gates/logging. |
 | `/claude-tech-squad:security-audit` | Inline | Runs scanners + one reviewer agent; no multi-gate pipeline. |
-| `/claude-tech-squad:tech-debt-audit` | **No — MUST spawn teammates** | 5 specialist lenses run in parallel before tech-debt-analyst synthesizes. |
-| `/claude-tech-squad:pentest-deep` | **No — MUST spawn teammates** | 4–5 specialist lenses run in parallel before ethical-hacker synthesizes the 16-dimension report. |
+| `/claude-tech-squad:tech-debt-audit` | **Mode-aware** | Prefer teammate mode for parallel specialist lenses; inline fallback remains valid with cross-talk warnings. |
+| `/claude-tech-squad:pentest-deep` | **Mode-aware** | Prefer teammate mode for deep specialist lenses; inline fallback remains valid with explicit risk logging. |
 | `/claude-tech-squad:factory-retrospective` | Inline | Reads logs, no parallel specialist work. |
 
-When in doubt: if the skill SKILL.md contains `TeamCreate` + multiple `Agent(...)` spawns in its execution block, it MUST use teammates. Inline bypass is forbidden except for the explicit whitelist above. Added 2026-04-18 after the retrospective documented silent inline bypass in `/implement` runs.
+When in doubt: run `bin/detect-team-mode.sh` at preflight and follow the resolved mode. If `mode=teammate`, use TeamCreate/Agent Teams. If `mode=inline`, spawn inline subagents and record the degraded cross-talk enforcement exactly as `runtime-policy.yaml::agent_teams.mode_resolution.inline` specifies.
 
 ## .retro-counter file
 

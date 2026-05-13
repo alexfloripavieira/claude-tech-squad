@@ -67,10 +67,12 @@ Long apply-plan reviews on large repos benefit from checkpoint tracking. Checkpo
 
 Teammates MUST exchange `SendMessage` with each other — not only with the lead — before reporting their `result_contract`. Lead does NOT relay. Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement is **mode-aware**: `teammate` mode opens a blocking gate on missing pairs; `inline` mode (tmux unavailable) downgrades to warning-only and the pipeline continues. Mode is resolved at preflight by `${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh`.
 
-**Required pairs (iac-review) — adversarial trade-off:**
+**Required pairs (iac-review) — adversarial_review / advogado do diabo trade-off:**
 - `cloud-architect` ↔ `cost-optimizer` (architecture vs cost trade-off)
 - `cloud-architect` ↔ `security-engineer` (architecture vs blast radius)
 - `devops` ↔ `sre` (deploy path vs reliability impact)
+
+**Advogado do diabo:** these pairs MUST challenge assumptions, risks, alternatives, missing evidence, and architecture/cost/security/reliability trade-offs directly in pt-BR before synthesis. Record any objection that changes blast radius, apply recommendation, rollback path, or cost posture in the SEP log with mitigation and final decision.
 
 **Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block.
 

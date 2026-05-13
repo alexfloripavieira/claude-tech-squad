@@ -202,6 +202,20 @@ All skills work without squad-cli. The LLM executes the same logic from prompt i
 
 ## Commands
 
+Start with the core surface. The advanced skills are still available, but they
+are specialist tools for narrower situations.
+
+| Tier | Skills | Start here when |
+|---|---|---|
+| Core setup | `/onboarding`, `/from-ticket`, `/cost-estimate`, `/dashboard` | You are preparing a repo, routing ticket work, estimating cost, or checking run health. |
+| Core delivery | `/bug-fix`, `/mini-squad`, `/discovery`, `/inception`, `/implement`, `/squad` | You are fixing contained defects, delivering a small feature, planning, refining, building, or running the full pipeline. |
+| Core operations | `/hotfix`, `/cloud-debug`, `/incident-postmortem`, `/release`, `/rollover`, `/resume-from-rollover` | You are handling production pressure, incident work, release work, or long-session handoff. |
+| Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` | You need specialist review, audit, dependency risk, or structured remediation planning. |
+| Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` | You are working on AI quality, database or infrastructure risk, distributed changes, repo automation, or process improvement. |
+
+This guide expands the common paths. For the complete decision tree and every
+advanced skill, use [SKILL-SELECTOR.md](SKILL-SELECTOR.md).
+
 ### `/claude-tech-squad:onboarding`
 
 Run once in any new repository before using other squad commands. Detects the stack, creates `ai-docs/`, generates a `CLAUDE.md` template, and runs a security and dependency baseline.
@@ -220,6 +234,28 @@ python3 plugins/claude-tech-squad/bin/squad-cli onboarding-plan \
 ```
 
 If `CLAUDE.md` already exists, onboarding skips template generation and reports that explicitly.
+
+### `/claude-tech-squad:bug-fix`
+
+Use for contained non-emergency bugs with a stack trace, repro steps, or a clear
+failing behavior. It keeps the flow small: root cause, failing test, patch,
+validation, and review.
+
+```text
+/claude-tech-squad:bug-fix
+Fix the invoice export error when the selected date range crosses a daylight-saving boundary.
+```
+
+### `/claude-tech-squad:mini-squad`
+
+Use for small features that need more care than a direct edit but less cost than
+`/implement`: one module, roughly 3-10 files, no schema/auth/billing/public API
+changes. It runs TDD specialist, stack developer, and reviewer.
+
+```text
+/claude-tech-squad:mini-squad
+Add a compact filter chip UI for the existing tickets list using the current API.
+```
 
 ### `/claude-tech-squad:release`
 
@@ -460,16 +496,16 @@ Total: 81 specialists.
 Run this after installing to confirm the plugin is active and reachable:
 
 ```bash
-# List all loaded skills — you should see 28 claude-tech-squad skills
+# List all loaded skills — you should see 29 claude-tech-squad skills
 claude /list-skills 2>/dev/null | grep claude-tech-squad | wc -l
 ```
 
-Expected output: `28`
+Expected output: `29`
 
 If you have the repository cloned locally, run the structural validation:
 
 ```bash
-# Confirms all 81 agents, 28 skills, and contracts are intact
+# Confirms all 81 agents, 29 skills, and contracts are intact
 bash scripts/validate.sh
 
 # Confirms schema-level SEP log compliance

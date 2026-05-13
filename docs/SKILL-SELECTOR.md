@@ -75,31 +75,56 @@ flowchart TD
 
 ---
 
+## Core vs Advanced Surface
+
+Use the smallest tier that covers the job. Core skills are the recommended
+daily entry points; advanced skills are still public, but they should be chosen
+for their specific risk or domain.
+
+| Tier | Skills | Use when |
+|---|---|---|
+| Core setup | `/onboarding`, `/from-ticket`, `/cost-estimate`, `/dashboard` | Prepare a repo, route ticket work, estimate workflow cost, or inspect pipeline health. |
+| Core delivery | `/bug-fix`, `/mini-squad`, `/discovery`, `/inception`, `/implement`, `/squad` | Fix contained bugs, ship small features cheaply, plan, refine, build, or run the full feature pipeline. |
+| Core operations | `/hotfix`, `/cloud-debug`, `/incident-postmortem`, `/release`, `/rollover`, `/resume-from-rollover` | Handle urgent production work, incident analysis, release execution, or long-run context handoff. |
+| Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` | Run multi-lens review, security/debt/dependency analysis, or safe remediation planning. |
+| Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` | Review AI behavior, database or infrastructure risk, multi-service rollout, repo automation, or process quality. |
+
+---
+
 ## Reference Table
 
 | Skill | When to use | When NOT to use | Escalate to |
 |---|---|---|---|
 | `/onboarding` | First use in a repo — creates `ai-docs/`, `CLAUDE.md`, security baseline | Repo already configured | n/a |
+| `/from-ticket` | Ticket/issue exists and you want automatic routing to the right skill | You already know the target workflow | target skill |
+| `/cost-estimate` | You want the cheapest sufficient workflow before launching work | You already selected the workflow | n/a |
+| `/dashboard` | Instant pipeline health summary — success rates, blocked gates, pending post-mortems. No agents spawned. | Want AI analysis and recommendations — use `/factory-retrospective` | `/factory-retrospective` |
+| `/bug-fix` | Isolated bug (1–2 files), non-emergency — writes a failing test to prove the bug before fixing it | Production is down — use `/hotfix` | `/hotfix` |
+| `/mini-squad` | Small feature (3–10 files, one module, no schema/auth/billing/public endpoint) with TDD + review | Scope is cross-service, schema, auth, billing, or public API | `/implement` or `/squad` |
 | `/discovery` | Feature still needs shaping — produces a full blueprint with requirements, architecture, and test plan | Blueprint already approved | `/implement` |
+| `/inception` | PRD exists and needs technical refinement into a TechSpec | No PRD yet | `/discovery` |
 | `/implement` | Approved blueprint, ready to build — TDD-first, review, QA, docs, release | No blueprint in conversation | `/discovery` |
 | `/squad` | Full end-to-end pipeline: discovery + implementation + release in one session | Implementing from existing blueprint only | `/implement` |
-| `/bug-fix` | Isolated bug (1–2 files), non-emergency — writes a failing test to prove the bug before fixing it | Production is down — use `/hotfix` | `/hotfix` |
 | `/hotfix` | Production is broken now — minimal patch, `hotfix/` branch, PR and deploy checklist | Planned maintenance or non-urgent bug | `/incident-postmortem` after resolving |
+| `/cloud-debug` | Active production or staging incident — collect logs, analyze stack traces, action plan | No cloud log access | `/hotfix` |
+| `/incident-postmortem` | Incident resolved — rebuild timeline, root cause, 5-whys, action plan | Incident still active | `/cloud-debug` |
+| `/release` | Implementation done, cut a release — notes, tag, rollback plan, SRE sign-off | Still implementing | `/squad` |
+| `/rollover` | Long run needs context handoff before `/clear` | No active run to preserve | n/a |
+| `/resume-from-rollover` | Resume from a rollover handoff artifact | Need to create the artifact first | `/rollover` |
 | `/pr-review` | Review any pull request with a specialist bench | No existing PR | `/squad` |
 | `/security-audit` | Full security audit — static analysis, CVEs, secrets, OWASP | Active production incident — use `/cloud-debug` | `/cloud-debug` |
+| `/pentest-deep` | Deep read-only offensive/security audit across compliance, AppSec, infra, AI/ML, ops, and data leak surface | Need lightweight scanner-led audit | `/security-audit` |
+| `/tech-debt-audit` | Multi-lens debt register and remediation plan | You are ready to edit code now | `/refactor` or `/implement` |
 | `/dependency-check` | Check for CVEs and outdated packages | Need a full audit | `/security-audit` |
 | `/refactor` | Safe technical debt reduction — writes characterization tests before refactoring | Active bugs exist — fix first | `/bug-fix` |
-| `/release` | Implementation done, cut a release — notes, tag, rollback plan, SRE sign-off | Still implementing | `/squad` |
-| `/incident-postmortem` | Incident resolved — rebuild timeline, root cause, 5-whys, action plan | Incident still active | `/cloud-debug` |
 | `/llm-eval` | Any change to prompts, RAG pipeline, embedding model, or AI logic | No AI code in repository | n/a |
 | `/prompt-review` | Review prompt files before merge — regression, injection scan, token impact | No prompt files changed | `/llm-eval` |
 | `/multi-service` | Feature spans multiple repos or services — dependency map, contracts, deploy sequence | Single-service change | `/squad` |
 | `/iac-review` | Before any `terraform apply`, `helm upgrade`, `cdk deploy` — blast radius, security, cost | No infrastructure changes | `/security-audit` |
-| `/cloud-debug` | Active production or staging incident — collect logs, analyze stack traces, action plan | No cloud log access | `/hotfix` |
 | `/migration-plan` | Database schema changes — migration strategy, rollback, safe sequencing | No schema changes | `/squad` |
 | `/pre-commit-lint` | Set up auto-fix lint before commits — ruff, black, eslint, prettier, sonar | Lint already configured | n/a |
+| `/test-bootstrap` | Repository lacks viable automated tests and needs test infrastructure | Tests already exist | target delivery skill |
 | `/factory-retrospective` | Review past squad executions — retry patterns, fallback gaps, quality trends | No prior executions in logs | n/a |
-| `/dashboard` | Instant pipeline health summary — success rates, blocked gates, pending post-mortems. No agents spawned. | Want AI analysis and recommendations — use `/factory-retrospective` | `/factory-retrospective` |
 
 ---
 

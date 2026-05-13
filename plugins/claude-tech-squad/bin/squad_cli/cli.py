@@ -496,5 +496,232 @@ def test_gate_evaluate(skill: str, run_id: str, repo_root: str):
     raise SystemExit(0)
 
 
+@main.group("run")
+def run_group():
+    """Automatic governance lifecycle operations."""
+
+
+@run_group.command("start")
+@click.option("--skill", required=True)
+@click.option("--task", required=True)
+@click.option("--run-id", default=None)
+@click.option("--state-dir", default=".squad-state", type=click.Path())
+@click.option("--log-dir", default="ai-docs/.squad-log", type=click.Path())
+@click.option("--policy-version", default="")
+@click.option("--execution-mode", default="inline")
+@click.option(
+    "--plugin-root",
+    default="plugins/claude-tech-squad",
+    type=click.Path(),
+)
+def run_start(
+    skill: str,
+    task: str,
+    run_id: str | None,
+    state_dir: str,
+    log_dir: str,
+    policy_version: str,
+    execution_mode: str,
+    plugin_root: str,
+):
+    from squad_cli.run_lifecycle import start_run
+
+    run, path = start_run(
+        skill=skill,
+        task=task,
+        run_id=run_id,
+        state_dir=Path(state_dir),
+        plugin_root=Path(plugin_root),
+        policy_version=policy_version,
+        execution_mode=execution_mode,
+    )
+    Path(log_dir).mkdir(parents=True, exist_ok=True)
+    _output(
+        {
+            "status": "started",
+            "run_id": run.run_id,
+            "skill": run.skill,
+            "task": run.task,
+            "state_file": str(path),
+            "execution_mode": run.execution_mode,
+            "language_policy_applied": run.language_policy_applied,
+            "helper_commands": run.helper_commands,
+        }
+    )
+
+
+@run_group.command("event")
+@click.option("--run-id", required=True)
+@click.option("--type", "event_type", required=True)
+@click.option("--value", required=True)
+@click.option("--state-dir", default=".squad-state", type=click.Path())
+def run_event(run_id: str, event_type: str, value: str, state_dir: str):
+    from squad_cli.run_lifecycle import record_event
+
+    run = record_event(
+        state_dir=Path(state_dir),
+        run_id=run_id,
+        event_type=event_type,
+        value=value,
+    )
+    _output({"status": "recorded", "run_id": run.run_id, "events_count": len(run.events)})
+
+
+@run_group.command("gate")
+@click.option("--run-id", required=True)
+@click.option("--name", required=True)
+@click.option("--status", required=True)
+@click.option("--reason", default="")
+@click.option("--state-dir", default=".squad-state", type=click.Path())
+def run_gate(run_id: str, name: str, status: str, reason: str, state_dir: str):
+    from squad_cli.run_lifecycle import record_gate
+
+    run = record_gate(
+        state_dir=Path(state_dir),
+        run_id=run_id,
+        name=name,
+        status=status,
+        reason=reason,
+    )
+    _output({"status": "recorded", "run_id": run.run_id, "gates_count": len(run.gates)})
+
+
+@run_group.command("checkpoint")
+@click.option("--run-id", required=True)
+@click.option("--step", required=True)
+@click.option("--artifact", default="")
+@click.option("--state-dir", default=".squad-state", type=click.Path())
+def run_checkpoint(run_id: str, step: str, artifact: str, state_dir: str):
+    from squad_cli.run_lifecycle import record_checkpoint
+
+    run = record_checkpoint(
+        state_dir=Path(state_dir),
+        run_id=run_id,
+        step=step,
+        artifact=artifact,
+    )
+    _output(
+        {
+            "status": "recorded",
+            "run_id": run.run_id,
+            "checkpoints": [checkpoint.step for checkpoint in run.checkpoints],
+        }
+    )
+
+
+@run_group.command("spawn")
+@click.option("--run-id", required=True)
+@click.option("--agent", required=True)
+@click.option("--subagent-type", required=True)
+@click.option("--worktree-path", required=True)
+@click.option("--branch", required=True)
+@click.option("--base-commit", required=True)
+@click.option("--state-dir", default=".squad-state", type=click.Path())
+def run_spawn(
+    run_id: str,
+    agent: str,
+    subagent_type: str,
+    worktree_path: str,
+    branch: str,
+    base_commit: str,
+    state_dir: str,
+):
+    from squad_cli.run_lifecycle import prompt_requirements, record_spawn
+
+    run = record_spawn(
+        state_dir=Path(state_dir),
+        run_id=run_id,
+        agent=agent,
+        subagent_type=subagent_type,
+        worktree_path=worktree_path,
+        branch=branch,
+        base_commit=base_commit,
+    )
+    _output(
+        {
+            "status": "recorded",
+            "run_id": run.run_id,
+            "agent": agent,
+            "prompt_requirements": prompt_requirements(),
+        }
+    )
+
+
+@run_group.command("agent-done")
+@click.option("--run-id", required=True)
+@click.option("--agent", required=True)
+@click.option("--status", required=True)
+@click.option("--confidence", default="")
+@click.option("--tokens-in", default=0, type=int)
+@click.option("--tokens-out", default=0, type=int)
+@click.option("--merged", default="false")
+@click.option("--commits-ahead", default=0, type=int)
+@click.option("--state-dir", default=".squad-state", type=click.Path())
+def run_agent_done(
+    run_id: str,
+    agent: str,
+    status: str,
+    confidence: str,
+    tokens_in: int,
+    tokens_out: int,
+    merged: str,
+    commits_ahead: int,
+    state_dir: str,
+):
+    from squad_cli.run_lifecycle import parse_bool, record_agent_done
+
+    run = record_agent_done(
+        state_dir=Path(state_dir),
+        run_id=run_id,
+        agent=agent,
+        status=status,
+        confidence=confidence,
+        tokens_in=tokens_in,
+        tokens_out=tokens_out,
+        merged=parse_bool(merged),
+        commits_ahead=commits_ahead,
+    )
+    _output(
+        {
+            "status": "recorded",
+            "run_id": run.run_id,
+            "worktrees": [worktree.__dict__ for worktree in run.worktrees],
+        }
+    )
+
+
+@run_group.command("finish")
+@click.option("--run-id", required=True)
+@click.option("--status", required=True)
+@click.option("--state-dir", default=".squad-state", type=click.Path())
+@click.option("--log-dir", default="ai-docs/.squad-log", type=click.Path())
+def run_finish(run_id: str, status: str, state_dir: str, log_dir: str):
+    from squad_cli.run_lifecycle import finish_run
+
+    run, sep_log = finish_run(
+        state_dir=Path(state_dir),
+        run_id=run_id,
+        status=status,
+        log_dir=Path(log_dir),
+    )
+    _output(
+        {
+            "status": "finished",
+            "run_id": run.run_id,
+            "final_status": run.status,
+            "sep_log": str(sep_log),
+        }
+    )
+
+
+@run_group.command("report")
+@click.option("--run-id", required=True)
+@click.option("--state-dir", default=".squad-state", type=click.Path())
+def run_report(run_id: str, state_dir: str):
+    from squad_cli.run_lifecycle import report_run
+
+    _output(report_run(state_dir=Path(state_dir), run_id=run_id))
+
+
 if __name__ == "__main__":
     main()

@@ -61,7 +61,9 @@ Teammates MUST exchange `SendMessage` with each other — not only with the lead
 **Required pairs (refactor):**
 - `design-principles-specialist` ↔ `tdd-specialist` (refactor plan vs characterization tests)
 - `tdd-specialist` ↔ `test-automation-engineer` (test inventory handoff)
-- `code-reviewer` ↔ `security-reviewer` (adversarial review of changed diffs)
+- `code-reviewer` ↔ `security-reviewer` (adversarial_review / advogado do diabo: changed diffs vs security assumptions)
+
+**Advogado do diabo:** pairs marked as `adversarial_review` MUST challenge assumptions, risks, alternatives, missing evidence, and trade-offs directly in pt-BR before synthesis. Record any objection that changes severity, scope, or refactor direction in the SEP log with mitigation and final decision.
 
 **Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block listing teammate names this teammate must message before completing.
 

@@ -502,8 +502,13 @@ agent_teams:
         description: >
           Reviewers (security, performance, accessibility, compliance)
           must SendMessage to each other to challenge findings before
-          synthesizing. The lead does NOT relay — teammates talk direct.
-        applies_to: [squad, implement, refactor, tech-debt-audit, pentest-deep]
+          synthesizing. This is the operational "advogado do diabo"
+          role in pt-BR: a reviewer explicitly challenges assumptions,
+          risks, alternatives, missing evidence, and trade-offs before
+          consensus. The lead does NOT relay — teammates talk direct,
+          and natural-language challenge/response messages MUST be in
+          pt-BR.
+        applies_to: [squad, implement, discovery, refactor, tech-debt-audit, pentest-deep, pr-review, llm-eval, iac-review]
         required_pairs:
           - [security-reviewer, performance-engineer]
           - [security-reviewer, privacy-reviewer]

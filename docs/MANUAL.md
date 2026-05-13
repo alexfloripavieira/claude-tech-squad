@@ -13,7 +13,7 @@
 4. [Teammate Mode — tmux pane per agent](#4-teammate-mode--tmux-pane-per-agent)
 5. [Available skills and when to use each](#5-available-skills-and-when-to-use-each)
 6. [Full flow for each skill](#6-full-flow-for-each-skill)
-7. [The 74 agents — roles and specialties](#7-the-74-agents--roles-and-specialties)
+7. [The 81 agents — roles and specialties](#7-the-81-agents--roles-and-specialties)
 8. [Pipeline architecture](#8-pipeline-architecture)
 9. [User gates](#9-user-gates)
 10. [Execution visibility](#10-execution-visibility)
@@ -160,30 +160,52 @@ Without tmux mode, the same workflows run correctly as inline subagents — same
 
 ## 5. Available skills and when to use each
 
+The public surface is intentionally split into core and advanced tiers. Most
+operators should start with the core tier and move to advanced skills only when
+the domain or risk calls for them.
+
+| Tier | Skills | Use when |
+|---|---|---|
+| Core setup | `/onboarding`, `/from-ticket`, `/cost-estimate`, `/dashboard` | Prepare a repo, route incoming work, estimate cost, or inspect run health. |
+| Core delivery | `/bug-fix`, `/mini-squad`, `/discovery`, `/inception`, `/implement`, `/squad` | Fix contained bugs, deliver small features, plan, refine, build, or run the full pipeline. |
+| Core operations | `/hotfix`, `/cloud-debug`, `/incident-postmortem`, `/release`, `/rollover`, `/resume-from-rollover` | Handle production pressure, incident work, release work, and long-run handoff. |
+| Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` | Run specialist review, audit, dependency risk, or structured remediation planning. |
+| Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` | Work on AI quality, database or infrastructure risk, distributed changes, repo automation, or process improvement. |
+
+### Full Skill Reference
+
 | Skill | When to use |
 |---|---|
 | `/onboarding` | First command in any new repo. Bootstrap of ai-docs/, CLAUDE.md, security baseline. |
-| `/squad` | Complete feature from scratch to deploy. Includes discovery + build + release. |
-| `/discovery` | Plan before implementing. Produces a complete blueprint without writing code. |
-| `/implement` | Implement from an existing blueprint (output of `/discovery`). |
-| `/refactor` | Safe refactoring with characterization tests. Behavior does not change. |
+| `/from-ticket` | Parse Jira, Linear, GitHub issue, JQL, or pasted ticket text and route to the right skill. |
+| `/cost-estimate` | Estimate task complexity and recommend the cheapest sufficient skill. |
+| `/dashboard` | Instant pipeline health from SEP logs. No agents spawned. |
 | `/bug-fix` | Fix a specific bug with a stack trace or repro steps. 1–5 files. |
+| `/mini-squad` | Small feature flow: TDD specialist + stack developer + reviewer. |
+| `/discovery` | Plan before implementing. Produces a complete blueprint without writing code. |
+| `/inception` | Turn an existing PRD into a validated TechSpec with risks, gates, and estimate. |
+| `/implement` | Implement from an existing blueprint (output of `/discovery`). |
+| `/squad` | Complete feature from scratch to deploy. Includes discovery + build + release. |
 | `/hotfix` | Production is broken. Minimal patch + `hotfix/` branch + PR + deploy checklist. |
-| `/release` | Cut a release: change inventory, rollback plan, release notes, tag. |
-| `/pr-review` | Review any PR. Parallel specialist bench + GitHub threads. |
+| `/cloud-debug` | Investigate a cloud, staging, or production incident with logs and infra context. |
 | `/incident-postmortem` | Post-incident. Timeline, root cause, 5-whys, action items, shareable doc. |
+| `/release` | Cut a release: change inventory, rollback plan, release notes, tag. |
+| `/rollover` | Consolidate run state into handoff brief and machine-state JSON before `/clear`. |
+| `/resume-from-rollover` | Resume from a rollover handoff artifact after `/clear`. |
+| `/pr-review` | Review any PR. Parallel specialist bench + GitHub threads. |
 | `/security-audit` | Periodic or pre-release security audit. Runs bandit, pip-audit, npm audit. |
-| `/migration-plan` | Plan a database schema change before modifying models. |
-| `/cloud-debug` | Investigate a problem in cloud/production with logs and infra. |
+| `/pentest-deep` | Deep read-only audit across AppSec, compliance, infra, AI/ML, ops, and data-leak surface. |
+| `/tech-debt-audit` | Multi-lens debt register, hotspot map, and remediation plan. |
+| `/refactor` | Safe refactoring with characterization tests. Behavior does not change. |
 | `/dependency-check` | Check outdated dependencies, vulnerabilities, licenses, supply chain. |
-| `/factory-retrospective` | Analyze recent executions and improve the team process. |
-| `/pre-commit-lint` | Configure automatic lint hook on commits. |
-| `/llm-eval` | **[AI]** Run eval suite as CI gate. Detects quality regressions before deploy. |
 | `/prompt-review` | **[AI]** Review prompt changes: regression on golden examples, prompt injection, token cost. |
-| `/multi-service` | **[Distributed]** Coordinate changes affecting multiple services: contracts, deployment ordering, blast radius. |
+| `/llm-eval` | **[AI]** Run eval suite as CI gate. Detects quality regressions before deploy. |
+| `/migration-plan` | Plan a database schema change before modifying models. |
 | `/iac-review` | **[Infra]** Review IaC changes before apply: blast radius, IAM/network security, cost impact, safe sequence. |
-| `/rollover` | **[Meta]** Consolidate run state into a handoff brief and machine-state JSON before `/clear`. Proactive or triggered by the 140k context gate. See `docs/CONTEXT-ROLLOVER.md`. |
-| `/resume-from-rollover` | **[Meta]** Resume a run from its rollover handoff artifact after `/clear`. Re-emits invariants, reopens unresolved decisions, hands control back to the originating skill. |
+| `/multi-service` | **[Distributed]** Coordinate changes affecting multiple services: contracts, deployment ordering, blast radius. |
+| `/pre-commit-lint` | Configure automatic lint hook on commits. |
+| `/test-bootstrap` | Bootstrap test infrastructure when a repository lacks viable tests. |
+| `/factory-retrospective` | Analyze recent executions and improve the team process. |
 
 ### Stack-aware vs Stack-agnostic skills
 
@@ -798,7 +820,7 @@ See [OPERATIONAL-PLAYBOOK.md](OPERATIONAL-PLAYBOOK.md) for usage examples for ea
 
 ---
 
-## 7. The 74 agents — roles and specialties
+## 7. The 81 agents — roles and specialties
 
 ### Discovery & Planning
 
@@ -1308,7 +1330,7 @@ These restrictions are verified by `llm-safety-reviewer` during `/security-audit
 
 ### Documentation Standard — Context7 First, Repository Fallback (v5.21.0+)
 
-All **74 agents** use Context7 first when available to look up current documentation before using any library, framework, or external API — regardless of stack. If Context7 is unavailable, the fallback is repository evidence, locally installed docs, and explicit assumptions in the output. Training data is never the source of truth for API signatures, method names, or default behavior.
+All **81 agents** use Context7 first when available to look up current documentation before using any library, framework, or external API — regardless of stack. If Context7 is unavailable, the fallback is repository evidence, locally installed docs, and explicit assumptions in the output. Training data is never the source of truth for API signatures, method names, or default behavior.
 
 **Required workflow for every library used:**
 1. `mcp__plugin_context7_context7__resolve-library-id("library-name")`

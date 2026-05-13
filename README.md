@@ -42,7 +42,7 @@ Run `bash scripts/start-golden-run.sh <scenario-id> <operator>` to scaffold a re
 - runtime PreToolUse hooks: `plugins/claude-tech-squad/hooks/pre-tool-guard.sh`
 - one local dogfooding pack plus golden-run contract
 
-> **Note on `commands/` directory.** The plugin intentionally ships **no `commands/`** folder. All operator-facing entry points are delivered as **skills** under `plugins/claude-tech-squad/skills/`. Each skill name (e.g. `discovery`, `squad`, `hotfix`, `pr-review`) is invoked as `/claude-tech-squad:<skill>` from Claude Code. This keeps the orchestration logic, gates, ARC contracts, SEP log writers, and Visual Reporting Contract co-located with the workflow they govern.
+> **Note on entry points.** Operator-facing workflows are delivered as **skills** under `plugins/claude-tech-squad/skills/` and invoked as `/claude-tech-squad:<skill>` from Claude Code. The `plugins/claude-tech-squad/commands/` directory contains thin command shims and setup helpers; the orchestration logic, gates, ARC contracts, SEP log writers, and Visual Reporting Contract stay co-located with the skills.
 
 ## Pick the Right Skill
 
@@ -58,59 +58,65 @@ Not sure which skill to run? Answer these four questions:
 
 For less common situations — refactor, security audit, migration, LLM eval, multi-service — see [SKILL-SELECTOR.md](docs/SKILL-SELECTOR.md).
 
+## Public Skill Surface
+
+Most operators should live in the core surface below. Advanced skills stay
+available, but they are specialist tools for narrower situations.
+
+| Tier | Skills | Use when |
+|---|---|---|
+| Core setup | `/onboarding`, `/from-ticket`, `/cost-estimate`, `/dashboard` | Prepare a repo, route incoming work, estimate cost, or inspect run health. |
+| Core delivery | `/bug-fix`, `/mini-squad`, `/discovery`, `/inception`, `/implement`, `/squad` | Fix contained defects, deliver small features, plan, refine, build, or run the full pipeline. |
+| Core operations | `/hotfix`, `/cloud-debug`, `/incident-postmortem`, `/release`, `/rollover`, `/resume-from-rollover` | Handle production pressure, release work, incidents, and long-running session handoff. |
+| Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` | Run specialist reviews, audits, dependency checks, and structured remediation planning. |
+| Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` | Work on AI quality, database or infrastructure risk, distributed changes, repo automation, and process improvement. |
+
 > **Stack is detected automatically.** You never need to specify Django, React, Vue, TypeScript, JavaScript, or Python — the skill detects it at preflight and routes to the right specialist.
 
 > **LLM/AI bench activates automatically.** `/squad`, `/implement`, and `/security-audit` detect AI code (OpenAI, Anthropic, LangChain, pgvector) and add the AI specialist bench without extra configuration.
 
-## Commands
+## Full Skill Catalog
 
 ```bash
+# Core setup
+/claude-tech-squad:onboarding  # bootstrap a new repo for squad usage
+/claude-tech-squad:from-ticket # route Jira/Linear/GitHub issues to the right skill
+/claude-tech-squad:cost-estimate # recommend the cheapest sufficient workflow
+/claude-tech-squad:dashboard   # instant pipeline health from SEP logs
+
 # Core delivery
+/claude-tech-squad:bug-fix     # contained non-emergency bug
+/claude-tech-squad:mini-squad  # small feature: TDD + implementation + review
 /claude-tech-squad:discovery   # shape the problem and produce a blueprint
+/claude-tech-squad:inception   # turn an existing PRD into a TechSpec
 /claude-tech-squad:implement   # build from an approved blueprint
 /claude-tech-squad:squad       # end-to-end: discovery + implementation + release
 
-# Emergency & incidents
+# Core operations
 /claude-tech-squad:hotfix              # emergency production fix
+/claude-tech-squad:cloud-debug         # investigate production/staging incidents
 /claude-tech-squad:incident-postmortem # blameless post-mortem
+/claude-tech-squad:release             # cut a release with rollback plan and CI gate
+/claude-tech-squad:rollover            # consolidate run state before /clear
+/claude-tech-squad:resume-from-rollover # resume a run from handoff
 
-# Quality & security
+# Advanced review and audit
 /claude-tech-squad:pr-review        # full specialist bench review on any PR
 /claude-tech-squad:security-audit   # scanner-led: static analysis + secrets scan + CVE check
 /claude-tech-squad:pentest-deep     # ethical-hacker deep audit: 16 dimensions (LGPD/GDPR/PCI/SOC2 + leak + invasion)
 /claude-tech-squad:tech-debt-audit  # multi-lens debt scoring (blast x churn x complexity) + hotspot map + ROI plan
 /claude-tech-squad:refactor         # test-guarded incremental refactoring
-
-# LLM / AI specific
-/claude-tech-squad:llm-eval      # run eval suite as CI gate — detect regressions before deploy
-/claude-tech-squad:prompt-review # review prompt changes: regression, injection, token cost
-
-# Release & planning
-/claude-tech-squad:release          # cut a release with rollback plan and CI gate
-/claude-tech-squad:migration-plan   # safe database migration planning with backup gate
 /claude-tech-squad:dependency-check # CVEs, supply chain, outdated packages
-/claude-tech-squad:cloud-debug      # investigate production incidents
 
-# Distributed systems & infrastructure
-/claude-tech-squad:multi-service # coordinate changes across multiple services with contract testing
+# Advanced AI, infrastructure, and scale
+/claude-tech-squad:prompt-review # review prompt changes: regression, injection, token cost
+/claude-tech-squad:llm-eval      # run eval suite as CI gate — detect regressions before deploy
+/claude-tech-squad:migration-plan   # safe database migration planning with backup gate
 /claude-tech-squad:iac-review    # review IaC changes before apply: blast radius, security, cost
-
-# From ticket — read from Jira/GitHub Issues and route
-/claude-tech-squad:from-ticket PROJ-123          # read Jira ticket → recommend and launch the right skill
-/claude-tech-squad:from-ticket #42               # read GitHub Issue → same flow
-/claude-tech-squad:from-ticket "sprint = current" # read all tickets in current sprint
-
-# Cost analysis
-/claude-tech-squad:cost-estimate   # analyze task complexity → recommend cheapest skill
-
-# Project setup
-/claude-tech-squad:onboarding         # bootstrap any new repo for squad usage
+/claude-tech-squad:multi-service # coordinate changes across multiple services with contract testing
+/claude-tech-squad:pre-commit-lint # configure auto-fix lint before commits
+/claude-tech-squad:test-bootstrap  # bootstrap test infrastructure when absent
 /claude-tech-squad:factory-retrospective # analyze executions and improve the process
-/claude-tech-squad:dashboard             # instant pipeline health: success rates, blocked gates, pending post-mortems
-
-# Session management — long runs without degradation
-/claude-tech-squad:rollover              # consolidate run state before /clear; produces brief + JSON handoff
-/claude-tech-squad:resume-from-rollover  # resume a run from its handoff in a fresh session
 ```
 
 `/onboarding` uses a versioned catalog (`plugins/claude-tech-squad/skills/onboarding/catalog.json`) and reusable `CLAUDE.md` templates under `templates/claude-md/`. Preview the selected profile with:

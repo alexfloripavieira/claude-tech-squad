@@ -34,6 +34,9 @@ test -f "$ROOT/docs/USAGE-BOUNDARIES.md"
 test -f "$ROOT/docs/RELEASING.md"
 test -f "$ROOT/docs/GETTING-STARTED.md"
 test -f "$ROOT/docs/MANUAL.md"
+test -f "$ROOT/docs/SKILL-SELECTOR.md"
+test -f "$ROOT/docs/GOVERNANCE.md"
+test -f "$ROOT/docs/README.md"
 test -f "$ROOT/docs/DOGFOODING.md"
 test -f "$ROOT/docs/EXECUTION-TRACE.md"
 test -f "$ROOT/docs/GOLDEN-RUNS.md"
@@ -92,6 +95,93 @@ for skill in "${REQUIRED_SKILLS[@]}"; do
     exit 1
   fi
 done
+
+# ── Public skill surface and governance documentation ───────────────────────
+PUBLIC_SURFACE_DOCS=(
+  "$ROOT/README.md"
+  "$ROOT/docs/GETTING-STARTED.md"
+  "$ROOT/docs/SKILL-SELECTOR.md"
+  "$ROOT/docs/MANUAL.md"
+  "$ROOT/CLAUDE.md"
+)
+
+PUBLIC_SURFACE_TIERS=(
+  "Core setup"
+  "Core delivery"
+  "Core operations"
+  "Advanced review and audit"
+  "Advanced AI, infra"
+)
+
+for doc in "${PUBLIC_SURFACE_DOCS[@]}"; do
+  for tier in "${PUBLIC_SURFACE_TIERS[@]}"; do
+    if ! grep -q "$tier" "$doc"; then
+      echo "Public skill surface doc missing tier '$tier': ${doc#$ROOT/}"
+      exit 1
+    fi
+  done
+done
+
+if grep -R -nE '74 agents|28 skills' "$ROOT/README.md" "$ROOT/CLAUDE.md" "$ROOT/docs" >/tmp/cts-stale-counts.txt; then
+  echo "Stale public count found in docs:"
+  cat /tmp/cts-stale-counts.txt
+  exit 1
+fi
+rm -f /tmp/cts-stale-counts.txt
+
+grep -q 'squad-cli run' "$ROOT/docs/GOVERNANCE.md" || {
+  echo "docs/GOVERNANCE.md must document squad-cli run"
+  exit 1
+}
+
+grep -q 'advogado do diabo' "$ROOT/docs/GOVERNANCE.md" || {
+  echo "docs/GOVERNANCE.md must document advogado do diabo"
+  exit 1
+}
+
+test -f "$PLUGIN_DIR/bin/squad_cli/run_lifecycle.py" || {
+  echo "squad-cli missing run_lifecycle module"
+  exit 1
+}
+
+grep -q '@main.group("run")' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
+  echo "squad-cli missing run command group"
+  exit 1
+}
+
+ADVERSARIAL_SKILLS=(
+  discovery
+  implement
+  squad
+  refactor
+  tech-debt-audit
+  pentest-deep
+  pr-review
+  llm-eval
+  iac-review
+)
+
+for skill in "${ADVERSARIAL_SKILLS[@]}"; do
+  skill_file="$SKILLS_DIR/$skill/SKILL.md"
+  grep -q 'adversarial_review' "$skill_file" || {
+    echo "Adversarial skill missing adversarial_review marker: $skill"
+    exit 1
+  }
+  grep -q 'Advogado do diabo' "$skill_file" || {
+    echo "Adversarial skill missing Advogado do diabo contract: $skill"
+    exit 1
+  }
+done
+
+grep -q 'advogado do diabo' "$PLUGIN_DIR/runtime-policy.yaml" || {
+  echo "runtime-policy.yaml must name adversarial_review as advogado do diabo"
+  exit 1
+}
+
+grep -q 'advogado do' "$SKILLS_DIR/_shared/orchestration-contract.md" || {
+  echo "Shared orchestration contract must document advogado do diabo"
+  exit 1
+}
 
 # ── Required agents ──────────────────────────────────────────────────────────
 REQUIRED_AGENTS=(

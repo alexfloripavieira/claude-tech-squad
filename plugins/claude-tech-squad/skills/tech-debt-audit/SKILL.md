@@ -47,11 +47,13 @@ Teammates MUST exchange `SendMessage` with each other — not only with the lead
 
 **Required pairs (tech-debt-audit) — hypothesis debate pattern:**
 - `code-quality` ↔ `design-principles` (debate root cause vs symptom)
-- `security` ↔ `performance` (adversarial: trade-offs)
+- `security` ↔ `performance` (adversarial_review / advogado do diabo: risk vs performance trade-offs)
 - `dba` ↔ `code-quality` (data-layer hotspot debate)
 - `design-principles` ↔ `performance` (challenge each other's lens before analyst synthesis)
 
 Each teammate MUST attempt to disprove at least one peer's finding via `SendMessage` before submitting its `result_contract`. The `tech-debt-analyst` (final synthesis) reads the mailbox and reports surviving findings — those that withstood debate — as high-confidence.
+
+**Advogado do diabo:** pairs marked as `adversarial_review` MUST challenge assumptions, risks, alternatives, missing evidence, and prioritization trade-offs directly in pt-BR before synthesis. Record any objection that changes severity, ROI, scope, or remediation order in the SEP log with mitigation and final decision.
 
 **Spawn-prompt rule:** every spawn prompt MUST include a `peers:` block listing teammate names this teammate must message before completing.
 

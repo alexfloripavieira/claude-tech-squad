@@ -93,6 +93,14 @@ branch — that is the user's call.
 - Inspect mailbox: every Required Pair declared in the skill's
   `## Inter-Teammate Cross-Talk Protocol` must have at least one outbound
   `SendMessage`. Empty pair → Teammate Failure with `reason: cross-talk-missing`.
+- Required pairs marked as `adversarial_review` are the pt-BR "advogado do
+  diabo" role. The paired teammates MUST challenge assumptions, risks,
+  alternatives, missing evidence, and trade-offs directly with each other in
+  Portuguese before consensus. The SEP log or final report MUST preserve the
+  objection, mitigation, and final decision when the challenge changes scope,
+  severity, or implementation direction. The role is not arbitrary blocking:
+  objections must be evidence-backed and tied to user impact, safety,
+  correctness, maintainability, privacy, security, performance, or accessibility.
 - The lead's user-facing output (gate prompts, narrative reports, summaries)
   MUST follow `runtime-policy.yaml::language_policy.lead_to_user_preamble` (pt-BR).
   This applies even to skills that do NOT spawn agents.
