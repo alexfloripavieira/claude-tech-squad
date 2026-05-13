@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.75.3] - 2026-05-13 — Automated maintenance release
+
+### Fixed
+
+- Validate relative squad run logs
 ## [5.75.2] - 2026-05-13 — Automated maintenance release
 
 ### Fixed
