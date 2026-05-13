@@ -53,6 +53,7 @@ test -f "$ROOT/scripts/prepare-release-metadata.sh"
 test -f "$ROOT/scripts/verify-release.sh"
 test -f "$ROOT/scripts/build-release-bundle.sh"
 test -f "$PLUGIN_DIR/runtime-policy.yaml"
+test -f "$PLUGIN_DIR/public-surface.json"
 test -f "$ROOT/fixtures/dogfooding/scenarios.json"
 test -f "$ROOT/fixtures/dogfooding/layered-monolith/CLAUDE.md"
 test -f "$ROOT/fixtures/dogfooding/hexagonal-billing/CLAUDE.md"
@@ -97,6 +98,25 @@ for skill in "${REQUIRED_SKILLS[@]}"; do
 done
 
 # ── Public skill surface and governance documentation ───────────────────────
+python3 - "$PLUGIN_DIR/public-surface.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text())
+if data.get("schema_version") != "1.0":
+    raise SystemExit("public-surface schema_version must be 1.0")
+tiers = data.get("tiers")
+if not isinstance(tiers, list) or not tiers:
+    raise SystemExit("public-surface tiers must be a non-empty list")
+for tier in tiers:
+    if "name" not in tier or "skills" not in tier:
+        raise SystemExit("public-surface tier entries must contain name and skills")
+    if not tier["skills"]:
+        raise SystemExit(f"public-surface tier {tier['name']} must list skills")
+PY
+
 PUBLIC_SURFACE_DOCS=(
   "$ROOT/README.md"
   "$ROOT/docs/GETTING-STARTED.md"
@@ -105,21 +125,26 @@ PUBLIC_SURFACE_DOCS=(
   "$ROOT/CLAUDE.md"
 )
 
-PUBLIC_SURFACE_TIERS=(
-  "Core setup"
-  "Core delivery"
-  "Core operations"
-  "Advanced review and audit"
-  "Advanced AI, infra"
+PUBLIC_SURFACE_TIERS=$(python3 - "$PLUGIN_DIR/public-surface.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+data = json.loads(Path(sys.argv[1]).read_text())
+print("\n".join(tier["name"] for tier in data["tiers"]))
+PY
 )
 
 for doc in "${PUBLIC_SURFACE_DOCS[@]}"; do
-  for tier in "${PUBLIC_SURFACE_TIERS[@]}"; do
+  while IFS= read -r tier; do
+    [ -n "$tier" ] || continue
     if ! grep -q "$tier" "$doc"; then
       echo "Public skill surface doc missing tier '$tier': ${doc#$ROOT/}"
       exit 1
     fi
-  done
+  done <<EOF
+$PUBLIC_SURFACE_TIERS
+EOF
 done
 
 if grep -R -nE '74 agents|28 skills' "$ROOT/README.md" "$ROOT/CLAUDE.md" "$ROOT/docs" >/tmp/cts-stale-counts.txt; then
@@ -149,28 +174,13 @@ grep -q '@main.group("run")' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
   exit 1
 }
 
-ADVERSARIAL_SKILLS=(
-  discovery
-  implement
-  squad
-  refactor
-  tech-debt-audit
-  pentest-deep
-  pr-review
-  llm-eval
-  iac-review
-)
-
-for skill in "${ADVERSARIAL_SKILLS[@]}"; do
-  skill_file="$SKILLS_DIR/$skill/SKILL.md"
-  grep -q 'adversarial_review' "$skill_file" || {
-    echo "Adversarial skill missing adversarial_review marker: $skill"
-    exit 1
-  }
-  grep -q 'Advogado do diabo' "$skill_file" || {
-    echo "Adversarial skill missing Advogado do diabo contract: $skill"
-    exit 1
-  }
+for skill_file in "$SKILLS_DIR"/*/SKILL.md; do
+  if grep -q 'adversarial_review' "$skill_file"; then
+    if ! grep -q 'Advogado do diabo' "$skill_file"; then
+      echo "Adversarial skill missing Advogado do diabo contract: ${skill_file#$ROOT/}"
+      exit 1
+    fi
+  fi
 done
 
 grep -q 'advogado do diabo' "$PLUGIN_DIR/runtime-policy.yaml" || {

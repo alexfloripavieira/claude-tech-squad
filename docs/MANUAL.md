@@ -164,6 +164,16 @@ The public surface is intentionally split into core and advanced tiers. Most
 operators should start with the core tier and move to advanced skills only when
 the domain or risk calls for them.
 
+If you are in a hurry, use this short path:
+
+1. New repo: `/onboarding`
+2. Not sure what to use: `/from-ticket` or `/cost-estimate`
+3. Small bug: `/bug-fix`
+4. Small feature: `/mini-squad`
+5. Feature still unclear: `/discovery`
+6. Blueprint approved: `/implement`
+7. Full delivery: `/squad`
+
 | Tier | Skills | Use when |
 |---|---|---|
 | Core setup | `/onboarding`, `/from-ticket`, `/cost-estimate`, `/dashboard` | Prepare a repo, route incoming work, estimate cost, or inspect run health. |
@@ -206,6 +216,8 @@ the domain or risk calls for them.
 | `/pre-commit-lint` | Configure automatic lint hook on commits. |
 | `/test-bootstrap` | Bootstrap test infrastructure when a repository lacks viable tests. |
 | `/factory-retrospective` | Analyze recent executions and improve the team process. |
+
+The tier map above is mirrored from `plugins/claude-tech-squad/public-surface.json`.
 
 ### Stack-aware vs Stack-agnostic skills
 

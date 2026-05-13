@@ -71,6 +71,19 @@ available, but they are specialist tools for narrower situations.
 | Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` | Run specialist reviews, audits, dependency checks, and structured remediation planning. |
 | Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` | Work on AI quality, database or infrastructure risk, distributed changes, repo automation, and process improvement. |
 
+The tier map above is mirrored from `plugins/claude-tech-squad/public-surface.json`.
+
+## Daily Flow
+
+If you only want the short path:
+
+1. Start with `/onboarding` in a new repo.
+2. Use `/from-ticket` or `/cost-estimate` when you are not sure which workflow fits.
+3. Use `/bug-fix` for a contained defect and `/mini-squad` for a small feature.
+4. Use `/discovery` when the problem still needs shaping.
+5. Use `/implement` after the blueprint is approved.
+6. Use `/squad` when you want the full pipeline in one run.
+
 > **Stack is detected automatically.** You never need to specify Django, React, Vue, TypeScript, JavaScript, or Python — the skill detects it at preflight and routes to the right specialist.
 
 > **LLM/AI bench activates automatically.** `/squad`, `/implement`, and `/security-audit` detect AI code (OpenAI, Anthropic, LangChain, pgvector) and add the AI specialist bench without extra configuration.

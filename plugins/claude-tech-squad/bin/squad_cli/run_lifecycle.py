@@ -72,6 +72,7 @@ class GovernanceRun:
     checkpoints: list[GovernanceCheckpoint] = field(default_factory=list)
     worktrees: list[GovernanceWorktree] = field(default_factory=list)
     helper_commands: dict[str, str] = field(default_factory=dict)
+    quick_start: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -138,6 +139,13 @@ def start_run(
     policy_version: str = "",
     execution_mode: str = "inline",
 ) -> tuple[GovernanceRun, Path]:
+    quick_start = [
+        f"Use `run spawn` for each agent you want to govern under `{skill}`.",
+        "Use `run event` to record commands and evidence as they happen.",
+        "Use `run checkpoint` at phase boundaries.",
+        "Use `run agent-done` when an agent returns.",
+        "Use `run finish` and then `run report` to close the loop.",
+    ]
     run = GovernanceRun(
         run_id=run_id or make_run_id(skill),
         skill=skill,
@@ -145,6 +153,7 @@ def start_run(
         policy_version=policy_version,
         execution_mode=execution_mode,
         helper_commands=helper_commands(plugin_root, skill),
+        quick_start=quick_start,
         cts_phases_completed=["run-start"],
     )
     return run, run.save(state_dir)
@@ -273,6 +282,7 @@ def report_run(*, state_dir: Path, run_id: str) -> dict[str, Any]:
         "worktrees": [asdict(worktree) for worktree in run.worktrees],
         "cts_phases_completed": run.cts_phases_completed,
         "helper_commands": run.helper_commands,
+        "quick_start": run.quick_start,
     }
 
 

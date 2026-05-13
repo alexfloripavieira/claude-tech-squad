@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "tiers": [
+    {
+      "name": "Core setup",
+      "skills": ["/onboarding", "/from-ticket", "/cost-estimate", "/dashboard"]
+    },
+    {
+      "name": "Core delivery",
+      "skills": ["/bug-fix", "/mini-squad", "/discovery", "/inception", "/implement", "/squad"]
+    },
+    {
+      "name": "Core operations",
+      "skills": ["/hotfix", "/cloud-debug", "/incident-postmortem", "/release", "/rollover", "/resume-from-rollover"]
+    },
+    {
+      "name": "Advanced review and audit",
+      "skills": ["/pr-review", "/security-audit", "/pentest-deep", "/tech-debt-audit", "/refactor", "/dependency-check"]
+    },
+    {
+      "name": "Advanced AI, infra, and scale",
+      "skills": ["/prompt-review", "/llm-eval", "/migration-plan", "/iac-review", "/multi-service", "/pre-commit-lint", "/test-bootstrap", "/factory-retrospective"]
+    }
+  ],
+  "daily_flow": [
+    {"when": "not sure where to start", "skill": "/cost-estimate"},
+    {"when": "ticket or issue exists", "skill": "/from-ticket"},
+    {"when": "contained bug", "skill": "/bug-fix"},
+    {"when": "small feature", "skill": "/mini-squad"},
+    {"when": "feature still unclear", "skill": "/discovery"},
+    {"when": "blueprint already approved", "skill": "/implement"},
+    {"when": "need the full pipeline", "skill": "/squad"},
+    {"when": "production is broken", "skill": "/hotfix"}
+  ]
+}

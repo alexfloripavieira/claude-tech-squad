@@ -83,3 +83,5 @@ bash scripts/smoke-test.sh
 bash scripts/dogfood.sh
 bash scripts/dogfood-report.sh --schema-only
 ```
+
+The tier structure above is mirrored from `plugins/claude-tech-squad/public-surface.json`.

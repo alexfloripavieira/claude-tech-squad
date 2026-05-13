@@ -213,8 +213,20 @@ are specialist tools for narrower situations.
 | Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` | You need specialist review, audit, dependency risk, or structured remediation planning. |
 | Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` | You are working on AI quality, database or infrastructure risk, distributed changes, repo automation, or process improvement. |
 
+This tier map is mirrored from `plugins/claude-tech-squad/public-surface.json`.
+
 This guide expands the common paths. For the complete decision tree and every
 advanced skill, use [SKILL-SELECTOR.md](SKILL-SELECTOR.md).
+
+If you only remember a short path:
+
+1. New repo: `/onboarding`
+2. Not sure what to do: `/from-ticket` or `/cost-estimate`
+3. Small bug: `/bug-fix`
+4. Small feature: `/mini-squad`
+5. Feature still unclear: `/discovery`
+6. Blueprint approved: `/implement`
+7. Full delivery: `/squad`
 
 ### `/claude-tech-squad:onboarding`
 
