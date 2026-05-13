@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.75.0] - 2026-05-13 — Automated feature release
+
+### Added
+
+- Add mode diagnostics and mini-squad runtime prompts
 ## [5.74.0] - 2026-05-13 — Automated feature release
 
 ### Added
