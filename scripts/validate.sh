@@ -119,6 +119,10 @@ for tier in tiers:
 PY
 
 python3 "$ROOT/scripts/check-public-surface-docs.py"
+grep -q -- '--write' "$ROOT/scripts/render-public-surface-docs.py" || {
+  echo "render-public-surface-docs.py must support --write"
+  exit 1
+}
 
 PUBLIC_SURFACE_DOCS=(
   "$ROOT/README.md"
@@ -866,11 +870,15 @@ for key in 'cross_talk_protocol:' 'minimum_inter_teammate_messages:' 'mailbox_au
   fi
 done
 
-# tmux must be the preferred display mode (auto-detected at runtime)
+# tmux remains the optional display mode, while inline is the default runtime mode.
 if ! grep -qE '^[[:space:]]*display_mode:[[:space:]]*tmux' "$PLUGIN_DIR/runtime-policy.yaml"; then
-  echo "runtime-policy.yaml agent_teams.display_mode must be 'tmux' (preferred)"
+  echo "runtime-policy.yaml agent_teams.display_mode must be 'tmux' (optional pane display)"
   exit 1
 fi
+grep -qE '^[[:space:]]*preferred_mode:[[:space:]]*inline' "$PLUGIN_DIR/runtime-policy.yaml" || {
+  echo "runtime-policy.yaml agent_teams.preferred_mode must be inline"
+  exit 1
+}
 # Mode-resolution helper must exist and be executable
 DETECT_HELPER="$PLUGIN_DIR/bin/detect-team-mode.sh"
 test -f "$DETECT_HELPER" || { echo "Missing helper: bin/detect-team-mode.sh"; exit 1; }
@@ -896,13 +904,17 @@ for key in '^language_policy:' 'default_locale: pt-BR' 'spawn_prompt_preamble:' 
   fi
 done
 
-# Auto-launch + inline fallback must be declared
+# Inline fallback and disabled tmux auto-launch must be declared.
 for key in 'auto_launch_tmux:' 'mode_resolution:' 'detection:' 'enforcement_by_mode:'; do
   if ! grep -q "$key" "$PLUGIN_DIR/runtime-policy.yaml"; then
     echo "runtime-policy.yaml agent_teams missing key: $key"
     exit 1
   fi
 done
+grep -A2 'auto_launch_tmux:' "$PLUGIN_DIR/runtime-policy.yaml" | grep -q 'enabled: false' || {
+  echo "runtime-policy.yaml agent_teams.auto_launch_tmux must be disabled"
+  exit 1
+}
 
 
 # Dev-flow SKILL.md files MUST embed the four CTS-PHASE tags so the
@@ -987,6 +999,14 @@ test -f "$GATE" || { echo "Missing hook: hooks/dev-flow-tmux-gate.sh"; exit 1; }
 test -x "$GATE" || { echo "Hook not executable: hooks/dev-flow-tmux-gate.sh"; exit 1; }
 grep -q "dev-flow-tmux-gate.sh" "$PLUGIN_DIR/hooks/hooks.json" \
   || { echo "hooks.json does not register dev-flow-tmux-gate.sh"; exit 1; }
+for prompt in "/claude-tech-squad:mini-squad" "/claude-tech-squad:discovery" "/claude-tech-squad:implement" "/claude-tech-squad:squad"; do
+  if ! printf '{"prompt":"%s"}\n' "$prompt" | bash "$GATE" >/tmp/cts-dev-flow-gate.out 2>/tmp/cts-dev-flow-gate.err; then
+    echo "dev-flow-tmux-gate.sh must not block $prompt"
+    cat /tmp/cts-dev-flow-gate.err
+    exit 1
+  fi
+done
+rm -f /tmp/cts-dev-flow-gate.out /tmp/cts-dev-flow-gate.err
 
 # ── M4: bypass-pattern lint ─────────────────────────────────────────────
 # Forbidden phrases that, if present in any SKILL.md, indicate a silent

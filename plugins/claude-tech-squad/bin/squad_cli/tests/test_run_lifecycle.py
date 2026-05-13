@@ -1,4 +1,6 @@
 import json
+import os
+import subprocess
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -115,6 +117,11 @@ def test_run_lifecycle_records_complete_governance_flow(tmp_path):
     )
     assert spawn["status"] == "recorded"
     assert "language_policy.spawn_prompt_preamble" in spawn["prompt_requirements"]
+    assert "POLITICA DE IDIOMA:" in spawn["spawn_prompt"]
+    assert "worktree_path: /tmp/cts-reviewer" in spawn["spawn_prompt"]
+    assert "branch: cts/implement/reviewer-1" in spawn["spawn_prompt"]
+    assert "base_commit: abc123" in spawn["spawn_prompt"]
+    assert "Use portugues do Brasil" in spawn["spawn_prompt"]
 
     done = invoke(
         [
@@ -246,6 +253,8 @@ def test_run_spawn_can_auto_create_worktree(tmp_path, monkeypatch):
         worktree_path="",
         branch="",
         base_commit="",
+        skill_branch="cts/skill/implement-1",
+        peers=["tdd-specialist"],
         auto_create_worktree=True,
         plugin_root=plugin_root,
     )
@@ -253,4 +262,62 @@ def test_run_spawn_can_auto_create_worktree(tmp_path, monkeypatch):
     assert run.worktrees[0].worktree_path == "/tmp/cts-reviewer"
     assert run.worktrees[0].branch == "cts/implement/reviewer-1"
     assert run.worktrees[0].base_commit == "abc123"
+    assert run.worktrees[0].skill_branch == "cts/skill/implement-1"
+    assert run.worktrees[0].peers == ["tdd-specialist"]
+    assert "skill_branch: cts/skill/implement-1" in run.worktrees[0].spawn_prompt
+    assert "- tdd-specialist" in run.worktrees[0].spawn_prompt
     assert any(item["name"] == "spawn-agent-worktree" for item in run.helper_executions)
+
+
+def test_dev_flow_tmux_gate_is_non_blocking_for_core_flows():
+    hook = Path("plugins/claude-tech-squad/hooks/dev-flow-tmux-gate.sh")
+    prompts = [
+        "/claude-tech-squad:mini-squad entregar feature pequena",
+        "/claude-tech-squad:discovery planejar feature",
+        "/claude-tech-squad:implement",
+        "/claude-tech-squad:squad entregar feature completa",
+    ]
+
+    for prompt in prompts:
+        result = subprocess.run(
+            ["bash", str(hook)],
+            input=json.dumps({"prompt": prompt}),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "Reinicializar" not in result.stderr
+        assert "Continuar inline" not in result.stderr
+
+
+def test_detect_team_mode_stays_inline_outside_tmux(tmp_path):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    (bin_dir / "claude").write_text("#!/usr/bin/env bash\nprintf '2.1.32\\n'\n")
+    (bin_dir / "tmux").write_text("#!/usr/bin/env bash\nexit 0\n")
+    (bin_dir / "claude").chmod(0o755)
+    (bin_dir / "tmux").chmod(0o755)
+
+    env = os.environ.copy()
+    env.update(
+        {
+            "PATH": f"{bin_dir}:{env['PATH']}",
+            "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+            "CLAUDE_CODE_TEAMMATE_MODE": "tmux",
+        }
+    )
+    env.pop("TMUX", None)
+    hook = Path("plugins/claude-tech-squad/bin/detect-team-mode.sh")
+    result = subprocess.run(
+        ["/usr/bin/bash", str(hook)],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.startswith("mode=inline ")
+    assert "tmux=1" in result.stdout
+    assert "inside_tmux=0" in result.stdout

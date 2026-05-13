@@ -57,7 +57,6 @@ Operator may override with explicit `--allow-risky` flag — record reason in SE
 Emit:
 - `[Preflight Start] mini-squad`
 - `[Team Mode Resolved] mode=<teammate|inline> | tmux=<bool> | inside_tmux=<bool> | flag=<bool> | version=<x.y.z>`
-- `[Tmux Auto-Launch] session=<...> | host_terminal=<...>` (when applicable)
 - `[Stack Detected] <stack> | dev=<agent> | reviewer=<agent>`
 - `[Scope Guard] PASS | files=<count> | risky_patterns=0` or `[Scope Too Risky] reason=<...>`
 - `[Team Created] mini-squad-team` (teammate mode only)
@@ -308,7 +307,7 @@ bash ${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh
 
 Parse output: `mode`, `tmux`, `inside_tmux`, `flag`, `version`. Emit `[Team Mode Resolved] ...`.
 
-If `mode=teammate` and `inside_tmux=0`: auto-launch tmux session per `runtime-policy.yaml::agent_teams.auto_launch_tmux`.
+If `mode=inline`, continue inline. Do not ask the user to relaunch in tmux.
 
 ### Step 2 — Scope Guard
 

@@ -97,10 +97,10 @@ bash scripts/dogfood-report.sh
 **Inter-Teammate Cross-Talk Protocol** — every skill listed in `agent_teams.cross_talk_protocol.required_for_skills` must declare `## Inter-Teammate Cross-Talk Protocol` in its SKILL.md, enumerate `Required pairs`, reference `SendMessage`, and define `cross-talk-missing` as a Teammate Failure reason. Teammates communicate **directly with each other**, not only through the lead.
 
 **Mode resolution at preflight** — `bin/detect-team-mode.sh` runs before TeamCreate and prints `mode=<teammate|inline> tmux=<0|1> inside_tmux=<0|1> flag=<0|1> version=<x.y.z>`.
-- **teammate mode** (preferred) — fires when tmux binary present, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, Claude Code ≥ 2.1.32. If `inside_tmux=0`, the orchestrator auto-launches a detached session `cts-<skill>-<epoch>` and re-attaches the lead before TeamCreate, making tmux UX independent of the host terminal (plain bash, VS Code terminal, Windows Terminal, Ghostty, etc.).
-- **inline mode** (fallback) — fires when any prerequisite is missing. Lead spawns inline `Agent(subagent_type=...)` in the main session. Cross-talk gate is **downgraded to warning-only** (`enforcement_by_mode.inline: warning`); pipeline continues.
+- **inline mode** (default) — fires when any teammate prerequisite is missing or the user has not started Claude Code inside tmux with teammate env flags. Lead spawns inline `Agent(subagent_type=...)` in the main session. Cross-talk gate is **downgraded to warning-only** (`enforcement_by_mode.inline: warning`); pipeline continues.
+- **teammate mode** (opt-in) — fires only when tmux binary is present, Claude Code is already inside tmux, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, `CLAUDE_CODE_TEAMMATE_MODE=tmux`, and Claude Code ≥ 2.1.32.
 
-Operator visibility: every skill emits `[Team Mode Resolved] mode=<...> | tmux=<...> | inside_tmux=<...> | flag=<...> | version=<...>` and, on auto-launch, `[Tmux Auto-Launch] session=<...> | host_terminal=<...>`.
+Operator visibility: every skill emits `[Team Mode Resolved] mode=<...> | tmux=<...> | inside_tmux=<...> | flag=<...> | version=<...>`.
 
 **Harness Engineering enforcement** — validate.sh runs 39 checks including:
 - Self-Verification Protocol in all 81 agents
@@ -200,7 +200,7 @@ Public operator surface is grouped in tiers. Keep this grouping aligned with
 | Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` |
 | Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` |
 
-Dev-flow skills are mode-aware. The preferred mode is `teammate` when Agent Teams/tmux prerequisites are available; otherwise `detect-team-mode.sh` resolves `mode=inline` and the run remains valid. Inline mode is a supported fallback, not a silent bypass. Preserve gates, SEP logging, pt-BR language policy, worktree isolation for `Agent(...)` spawns, and cross-talk auditing according to `runtime-policy.yaml`.
+Dev-flow skills are mode-aware. The default mode is `inline`; `teammate` mode is opt-in when Claude Code is already running inside tmux with Agent Teams enabled. Inline mode is a supported path, not a silent bypass. Preserve gates, SEP logging, pt-BR language policy, worktree isolation for `Agent(...)` spawns, and cross-talk auditing according to `runtime-policy.yaml`.
 
 | Skill | Inline allowed? | Rationale |
 |---|---|---|

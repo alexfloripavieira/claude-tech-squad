@@ -430,7 +430,7 @@ agent_teams:
     preflight by ${CLAUDE_PLUGIN_ROOT}/bin/detect-team-mode.sh.
   enabled: true
   hard_requirement: false
-  preferred_mode: teammate
+  preferred_mode: inline
   required_env:
     CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
   required_claude_code_version: "2.1.32"
@@ -441,42 +441,37 @@ agent_teams:
     checks:
       tmux_binary: "command -v tmux >/dev/null 2>&1"
       inside_tmux: "[ -n \"${TMUX:-}\" ]"
-      agent_teams_env_flag: "[ \"${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}\" = \"1\" ]"
+      agent_teams_env_flag: "[ \"${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}\" = \"1\" ] && [ \"${CLAUDE_CODE_TEAMMATE_MODE:-}\" = \"tmux\" ]"
       claude_code_version: "claude --version 2>/dev/null | awk '{print $1}'"
     emit_line: "[Team Mode Resolved] mode=<teammate|inline> | tmux=<bool> | inside_tmux=<bool> | flag=<bool> | version=<x.y.z>"
   mode_resolution:
     teammate:
-      when: "tmux_binary == true AND agent_teams_env_flag == true AND claude_code_version >= 2.1.32"
+      when: "tmux_binary == true AND inside_tmux == true AND agent_teams_env_flag == true AND claude_code_version >= 2.1.32"
       action: >
-        If `inside_tmux == false`, auto-launch detached tmux session
-        and re-attach the lead before TeamCreate. If `inside_tmux ==
-        true`, reuse the current session.
+        Reuse the current tmux session. Teammate mode is opt-in; the
+        runtime does not move the lead into tmux automatically.
     inline:
-      when: "tmux_binary == false OR agent_teams_env_flag == false OR claude_code_version < 2.1.32"
+      when: "tmux_binary == false OR inside_tmux == false OR agent_teams_env_flag == false OR claude_code_version < 2.1.32"
       action: >
         Fall back to inline `Agent(subagent_type=...)` spawns in the
         main session. Cross-talk protocol degrades to "log-only": the
         lead simulates mailbox in the SEP log but does NOT block on
         missing pairs.
       operator_warning: >
-        [Team Mode] inline | reason=<missing_dependency> | tmux upgrade
-        recommended: install tmux + `export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
-        + Claude Code >= 2.1.32. The pipeline will run, but multi-pane
-        visibility and adversarial cross-talk gates are downgraded.
+        [Team Mode] inline | reason=<missing_dependency_or_not_opted_in>.
+        The pipeline will run; multi-pane visibility and adversarial
+        cross-talk gates are downgraded.
   auto_launch_tmux:
-    enabled: true
+    enabled: false
     description: >
-      When tmux binary is present but the lead is NOT already inside a
-      tmux session (host terminal is plain bash, VS Code terminal,
-      Windows Terminal, Ghostty, etc.), the plugin creates a fresh
-      detached session and re-attaches the lead inside it before
-      TeamCreate. This makes the tmux experience independent of the
-      host terminal.
+      Disabled by default. The plugin no longer moves the lead into tmux
+      automatically; users who want panes start Claude Code inside tmux
+      with teammate env flags before invoking a skill.
     session_name_template: "cts-{{skill}}-{{epoch}}"
     create_command: "tmux new-session -d -s {{session_name}} -x 220 -y 50"
     attach_command: "tmux switch-client -t {{session_name}} 2>/dev/null || tmux attach-session -t {{session_name}}"
     cleanup_on_team_delete: true
-    operator_emit: "[Tmux Auto-Launch] session={{session_name}} | host_terminal={{host}}"
+    operator_emit: "[Team Mode] teammate | session=current"
   team_size:
     default_min: 3
     default_max: 5

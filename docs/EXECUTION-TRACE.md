@@ -14,7 +14,7 @@ Agents run as subagents inside the same Claude session. Visibility comes from pr
 
 ### Teammate mode (tmux panes)
 
-Each specialist spawns as an independent Claude Code instance in its own tmux pane. Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and `CLAUDE_CODE_TEAMMATE_MODE=tmux` in `~/.claude/settings.json`, and Claude Code started inside a tmux session.
+Each specialist spawns as an independent Claude Code instance in its own tmux pane. This is opt-in and requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and `CLAUDE_CODE_TEAMMATE_MODE=tmux` in `~/.claude/settings.json`, and Claude Code started inside a tmux session.
 
 See [GETTING-STARTED.md](GETTING-STARTED.md) for setup instructions.
 
@@ -206,7 +206,7 @@ These patterns mean the run did not execute as intended:
 - The output claims a specialist reviewed something but gives no role-specific summary
 - Specialist outputs do not include `result_contract` or `verification_checklist`
 - A resumed run starts from the beginning with no `[Resume From]` line even though a checkpoint exists
-- In teammate mode: no tmux panes open (Claude Code not started inside tmux, or env vars missing)
+- In teammate mode: no tmux panes open (Claude Code not started inside tmux, or env vars missing); inline mode remains valid
 - A `[Doom Loop Detected]` line appears more than once per run for the same agent — the fallback matrix may need updating
 - No `[SEP Log Written]` at the end of a run — the execution log was lost
 - `[Cost Warning]` appears at the start of the run — the token budget is too low for this skill
@@ -219,7 +219,7 @@ These patterns mean the run did not execute as intended:
 2. Re-run with an explicit request for visible execution lines and `Agent Execution Log`.
 3. Start with `/claude-tech-squad:discovery` for a small request before using `/claude-tech-squad:squad`.
 4. If Jira, Confluence, or another external dependency is part of the task, confirm access is available.
-5. If teammate mode panes are not opening: confirm tmux session is active, env vars are set, and Claude Code was started inside tmux.
+5. If teammate mode panes are not opening: confirm tmux session is active, env vars are set, and Claude Code was started inside tmux. Otherwise continue in inline mode.
 6. If the trace is still missing, inspect the installed plugin version with `claude plugin list`.
 
 ---

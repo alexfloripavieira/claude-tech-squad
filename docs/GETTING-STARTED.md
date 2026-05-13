@@ -81,9 +81,9 @@ claude plugin install -s local claude-tech-squad@alexfloripavieira-plugins
 
 ---
 
-## Teammate Mode — Each Specialist in Its Own Pane
+## Teammate Mode — Optional Panes
 
-By default, agents run as inline subagents — one after another inside the same Claude session. With teammate mode enabled, each specialist spawns as an independent Claude Code instance in a separate tmux pane.
+By default, agents run as inline subagents in the same Claude session. With teammate mode enabled, each specialist spawns as an independent Claude Code instance in a separate tmux pane. The plugin does not stop at startup to ask for tmux; preflight resolves the mode automatically.
 
 ### Requirements
 
@@ -149,7 +149,7 @@ Each pane shows the specialist working independently. The orchestrator (your mai
 
 ### Without tmux
 
-If you run the commands without tmux mode, the workflows still work correctly — agents run inline as subagents. You get the same outputs and gates, but no separate panes.
+If you run the commands without tmux mode, the workflows still work correctly — agents run inline as subagents. You get the same outputs and gates, but no separate panes and no manual tmux gate.
 
 ### SEP logs in teammate mode
 
@@ -539,7 +539,7 @@ claude plugin list
 
 ### 2. Agents run inline instead of separate tmux panes
 
-**Cause:** `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` or `CLAUDE_CODE_TEAMMATE_MODE` not set, or Claude Code was not started inside a tmux session.
+**Cause:** teammate mode is opt-in. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` or `CLAUDE_CODE_TEAMMATE_MODE` is not set, or Claude Code was not started inside a tmux session.
 
 **Fix — step 1:** Confirm the env vars are in `~/.claude/settings.json`:
 

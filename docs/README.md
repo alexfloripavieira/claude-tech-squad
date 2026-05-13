@@ -56,4 +56,4 @@ This folder contains all operator and contributor documentation for `claude-tech
 
 ## Quick Reference
 
-The public surface is organized into Core setup, Core delivery, Core operations, Advanced review and audit, and Advanced AI, infra, and scale. The canonical tier map and quick path live in [PUBLIC-SURFACE.md](PUBLIC-SURFACE.md), which is generated from `plugins/claude-tech-squad/public-surface.json`.
+The public surface is organized into Core setup, Core delivery, Core operations, Advanced review and audit, and Advanced AI, infra, and scale. The canonical tier map and quick path live in [PUBLIC-SURFACE.md](PUBLIC-SURFACE.md), which is generated from `plugins/claude-tech-squad/public-surface.json`. Regenerate it with `python3 scripts/render-public-surface-docs.py --write`.

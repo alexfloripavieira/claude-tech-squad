@@ -618,6 +618,8 @@ def run_checkpoint(run_id: str, step: str, artifact: str, state_dir: str):
 @click.option("--worktree-path", default="")
 @click.option("--branch", default="")
 @click.option("--base-commit", default="")
+@click.option("--skill-branch", default="")
+@click.option("--peer", "peers", multiple=True)
 @click.option("--auto-worktree/--manual-worktree", default=True)
 @click.option("--state-dir", default=".squad-state", type=click.Path())
 def run_spawn(
@@ -627,6 +629,8 @@ def run_spawn(
     worktree_path: str,
     branch: str,
     base_commit: str,
+    skill_branch: str,
+    peers: tuple[str, ...],
     auto_worktree: bool,
     state_dir: str,
 ):
@@ -640,9 +644,12 @@ def run_spawn(
         worktree_path=worktree_path,
         branch=branch,
         base_commit=base_commit,
+        skill_branch=skill_branch,
+        peers=list(peers),
         auto_create_worktree=auto_worktree,
         plugin_root=Path("plugins/claude-tech-squad"),
     )
+    worktree = run.worktrees[-1] if run.worktrees else None
     _output(
         {
             "status": "recorded",
@@ -650,9 +657,12 @@ def run_spawn(
             "agent": agent,
             "prompt_requirements": prompt_requirements(),
             "auto_worktree": auto_worktree,
-            "worktree_path": run.worktrees[-1].worktree_path if run.worktrees else worktree_path,
-            "branch": run.worktrees[-1].branch if run.worktrees else branch,
-            "base_commit": run.worktrees[-1].base_commit if run.worktrees else base_commit,
+            "worktree_path": worktree.worktree_path if worktree else worktree_path,
+            "branch": worktree.branch if worktree else branch,
+            "base_commit": worktree.base_commit if worktree else base_commit,
+            "skill_branch": worktree.skill_branch if worktree else skill_branch,
+            "peers": worktree.peers if worktree else list(peers),
+            "spawn_prompt": worktree.spawn_prompt if worktree else "",
         }
     )
 

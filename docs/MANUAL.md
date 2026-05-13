@@ -118,9 +118,9 @@ All skills work without squad-cli. The LLM falls back to executing the same logi
 
 ---
 
-## 4. Teammate Mode — tmux pane per agent
+## 4. Teammate Mode — optional tmux pane per agent
 
-By default, agents run as inline subagents in the same Claude session. With teammate mode active, each specialist opens in its own tmux pane — one independent Claude Code instance per agent.
+By default, agents run as inline subagents in the same Claude session. With teammate mode active, each specialist opens in its own tmux pane — one independent Claude Code instance per agent. The plugin no longer stops at startup to ask for tmux; preflight resolves the mode automatically.
 
 ### Configuration
 
@@ -154,7 +154,7 @@ With teammate mode active, each `/discovery`, `/implement`, and `/squad`:
 3. Each specialist opens in its own pane
 4. The orchestrator coordinates and presents gates
 
-Without tmux mode, the same workflows run correctly as inline subagents — same outputs, same gates, no visual panes.
+Without tmux mode, the same workflows run correctly as inline subagents — same outputs, same gates, no visual panes, no manual tmux prompt.
 
 ---
 

@@ -105,7 +105,7 @@ After every `[Teammate Done]`, `[Teammate Retry]`, or `[Fallback Invoked]`, the 
 Executed before any agent is spawned. Detects execution context and emits `[Preflight Passed]`.
 
 The preflight must detect and report:
-- `execution_mode`: `inline` (default) or `tmux` (when `CLAUDE_CODE_TEAMMATE_MODE=tmux`)
+- `execution_mode`: `inline` (default) or `tmux` (when Claude Code is already inside tmux with `CLAUDE_CODE_TEAMMATE_MODE=tmux`)
 - `architecture_style`: detected from the repository structure (`layered`, `hexagonal`, `microservices`, or `repo-native`)
 - `lint_profile`: detected from config files present in the repo (e.g., `eslint,prettier`, `ruff,mypy`)
 - `docs_lookup_mode`: `context7` if the MCP is available, `repo-fallback` otherwise

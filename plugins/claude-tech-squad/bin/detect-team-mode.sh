@@ -15,8 +15,8 @@
 #   - tmux binary missing                  -> mode=inline
 #   - CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS != 1 -> mode=inline
 #   - claude --version < 2.1.32            -> mode=inline
-#   - tmux present but $TMUX empty          -> mode=teammate, auto-launch required
-#   - tmux present and inside session       -> mode=teammate, reuse session
+#   - tmux present but $TMUX empty          -> mode=inline
+#   - tmux present and inside session with both flags -> mode=teammate
 
 set -u
 
@@ -36,7 +36,7 @@ else
   INSIDE_TMUX=0
 fi
 
-if [ "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}" = "1" ]; then
+if [ "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}" = "1" ] && [ "${CLAUDE_CODE_TEAMMATE_MODE:-}" = "tmux" ]; then
   FLAG=1
 else
   FLAG=0
@@ -62,7 +62,7 @@ if [ "$VERSION" != "unknown" ]; then
   fi
 fi
 
-if [ "$TMUX_BINARY" = "1" ] && [ "$FLAG" = "1" ] && [ "$VERSION_OK" = "1" ]; then
+if [ "$TMUX_BINARY" = "1" ] && [ "$INSIDE_TMUX" = "1" ] && [ "$FLAG" = "1" ] && [ "$VERSION_OK" = "1" ]; then
   MODE="teammate"
 else
   MODE="inline"

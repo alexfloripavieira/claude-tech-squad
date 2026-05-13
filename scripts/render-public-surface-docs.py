@@ -103,7 +103,7 @@ def render_full_doc() -> str:
 def main() -> int:
     if len(sys.argv) != 2:
         sys.stderr.write(
-            "usage: render-public-surface-docs.py <table|daily-flow|quick-reference|full-doc>\n"
+            "usage: render-public-surface-docs.py <table|daily-flow|quick-reference|full-doc|--write>\n"
         )
         return 2
     mode = sys.argv[1]
@@ -115,6 +115,10 @@ def main() -> int:
         sys.stdout.write(render_quick_reference())
     elif mode == "full-doc":
         sys.stdout.write(render_full_doc())
+    elif mode == "--write":
+        target = ROOT / "docs" / "PUBLIC-SURFACE.md"
+        target.write_text(render_full_doc(), encoding="utf-8")
+        sys.stdout.write(f"wrote {target.relative_to(ROOT)}\n")
     else:
         sys.stderr.write(f"unknown mode: {mode}\n")
         return 2

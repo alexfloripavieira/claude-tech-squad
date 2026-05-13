@@ -176,7 +176,7 @@ SDK results expose `.to_dict()` and deterministic `.to_json()`. SDK-specific err
 
 ## Teammate Mode (tmux panes)
 
-By default, agents run inline as subagents. To make each specialist open in its own tmux pane, enable teammate mode.
+By default, agents run inline as subagents. To make each specialist open in its own tmux pane, opt into teammate mode.
 
 **Requires:**
 1. Starting Claude Code inside a tmux session
@@ -200,7 +200,7 @@ tmux new-session -s squad
 claude
 ```
 
-With teammate mode active, each `/discovery`, `/implement`, and `/squad` call creates a team and spawns every specialist in a separate pane. Without tmux mode, the same workflows run correctly as inline subagents.
+With teammate mode active, each `/discovery`, `/implement`, and `/squad` call creates a team and spawns every specialist in a separate pane. Without tmux mode, the same workflows run correctly as inline subagents and do not stop to ask for a tmux choice.
 
 ## Visible Orchestration
 

@@ -46,6 +46,9 @@ class GovernanceWorktree:
     worktree_path: str
     branch: str
     base_commit: str
+    skill_branch: str = ""
+    peers: list[str] = field(default_factory=list)
+    spawn_prompt: str = ""
     status: str = "spawned"
     confidence: str = ""
     tokens_in: int = 0
@@ -215,10 +218,13 @@ def record_spawn(
     worktree_path: str,
     branch: str,
     base_commit: str,
+    skill_branch: str = "",
+    peers: list[str] | None = None,
     auto_create_worktree: bool = False,
     plugin_root: Path | None = None,
 ) -> GovernanceRun:
     run = load_run(state_dir, run_id)
+    resolved_peers = peers or []
     if auto_create_worktree and (not worktree_path or not branch or not base_commit):
         if plugin_root is None:
             raise ValueError("plugin_root is required when auto_create_worktree is enabled")
@@ -240,13 +246,36 @@ def record_spawn(
         base_commit = base_commit or parsed.get("base", "")
         run.helper_executions.append(spawn_result)
         run.helper_commands["spawn_auto"] = "bash plugins/claude-tech-squad/bin/spawn-agent-worktree.sh <skill> <agent> <run_id>"
+    if not skill_branch and plugin_root is not None:
+        branch_result = run_helper(
+            name="current-skill-branch",
+            command=["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=plugin_root,
+            allow_failure=True,
+        )
+        if branch_result["exit_code"] == 0:
+            skill_branch = branch_result["stdout"].strip()
+        run.helper_executions.append(branch_result)
     existing = _find_worktree(run, agent)
+    spawn_prompt = build_spawn_prompt(
+        run=run,
+        agent=agent,
+        subagent_type=subagent_type,
+        skill_branch=skill_branch,
+        worktree_path=worktree_path,
+        branch=branch,
+        base_commit=base_commit,
+        peers=resolved_peers,
+    )
     worktree = GovernanceWorktree(
         agent=agent,
         subagent_type=subagent_type,
         worktree_path=worktree_path,
         branch=branch,
         base_commit=base_commit,
+        skill_branch=skill_branch,
+        peers=resolved_peers,
+        spawn_prompt=spawn_prompt,
     )
     if existing is None:
         run.worktrees.append(worktree)
@@ -255,6 +284,52 @@ def record_spawn(
     _add_phase(run, "agent-spawned")
     run.save(state_dir)
     return run
+
+
+def build_spawn_prompt(
+    *,
+    run: GovernanceRun,
+    agent: str,
+    subagent_type: str,
+    skill_branch: str,
+    worktree_path: str,
+    branch: str,
+    base_commit: str,
+    peers: list[str],
+) -> str:
+    peer_lines = "\n".join(f"- {peer}" for peer in peers) if peers else "- none"
+    return "\n".join(
+        [
+            "POLITICA DE IDIOMA:",
+            "Use portugues do Brasil (pt-BR) em toda comunicacao natural com o lead, com outros agentes e no result_contract.",
+            "Mantenha codigo, comandos, caminhos, identificadores, chaves YAML/JSON e mensagens de commit em ingles quando fizer sentido tecnico.",
+            "",
+            "CONTEXTO DE GOVERNANCA:",
+            f"run_id: {run.run_id}",
+            f"skill: {run.skill}",
+            f"task: {run.task}",
+            f"agent: {agent}",
+            f"subagent_type: {subagent_type}",
+            f"execution_mode: {run.execution_mode}",
+            "",
+            "WORKTREE:",
+            f"skill_branch: {skill_branch}",
+            f"worktree_path: {worktree_path}",
+            f"branch: {branch}",
+            f"base_commit: {base_commit}",
+            "instruction: cd into worktree_path before any Read/Edit/Write/Bash. Keep all file changes inside that worktree. Do not edit the lead checkout.",
+            "",
+            "PEERS:",
+            peer_lines,
+            "",
+            "CROSS-TALK:",
+            "Fale diretamente com os peers quando houver dependencia de entendimento, teste, contrato ou revisao. Use pt-BR nessas mensagens.",
+            "Se precisar entregar arquivos entre worktrees, envie from_branch, commit_sha e file_paths para o peer.",
+            "",
+            "RESULTADO:",
+            "Retorne result_contract e verification_checklist. Inclua evidencias objetivas de testes, arquivos tocados, bloqueios e proxima acao.",
+        ]
+    )
 
 
 def record_agent_done(
