@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.72.0] - 2026-05-13 — Automated feature release
+
+### Added
+
+- Execute governance helpers in squad run
 ## [5.71.1] - 2026-05-13 — Automated maintenance release
 
 ### Changed
