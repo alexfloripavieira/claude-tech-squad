@@ -80,6 +80,7 @@ class GovernanceRun:
     helper_executions: list[dict[str, Any]] = field(default_factory=list)
     resolved_team_mode: str = ""
     sep_validation: dict[str, Any] = field(default_factory=dict)
+    sep_log_path: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -414,6 +415,7 @@ def finish_run(
     _add_phase(run, "run-finish")
     run.save(state_dir)
     sep_path = write_sep_log(run, log_dir)
+    run.sep_log_path = str(sep_path)
     validation = run_helper(
         name="validate-sep-log",
         command=["python3", str(Path(__file__).resolve().parents[1] / "validate-sep-log.py"), str(sep_path)],
@@ -472,14 +474,14 @@ def report_run(*, state_dir: Path, run_id: str) -> dict[str, Any]:
         "quick_start": run.quick_start,
         "resolved_team_mode": run.resolved_team_mode,
         "sep_validation": run.sep_validation,
+        "sep_log_path": run.sep_log_path,
         "helper_executions": run.helper_executions,
     }
 
 
 def write_sep_log(run: GovernanceRun, log_dir: Path) -> Path:
     log_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
-    path = log_dir / f"{timestamp}-{run.skill}-{run.run_id}.md"
+    path = _sep_log_path(run, log_dir)
     tokens_in = sum(worktree.tokens_in for worktree in run.worktrees)
     tokens_out = sum(worktree.tokens_out for worktree in run.worktrees)
     cost_usd = round((tokens_in * 15 + tokens_out * 75) / 1_000_000, 4)
@@ -553,6 +555,28 @@ def write_sep_log(run: GovernanceRun, log_dir: Path) -> Path:
     )
     path.write_text("\n".join(lines))
     return path
+
+
+def _sep_log_path(run: GovernanceRun, log_dir: Path) -> Path:
+    if run.sep_log_path:
+        return Path(run.sep_log_path)
+    return log_dir / sep_log_filename(run)
+
+
+def sep_log_filename(run: GovernanceRun) -> str:
+    timestamp = _compact_utc_timestamp(run.started_at)
+    return f"{timestamp}-{run.skill}-{run.run_id}.md"
+
+
+def _compact_utc_timestamp(value: str) -> str:
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        parsed = datetime.now(timezone.utc)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    parsed = parsed.astimezone(timezone.utc)
+    return parsed.strftime("%Y%m%dT%H%M%SZ")
 
 
 def prompt_requirements() -> list[str]:

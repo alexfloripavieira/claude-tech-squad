@@ -55,7 +55,10 @@ O runtime de governança automática vive em
 - `squad-cli run report --run-id <id>` retorna um resumo JSON auditável.
 
 O estado fica em `<state-dir>/<run_id>.run.json`. O SEP log fica no diretório
-passado por `--log-dir`, por padrão `ai-docs/.squad-log`.
+passado por `--log-dir`, por padrão `ai-docs/.squad-log`, com nome canônico
+`YYYYMMDDTHHMMSSZ-<skill>-<run_id>.md`. O timestamp vem do `run start`, então
+`run finish` é idempotente: chamadas repetidas atualizam o mesmo arquivo em vez
+de criar duplicatas.
 
 ## Safety Gates
 

@@ -302,7 +302,7 @@ This phase runs ONCE PER AGENT SPAWN (including timed-out spawns) and is non-ski
 
 ### Phase C.5 — SEP Log Commit (CTS-PHASE: sep-commit)
 
-After the SEP log file is written under `ai-docs/.squad-log/<skill>-<timestamp>.md`
+After the SEP log file is written under `ai-docs/.squad-log/{{YYYYMMDDTHHMMSSZ}}-<skill>-{{run_id}}.md`
 and BEFORE Phase D finalize, the lead MUST commit it on the skill branch.
 Without this commit, finalize-skill.sh will see a dirty main worktree and
 abort. The skill-active-guard hook is wired to allow these specific git
@@ -535,7 +535,8 @@ Emit `[Team Deleted] mini-squad-team | cleanup complete`.
 
 ### Step 10 — Write SEP Log
 
-Append a new SEP log to `ai-docs/.squad-log/mini-squad-<timestamp>.md`:
+Write or update the canonical SEP log at `ai-docs/.squad-log/{{YYYYMMDDTHHMMSSZ}}-mini-squad-{{run_id}}.md`.
+The path is deterministic for the run: repeated `squad-cli run finish` calls MUST reuse the same file, not create timestamp duplicates.
 
 ```yaml
 skill: mini-squad
@@ -574,7 +575,7 @@ checkpoints_completed: [scope-guard-passed, tdd-locked, dev-implemented, test-ga
 
 Increment `ai-docs/.squad-log/.retro-counter` by 1.
 
-Emit `[SEP Log Written] ai-docs/.squad-log/mini-squad-<timestamp>.md`.
+Emit `[SEP Log Written] ai-docs/.squad-log/{{YYYYMMDDTHHMMSSZ}}-mini-squad-{{run_id}}.md`.
 
 ## Output
 

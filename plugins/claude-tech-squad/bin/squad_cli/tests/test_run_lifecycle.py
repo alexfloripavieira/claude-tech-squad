@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -165,6 +166,7 @@ def test_run_lifecycle_records_complete_governance_flow(tmp_path):
     )
     assert finished["status"] == "finished"
     assert Path(finished["sep_log"]).exists()
+    assert re.match(r"^\d{8}T\d{6}Z-implement-implement-[0-9a-f]{8}\.md$", Path(finished["sep_log"]).name)
     assert finished["sep_validation"]["status"] == "passed"
 
     report = invoke(
@@ -190,6 +192,23 @@ def test_run_lifecycle_records_complete_governance_flow(tmp_path):
     assert "language_policy_applied: pt-BR" in sep_text
     assert "cts_phases_completed:" in sep_text
     assert "worktrees:" in sep_text
+
+    finished_again = invoke(
+        [
+            "run",
+            "finish",
+            "--run-id",
+            run_id,
+            "--status",
+            "passed",
+            "--state-dir",
+            str(state_dir),
+            "--log-dir",
+            str(log_dir),
+        ]
+    )
+    assert finished_again["sep_log"] == finished["sep_log"]
+    assert len(list(log_dir.glob("*-implement-*.md"))) == 1
 
 
 def test_run_start_can_emit_helper_commands_for_full_runtime(tmp_path):
@@ -323,6 +342,59 @@ def test_detect_team_mode_stays_inline_outside_tmux(tmp_path):
     assert "inside_tmux=0" in result.stdout
 
 
+def test_mini_squad_smoke_stays_inline_with_tmux_installed_outside_session(tmp_path, monkeypatch):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    (bin_dir / "claude").write_text("#!/usr/bin/env bash\nprintf '2.1.140\\n'\n")
+    (bin_dir / "tmux").write_text("#!/usr/bin/env bash\nexit 0\n")
+    (bin_dir / "claude").chmod(0o755)
+    (bin_dir / "tmux").chmod(0o755)
+
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.delenv("TMUX", raising=False)
+    monkeypatch.delenv("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS", raising=False)
+    monkeypatch.delenv("CLAUDE_CODE_TEAMMATE_MODE", raising=False)
+
+    hook = Path("plugins/claude-tech-squad/hooks/dev-flow-tmux-gate.sh")
+    hook_result = subprocess.run(
+        ["bash", str(hook)],
+        input=json.dumps({"prompt": "/claude-tech-squad:mini-squad smoke"}),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert hook_result.returncode == 0, hook_result.stderr
+    assert "Reinicializar" not in hook_result.stderr
+    assert "Continuar inline" not in hook_result.stderr
+
+    started = invoke(
+        [
+            "run",
+            "start",
+            "--skill",
+            "mini-squad",
+            "--task",
+            "smoke inline sem tmux",
+            "--run-id",
+            "mini-smoke",
+            "--state-dir",
+            str(tmp_path / "state"),
+            "--log-dir",
+            str(tmp_path / "logs"),
+            "--execution-mode",
+            "auto",
+        ]
+    )
+
+    assert started["execution_mode"] == "inline"
+    assert started["resolved_team_mode"] == "inline"
+    assert started["sep_log_path"].endswith("Z-mini-squad-mini-smoke.md")
+    mode_helper = started["helper_executions"][0]["stdout"]
+    assert "mode=inline" in mode_helper
+    assert "tmux=1" in mode_helper
+    assert "inside_tmux=0" in mode_helper
+
+
 def test_run_mode_reports_inline_reason():
     output = invoke(["run", "mode"])
 
@@ -434,6 +506,7 @@ def test_mini_squad_e2e_governance_flow_without_agents(tmp_path):
         ]
     )
     assert finished["sep_validation"]["status"] == "passed"
+    assert re.match(r"^\d{8}T\d{6}Z-mini-squad-mini-e2e\.md$", Path(finished["sep_log"]).name)
     sep_text = Path(finished["sep_log"]).read_text()
     assert "skill: mini-squad" in sep_text
     assert "mode=inline" not in sep_text

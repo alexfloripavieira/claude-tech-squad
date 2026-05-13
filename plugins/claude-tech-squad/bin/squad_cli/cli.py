@@ -524,7 +524,7 @@ def run_start(
     execution_mode: str,
     plugin_root: str,
 ):
-    from squad_cli.run_lifecycle import start_run
+    from squad_cli.run_lifecycle import sep_log_filename, start_run
 
     run, path = start_run(
         skill=skill,
@@ -548,6 +548,7 @@ def run_start(
             "helper_commands": run.helper_commands,
             "resolved_team_mode": run.resolved_team_mode,
             "helper_executions": run.helper_executions,
+            "sep_log_path": str(Path(log_dir) / sep_log_filename(run)),
         }
     )
 
