@@ -546,6 +546,8 @@ def run_start(
             "execution_mode": run.execution_mode,
             "language_policy_applied": run.language_policy_applied,
             "helper_commands": run.helper_commands,
+            "resolved_team_mode": run.resolved_team_mode,
+            "helper_executions": run.helper_executions,
         }
     )
 
@@ -710,6 +712,7 @@ def run_finish(run_id: str, status: str, state_dir: str, log_dir: str):
             "run_id": run.run_id,
             "final_status": run.status,
             "sep_log": str(sep_log),
+            "sep_validation": run.sep_validation,
         }
     )
 

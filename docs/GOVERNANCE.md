@@ -29,9 +29,10 @@ O runtime de governança automática vive em
 `plugins/claude-tech-squad/bin/squad_cli/run_lifecycle.py` e é exposto pelo grupo
 `squad-cli run`:
 
-- `squad-cli run start --skill <skill> --task <tarefa>` cria o `run_id`, registra
-  `execution_mode`, aplica `language_policy_applied: pt-BR`, persiste o estado e
-  emite os helpers que devem ser usados pela execução.
+- `squad-cli run start --skill <skill> --task <tarefa>` cria o `run_id`,
+  executa `detect-team-mode.sh`, registra `execution_mode`, aplica
+  `language_policy_applied: pt-BR`, persiste o estado e emite os helpers que
+  devem ser usados pela execução.
 - `squad-cli run event --run-id <id> --type <tipo> --value <valor>` registra
   comandos, decisões e evidências operacionais.
 - `squad-cli run gate --run-id <id> --name <gate> --status <status>` registra
@@ -45,9 +46,10 @@ O runtime de governança automática vive em
 - `squad-cli run agent-done --run-id <id> --agent <nome> ...` fecha a
   participação do agente com status, confiança, tokens, merge e commits
   pendentes.
-- `squad-cli run finish --run-id <id> --status <status>` finaliza o estado e
+- `squad-cli run finish --run-id <id> --status <status>` finaliza o estado,
   escreve SEP log com `schema_version`, `worktrees`, `cts_phases_completed` e
-  `language_policy_applied: pt-BR`.
+  `language_policy_applied: pt-BR`, e valida automaticamente o SEP log com
+  `validate-sep-log.py`.
 - `squad-cli run report --run-id <id>` retorna um resumo JSON auditável.
 
 O estado fica em `<state-dir>/<run_id>.run.json`. O SEP log fica no diretório

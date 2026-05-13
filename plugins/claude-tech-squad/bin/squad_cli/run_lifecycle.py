@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -73,6 +74,9 @@ class GovernanceRun:
     worktrees: list[GovernanceWorktree] = field(default_factory=list)
     helper_commands: dict[str, str] = field(default_factory=dict)
     quick_start: list[str] = field(default_factory=list)
+    helper_executions: list[dict[str, Any]] = field(default_factory=list)
+    resolved_team_mode: str = ""
+    sep_validation: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -151,11 +155,24 @@ def start_run(
         skill=skill,
         task=task,
         policy_version=policy_version,
-        execution_mode=execution_mode,
         helper_commands=helper_commands(plugin_root, skill),
         quick_start=quick_start,
         cts_phases_completed=["run-start"],
     )
+    resolved_mode = execution_mode if execution_mode != "auto" else "inline"
+    detect_mode = plugin_root / "bin" / "detect-team-mode.sh"
+    helper_result = run_helper(
+        name="detect-team-mode",
+        command=["bash", str(detect_mode)],
+        cwd=plugin_root,
+        allow_failure=True,
+    )
+    run.helper_executions.append(helper_result)
+    parsed_mode = _parse_team_mode(helper_result.get("stdout", ""))
+    if parsed_mode:
+        resolved_mode = parsed_mode
+    run.execution_mode = resolved_mode
+    run.resolved_team_mode = resolved_mode
     return run, run.save(state_dir)
 
 
@@ -263,7 +280,21 @@ def finish_run(
     run.ended_at = now_iso()
     _add_phase(run, "run-finish")
     run.save(state_dir)
-    return run, write_sep_log(run, log_dir)
+    sep_path = write_sep_log(run, log_dir)
+    validation = run_helper(
+        name="validate-sep-log",
+        command=["python3", str(Path(__file__).resolve().parents[1] / "validate-sep-log.py"), str(sep_path)],
+        cwd=state_dir,
+        allow_failure=False,
+    )
+    run.helper_executions.append(validation)
+    run.sep_validation = {
+        "status": "passed" if validation["exit_code"] == 0 else "failed",
+        "command": validation["command"],
+        "output": validation["stdout"].strip(),
+    }
+    run.save(state_dir)
+    return run, sep_path
 
 
 def report_run(*, state_dir: Path, run_id: str) -> dict[str, Any]:
@@ -283,6 +314,9 @@ def report_run(*, state_dir: Path, run_id: str) -> dict[str, Any]:
         "cts_phases_completed": run.cts_phases_completed,
         "helper_commands": run.helper_commands,
         "quick_start": run.quick_start,
+        "resolved_team_mode": run.resolved_team_mode,
+        "sep_validation": run.sep_validation,
+        "helper_executions": run.helper_executions,
     }
 
 
@@ -378,6 +412,34 @@ def parse_bool(value: str) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "y", "sim"}
 
 
+def run_helper(
+    *,
+    name: str,
+    command: list[str],
+    cwd: Path,
+    allow_failure: bool,
+) -> dict[str, Any]:
+    completed = subprocess.run(
+        command,
+        cwd=str(cwd),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    result = {
+        "name": name,
+        "command": command,
+        "exit_code": completed.returncode,
+        "stdout": completed.stdout,
+        "stderr": completed.stderr,
+    }
+    if completed.returncode != 0 and not allow_failure:
+        raise RuntimeError(
+            f"helper {name} failed with exit code {completed.returncode}: {completed.stderr.strip()}"
+        )
+    return result
+
+
 def _add_phase(run: GovernanceRun, phase: str) -> None:
     if phase not in run.cts_phases_completed:
         run.cts_phases_completed.append(phase)
@@ -399,3 +461,13 @@ def _duration_ms(started_at: str, ended_at: str) -> int:
     except ValueError:
         return 0
     return max(0, int((end - start).total_seconds() * 1000))
+
+
+def _parse_team_mode(output: str) -> str:
+    for line in output.splitlines():
+        line = line.strip()
+        if line.startswith("mode="):
+            mode = line.split("=", 1)[1].strip()
+            if mode in {"inline", "teammate"}:
+                return mode
+    return ""

@@ -38,6 +38,8 @@ def test_run_lifecycle_records_complete_governance_flow(tmp_path):
     assert started["status"] == "started"
     assert started["language_policy_applied"] == "pt-BR"
     assert started["execution_mode"] == "inline"
+    assert started["resolved_team_mode"] == "inline"
+    assert started["helper_executions"][0]["name"] == "detect-team-mode"
     assert Path(started["state_file"]).exists()
 
     event = invoke(
@@ -155,6 +157,7 @@ def test_run_lifecycle_records_complete_governance_flow(tmp_path):
     )
     assert finished["status"] == "finished"
     assert Path(finished["sep_log"]).exists()
+    assert finished["sep_validation"]["status"] == "passed"
 
     report = invoke(
         [
@@ -172,6 +175,8 @@ def test_run_lifecycle_records_complete_governance_flow(tmp_path):
     assert report["gates_count"] == 1
     assert report["checkpoints"] == ["preflight-passed"]
     assert report["worktrees"][0]["agent"] == "reviewer"
+    assert report["resolved_team_mode"] == "inline"
+    assert report["sep_validation"]["status"] == "passed"
 
     sep_text = Path(finished["sep_log"]).read_text()
     assert "language_policy_applied: pt-BR" in sep_text
