@@ -60,29 +60,17 @@ For less common situations — refactor, security audit, migration, LLM eval, mu
 
 ## Public Skill Surface
 
-Most operators should live in the core surface below. Advanced skills stay
-available, but they are specialist tools for narrower situations.
-
-| Tier | Skills | Use when |
-|---|---|---|
-| Core setup | `/onboarding`, `/from-ticket`, `/cost-estimate`, `/dashboard` | Prepare a repo, route incoming work, estimate cost, or inspect run health. |
-| Core delivery | `/bug-fix`, `/mini-squad`, `/discovery`, `/inception`, `/implement`, `/squad` | Fix contained defects, deliver small features, plan, refine, build, or run the full pipeline. |
-| Core operations | `/hotfix`, `/cloud-debug`, `/incident-postmortem`, `/release`, `/rollover`, `/resume-from-rollover` | Handle production pressure, release work, incidents, and long-running session handoff. |
-| Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` | Run specialist reviews, audits, dependency checks, and structured remediation planning. |
-| Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` | Work on AI quality, database or infrastructure risk, distributed changes, repo automation, and process improvement. |
-
-The tier map above is mirrored from `plugins/claude-tech-squad/public-surface.json`.
-
-## Daily Flow
+The public surface is organized into Core setup, Core delivery, Core operations, Advanced review and audit, and Advanced AI, infra, and scale. The canonical tier map and daily flow now live in [docs/PUBLIC-SURFACE.md](docs/PUBLIC-SURFACE.md), which is generated from `plugins/claude-tech-squad/public-surface.json`.
 
 If you only want the short path:
 
-1. Start with `/onboarding` in a new repo.
-2. Use `/from-ticket` or `/cost-estimate` when you are not sure which workflow fits.
-3. Use `/bug-fix` for a contained defect and `/mini-squad` for a small feature.
-4. Use `/discovery` when the problem still needs shaping.
-5. Use `/implement` after the blueprint is approved.
-6. Use `/squad` when you want the full pipeline in one run.
+1. New repo: `/onboarding`
+2. Not sure where to start: `/from-ticket` or `/cost-estimate`
+3. Small defect: `/bug-fix`
+4. Small feature: `/mini-squad`
+5. Problem still needs shaping: `/discovery`
+6. Blueprint approved: `/implement`
+7. Full pipeline: `/squad`
 
 > **Stack is detected automatically.** You never need to specify Django, React, Vue, TypeScript, JavaScript, or Python — the skill detects it at preflight and routes to the right specialist.
 

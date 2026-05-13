@@ -34,6 +34,7 @@ test -f "$ROOT/docs/USAGE-BOUNDARIES.md"
 test -f "$ROOT/docs/RELEASING.md"
 test -f "$ROOT/docs/GETTING-STARTED.md"
 test -f "$ROOT/docs/MANUAL.md"
+test -f "$ROOT/docs/PUBLIC-SURFACE.md"
 test -f "$ROOT/docs/SKILL-SELECTOR.md"
 test -f "$ROOT/docs/GOVERNANCE.md"
 test -f "$ROOT/docs/README.md"
@@ -116,6 +117,8 @@ for tier in tiers:
     if not tier["skills"]:
         raise SystemExit(f"public-surface tier {tier['name']} must list skills")
 PY
+
+python3 "$ROOT/scripts/check-public-surface-docs.py"
 
 PUBLIC_SURFACE_DOCS=(
   "$ROOT/README.md"

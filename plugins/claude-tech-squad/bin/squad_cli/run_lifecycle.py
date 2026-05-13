@@ -215,8 +215,31 @@ def record_spawn(
     worktree_path: str,
     branch: str,
     base_commit: str,
+    auto_create_worktree: bool = False,
+    plugin_root: Path | None = None,
 ) -> GovernanceRun:
     run = load_run(state_dir, run_id)
+    if auto_create_worktree and (not worktree_path or not branch or not base_commit):
+        if plugin_root is None:
+            raise ValueError("plugin_root is required when auto_create_worktree is enabled")
+        spawn_result = run_helper(
+            name="spawn-agent-worktree",
+            command=[
+                "bash",
+                str(plugin_root / "bin" / "spawn-agent-worktree.sh"),
+                run.skill,
+                agent,
+                run_id,
+            ],
+            cwd=plugin_root,
+            allow_failure=False,
+        )
+        parsed = _parse_key_values(spawn_result["stdout"])
+        worktree_path = worktree_path or parsed.get("path", "")
+        branch = branch or parsed.get("branch", "")
+        base_commit = base_commit or parsed.get("base", "")
+        run.helper_executions.append(spawn_result)
+        run.helper_commands["spawn_auto"] = "bash plugins/claude-tech-squad/bin/spawn-agent-worktree.sh <skill> <agent> <run_id>"
     existing = _find_worktree(run, agent)
     worktree = GovernanceWorktree(
         agent=agent,
@@ -295,6 +318,29 @@ def finish_run(
     }
     run.save(state_dir)
     return run, sep_path
+
+
+def generate_public_surface_docs() -> dict[str, str]:
+    script = Path(__file__).resolve().parents[4] / "scripts" / "render-public-surface-docs.py"
+    table = subprocess.run(
+        ["python3", str(script), "table"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    daily = subprocess.run(
+        ["python3", str(script), "daily-flow"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    quick = subprocess.run(
+        ["python3", str(script), "quick-reference"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return {"table": table, "daily_flow": daily, "quick_reference": quick}
 
 
 def report_run(*, state_dir: Path, run_id: str) -> dict[str, Any]:
@@ -471,3 +517,13 @@ def _parse_team_mode(output: str) -> str:
             if mode in {"inline", "teammate"}:
                 return mode
     return ""
+
+
+def _parse_key_values(output: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for token in output.split():
+        if "=" not in token:
+            continue
+        key, value = token.split("=", 1)
+        result[key.strip()] = value.strip()
+    return result

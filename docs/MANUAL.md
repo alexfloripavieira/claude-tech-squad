@@ -217,39 +217,7 @@ If you are in a hurry, use this short path:
 | `/test-bootstrap` | Bootstrap test infrastructure when a repository lacks viable tests. |
 | `/factory-retrospective` | Analyze recent executions and improve the team process. |
 
-The tier map above is mirrored from `plugins/claude-tech-squad/public-surface.json`.
-
-### Stack-aware vs Stack-agnostic skills
-
-**Stack-aware** skills detect the project stack at preflight and automatically route to the correct specialist agent — you never have to specify which agent to use.
-
-| Routing variable | Django | React | Vue | TypeScript | JavaScript | Python | Generic |
-|---|---|---|---|---|---|---|---|
-| `{{backend_agent}}` | `django-backend` | `backend-dev` | `backend-dev` | `backend-dev` | `backend-dev` | `python-developer` | `backend-dev` |
-| `{{frontend_agent}}` | `django-frontend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `frontend-dev` | `frontend-dev` |
-| `{{reviewer_agent}}` | `code-reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` | `reviewer` |
-| `{{qa_agent}}` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa-tester` | `qa` | `qa` |
-| `{{impl_agent}}` | `django-backend` | `react-developer` | `vue-developer` | `typescript-developer` | `javascript-developer` | `python-developer` | `backend-dev` |
-
-Skills with stack routing: `/squad`, `/implement`, `/discovery`, `/bug-fix`, `/hotfix`, `/refactor`, `/pr-review`.
-
-**Stack-agnostic** skills always spawn the same specialist regardless of stack — no routing needed:
-
-| Skill | Why agnostic |
-|---|---|
-| `/security-audit` | Always spawns `security-reviewer` — stack-independent analysis |
-| `/dependency-check` | Reads lock files directly; `security-reviewer` handles all ecosystems |
-| `/cloud-debug` | Infrastructure domain — spawns `cloud-architect` + `sre` |
-| `/iac-review` | Terraform/Pulumi is stack-neutral; spawns `cloud-architect` |
-| `/llm-eval` | AI domain — spawns `ai-engineer` + `ml-engineer` |
-| `/prompt-review` | Prompt analysis — spawns `ai-engineer` |
-| `/onboarding` | Read-only repo analysis; no implementation agent |
-| `/release` | Pipeline scripts — no app-stack agent |
-| `/incident-postmortem` | Documentation — no implementation agent |
-| `/factory-retrospective` | Analyzes SEP logs — no implementation agent |
-| `/pre-commit-lint` | Configures lint hooks — the lint command varies, not the agent |
-| `/migration-plan` | Schema/SQL review — `dba` is appropriate for all stacks |
-| `/multi-service` | Contract testing across services — stack-neutral orchestration |
+The full skill catalog and stack-routing reference now live in [PUBLIC-SURFACE.md](PUBLIC-SURFACE.md), which is generated from `plugins/claude-tech-squad/public-surface.json`. Keep this manual for operating behavior, architecture, and lifecycle rules; use the generated surface file when you need the complete list.
 
 ---
 
@@ -1161,76 +1129,7 @@ Agents work autonomously between gates. There is no need to interact between one
 
 ## 12. Quick reference
 
-### Skills by context
-
-```bash
-# First command in any new repo
-/claude-tech-squad:onboarding
-
-# Complete new feature
-/claude-tech-squad:squad "implement authentication with Google OAuth"
-
-# LLM product: travel agent with RAG
-/claude-tech-squad:squad "build travel chatbot with RAG, vector search, and tool use"
-
-# Plan only, implement later
-/claude-tech-squad:discovery "refactor payment system to support PIX"
-
-# Implement with ready blueprint
-/claude-tech-squad:implement
-
-# Specific bug
-/claude-tech-squad:bug-fix
-
-# Production broken — emergency patch
-/claude-tech-squad:hotfix
-
-# Post-incident — blameless post-mortem
-/claude-tech-squad:incident-postmortem
-
-# Tech debt — safe refactor
-/claude-tech-squad:refactor
-
-# Implementation ready — cut release
-/claude-tech-squad:release
-
-# Review a PR with specialized bench
-/claude-tech-squad:pr-review
-
-# Before any model change
-/claude-tech-squad:migration-plan
-
-# Security audit
-/claude-tech-squad:security-audit
-
-# Problem in production
-/claude-tech-squad:cloud-debug
-
-# Check dependencies
-/claude-tech-squad:dependency-check
-
-# Process retrospective
-/claude-tech-squad:factory-retrospective
-```
-
-### Alternative flows by context
-
-```
-AI feature:        backend-architect → ai-engineer → agent-architect → techlead
-RAG feature:       rag-engineer → llm-eval-specialist → prompt-engineer → techlead
-Chatbot:           conversational-designer → prompt-engineer → rag-engineer → techlead
-Schema change:     data-architect → dba → techlead
-External APIs:     api-designer → integration-engineer → techlead
-UI feature:        frontend-architect → ux-designer → design-system-engineer → techlead
-Search feature:    search-engineer → rag-engineer (if hybrid) → techlead
-Mobile feature:    frontend-architect → mobile-dev → techlead
-Cloud infra:       cloud-architect → devops → sre → techlead
-Tech debt:         reviewer → code-quality → reviewer
-Incident:          incident-manager → {sre + devops + observability-engineer}
-Enterprise client: solutions-architect → integration-engineer → techlead
-Growth / A/B:      growth-engineer → analytics-engineer → techlead
-Dev community:     developer-relations → tech-writer → techlead
-```
+The complete skill catalog and short-path examples now live in [PUBLIC-SURFACE.md](PUBLIC-SURFACE.md). Use that generated page for the fastest routing reference; keep this manual for lifecycle, governance, and execution behavior.
 
 ---
 

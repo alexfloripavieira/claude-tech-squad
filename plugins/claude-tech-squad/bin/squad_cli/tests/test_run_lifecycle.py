@@ -4,6 +4,7 @@ from pathlib import Path
 from click.testing import CliRunner
 
 from squad_cli.cli import main
+from squad_cli.run_lifecycle import record_spawn, start_run
 
 
 def invoke(args):
@@ -201,3 +202,55 @@ def test_run_start_can_emit_helper_commands_for_full_runtime(tmp_path):
 
     assert output["helper_commands"]["skill_init"].endswith("init-skill-branch.sh squad")
     assert output["helper_commands"]["detect_mode"].endswith("detect-team-mode.sh")
+
+
+def test_run_spawn_can_auto_create_worktree(tmp_path, monkeypatch):
+    state_dir = tmp_path / "state"
+    plugin_root = tmp_path / "plugin"
+    plugin_root.mkdir()
+
+    def fake_run_helper(*, name, command, cwd, allow_failure):
+        if name == "detect-team-mode":
+            return {
+                "name": name,
+                "command": command,
+                "exit_code": 0,
+                "stdout": "mode=teammate tmux=1 inside_tmux=1 flag=1 version=2.1.32\n",
+                "stderr": "",
+            }
+        if name == "spawn-agent-worktree":
+            return {
+                "name": name,
+                "command": command,
+                "exit_code": 0,
+                "stdout": "path=/tmp/cts-reviewer branch=cts/implement/reviewer-1 base=abc123 spawned_at=1\n",
+                "stderr": "",
+            }
+        raise AssertionError(f"unexpected helper: {name}")
+
+    monkeypatch.setattr("squad_cli.run_lifecycle.run_helper", fake_run_helper)
+
+    started, _ = start_run(
+        skill="implement",
+        task="auto worktree",
+        state_dir=state_dir,
+        plugin_root=plugin_root,
+        policy_version="5.70.0",
+    )
+
+    run = record_spawn(
+        state_dir=state_dir,
+        run_id=started.run_id,
+        agent="reviewer",
+        subagent_type="claude-tech-squad:reviewer",
+        worktree_path="",
+        branch="",
+        base_commit="",
+        auto_create_worktree=True,
+        plugin_root=plugin_root,
+    )
+
+    assert run.worktrees[0].worktree_path == "/tmp/cts-reviewer"
+    assert run.worktrees[0].branch == "cts/implement/reviewer-1"
+    assert run.worktrees[0].base_commit == "abc123"
+    assert any(item["name"] == "spawn-agent-worktree" for item in run.helper_executions)

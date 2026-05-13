@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the source repository for the `claude-tech-squad` Claude Code plugin — a full software delivery squad of 81 specialist agents and 29 skills that replicate big tech engineering pipelines. The repository ships a marketplace manifest, the plugin itself, a validation ladder, a dogfooding pack with golden run support, and a live pipeline dashboard.
 
+The public skill surface is maintained once in `plugins/claude-tech-squad/public-surface.json` and rendered into [docs/PUBLIC-SURFACE.md](docs/PUBLIC-SURFACE.md). The user-facing docs point to that generated reference instead of duplicating the tier list in multiple places.
+
 Built on **Harness Engineering** principles — the infrastructure, constraints, and feedback loops that make AI agents reliable in production. The plugin scores 10/10 across all 5 pillars (Tool Orchestration, Guardrails, Error Recovery, Observability, Human-in-the-Loop) and all 5 practical concepts (Rule Files, Progressive Disclosure, Mechanical Enforcers, Reasoning Sandwich, Entropy Management).
 
 There is no application server, no database, and no build step. The artifacts are Markdown files (agents, skills), a YAML policy file, JSON manifests, and a self-contained HTML dashboard.

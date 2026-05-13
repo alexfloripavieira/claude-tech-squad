@@ -615,9 +615,10 @@ def run_checkpoint(run_id: str, step: str, artifact: str, state_dir: str):
 @click.option("--run-id", required=True)
 @click.option("--agent", required=True)
 @click.option("--subagent-type", required=True)
-@click.option("--worktree-path", required=True)
-@click.option("--branch", required=True)
-@click.option("--base-commit", required=True)
+@click.option("--worktree-path", default="")
+@click.option("--branch", default="")
+@click.option("--base-commit", default="")
+@click.option("--auto-worktree/--manual-worktree", default=True)
 @click.option("--state-dir", default=".squad-state", type=click.Path())
 def run_spawn(
     run_id: str,
@@ -626,6 +627,7 @@ def run_spawn(
     worktree_path: str,
     branch: str,
     base_commit: str,
+    auto_worktree: bool,
     state_dir: str,
 ):
     from squad_cli.run_lifecycle import prompt_requirements, record_spawn
@@ -638,6 +640,8 @@ def run_spawn(
         worktree_path=worktree_path,
         branch=branch,
         base_commit=base_commit,
+        auto_create_worktree=auto_worktree,
+        plugin_root=Path("plugins/claude-tech-squad"),
     )
     _output(
         {
@@ -645,6 +649,10 @@ def run_spawn(
             "run_id": run.run_id,
             "agent": agent,
             "prompt_requirements": prompt_requirements(),
+            "auto_worktree": auto_worktree,
+            "worktree_path": run.worktrees[-1].worktree_path if run.worktrees else worktree_path,
+            "branch": run.worktrees[-1].branch if run.worktrees else branch,
+            "base_commit": run.worktrees[-1].base_commit if run.worktrees else base_commit,
         }
     )
 

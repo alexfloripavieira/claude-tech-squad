@@ -2,6 +2,8 @@
 
 Use this guide to choose the right skill without reading the full playbook.
 
+For the canonical public skill surface and short-path summary, see [PUBLIC-SURFACE.md](PUBLIC-SURFACE.md). That page is generated from `plugins/claude-tech-squad/public-surface.json` and keeps the tier map in sync with the user-facing docs.
+
 > **Stack routing is automatic.** You never need to specify your stack. Every skill that spawns implementation agents detects it at preflight (Django, React, Vue, TypeScript, JavaScript, Python) and resolves the right specialist automatically.
 
 > **LLM/AI bench is automatic.** `/squad`, `/implement`, `/security-audit`, and `/onboarding` detect LLM/AI code (OpenAI, Anthropic, LangChain, pgvector, etc.) and activate the AI specialist bench without any extra configuration.

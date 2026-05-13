@@ -202,18 +202,7 @@ All skills work without squad-cli. The LLM executes the same logic from prompt i
 
 ## Commands
 
-Start with the core surface. The advanced skills are still available, but they
-are specialist tools for narrower situations.
-
-| Tier | Skills | Start here when |
-|---|---|---|
-| Core setup | `/onboarding`, `/from-ticket`, `/cost-estimate`, `/dashboard` | You are preparing a repo, routing ticket work, estimating cost, or checking run health. |
-| Core delivery | `/bug-fix`, `/mini-squad`, `/discovery`, `/inception`, `/implement`, `/squad` | You are fixing contained defects, delivering a small feature, planning, refining, building, or running the full pipeline. |
-| Core operations | `/hotfix`, `/cloud-debug`, `/incident-postmortem`, `/release`, `/rollover`, `/resume-from-rollover` | You are handling production pressure, incident work, release work, or long-session handoff. |
-| Advanced review and audit | `/pr-review`, `/security-audit`, `/pentest-deep`, `/tech-debt-audit`, `/refactor`, `/dependency-check` | You need specialist review, audit, dependency risk, or structured remediation planning. |
-| Advanced AI, infra, and scale | `/prompt-review`, `/llm-eval`, `/migration-plan`, `/iac-review`, `/multi-service`, `/pre-commit-lint`, `/test-bootstrap`, `/factory-retrospective` | You are working on AI quality, database or infrastructure risk, distributed changes, repo automation, or process improvement. |
-
-This tier map is mirrored from `plugins/claude-tech-squad/public-surface.json`.
+The public surface is organized into Core setup, Core delivery, Core operations, Advanced review and audit, and Advanced AI, infra, and scale. The canonical tier map lives in [PUBLIC-SURFACE.md](PUBLIC-SURFACE.md), which is generated from `plugins/claude-tech-squad/public-surface.json`.
 
 This guide expands the common paths. For the complete decision tree and every
 advanced skill, use [SKILL-SELECTOR.md](SKILL-SELECTOR.md).
