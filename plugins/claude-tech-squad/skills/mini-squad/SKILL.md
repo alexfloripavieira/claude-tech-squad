@@ -579,9 +579,10 @@ Emit `[SEP Log Written] ai-docs/.squad-log/{{YYYYMMDDTHHMMSSZ}}-mini-squad-{{run
 
 ## Output
 
-Print a 5-line summary:
+Print a short summary:
 - Feature delivered: <one-line>
 - Files changed: <count>
 - Test added: <path>
 - Reviewer verdict: <PASS|FAIL|CONDITIONAL>
 - Mode used: <teammate|inline>
+- Next step: `[Next Step] branch=<skill_branch> | merge_to=<base_branch> | command="git merge --no-ff <skill_branch>"`
