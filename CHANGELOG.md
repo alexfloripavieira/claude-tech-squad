@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.75.1] - 2026-05-13 — Automated maintenance release
+
+### Fixed
+
+- Make squad run finish idempotent
 ## [5.75.0] - 2026-05-13 — Automated feature release
 
 ### Added
