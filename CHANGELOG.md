@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.74.0] - 2026-05-13 — Automated feature release
+
+### Added
+
+- Streamline inline mode and spawn prompts
 ## [5.73.1] - 2026-05-13 — Automated maintenance release
 
 ### Fixed
