@@ -211,6 +211,52 @@ def test_run_lifecycle_records_complete_governance_flow(tmp_path):
     assert len(list(log_dir.glob("*-implement-*.md"))) == 1
 
 
+def test_run_finish_validates_relative_sep_log_from_repo_root(tmp_path, monkeypatch):
+    plugin_root = Path.cwd() / "plugins/claude-tech-squad"
+    monkeypatch.chdir(tmp_path)
+    Path("ai-docs/.squad-log").mkdir(parents=True)
+    state_dir = Path(".squad-state")
+
+    started = invoke(
+        [
+            "run",
+            "start",
+            "--skill",
+            "mini-squad",
+            "--task",
+            "validar path relativo",
+            "--run-id",
+            "mini-relative",
+            "--state-dir",
+            str(state_dir),
+            "--log-dir",
+            "ai-docs/.squad-log",
+            "--plugin-root",
+            str(plugin_root),
+        ]
+    )
+    assert started["status"] == "started"
+
+    finished = invoke(
+        [
+            "run",
+            "finish",
+            "--run-id",
+            "mini-relative",
+            "--status",
+            "aborted",
+            "--state-dir",
+            str(state_dir),
+            "--log-dir",
+            "ai-docs/.squad-log",
+        ]
+    )
+
+    assert finished["status"] == "finished"
+    assert finished["sep_validation"]["status"] == "passed"
+    assert Path(finished["sep_log"]).exists()
+
+
 def test_run_start_can_emit_helper_commands_for_full_runtime(tmp_path):
     state_dir = tmp_path / "state"
     output = invoke(

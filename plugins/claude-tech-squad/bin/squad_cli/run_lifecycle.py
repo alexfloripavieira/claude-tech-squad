@@ -416,9 +416,10 @@ def finish_run(
     run.save(state_dir)
     sep_path = write_sep_log(run, log_dir)
     run.sep_log_path = str(sep_path)
+    validation_path = sep_path if sep_path.is_absolute() else Path.cwd() / sep_path
     validation = run_helper(
         name="validate-sep-log",
-        command=["python3", str(Path(__file__).resolve().parents[1] / "validate-sep-log.py"), str(sep_path)],
+        command=["python3", str(Path(__file__).resolve().parents[1] / "validate-sep-log.py"), str(validation_path)],
         cwd=state_dir,
         allow_failure=False,
     )
@@ -486,6 +487,18 @@ def write_sep_log(run: GovernanceRun, log_dir: Path) -> Path:
     tokens_out = sum(worktree.tokens_out for worktree in run.worktrees)
     cost_usd = round((tokens_in * 15 + tokens_out * 75) / 1_000_000, 4)
     duration_ms = _duration_ms(run.started_at, run.ended_at)
+    passed_gates = [gate for gate in run.gates if gate.status == "passed"]
+    blocked_gates = [gate for gate in run.gates if gate.status != "passed"]
+
+    def yaml_list(header: str, values: list[str]) -> list[str]:
+        if not values:
+            return [f"{header}: []"]
+        return [f"{header}:", *[f"  - {value}" for value in values]]
+
+    def yaml_map(header: str, values: list[str]) -> list[str]:
+        if not values:
+            return [f"{header}: {{}}"]
+        return [f"{header}:", *values]
 
     lines = [
         "---",
@@ -502,38 +515,34 @@ def write_sep_log(run: GovernanceRun, log_dir: Path) -> Path:
         f"language_policy_applied: {run.language_policy_applied}",
         f"feature_slug: {run.run_id}",
         "checkpoint_cursor: null",
-        "completed_checkpoints:",
     ]
-    for checkpoint in run.checkpoints:
-        lines.append(f"  - {checkpoint.step}")
+    lines.extend(yaml_list("completed_checkpoints", [checkpoint.step for checkpoint in run.checkpoints]))
     lines.extend(
         [
-            "cts_phases_completed:",
-            *[f"  - {phase}" for phase in run.cts_phases_completed],
-            "checkpoints:",
-            *[f"  - {checkpoint.step}" for checkpoint in run.checkpoints],
-            "gates_cleared:",
-            *[f"  - {gate.name}" for gate in run.gates if gate.status == "passed"],
-            "gates_blocked:",
-            *[f"  - {gate.name}: {gate.reason}" for gate in run.gates if gate.status != "passed"],
+            *yaml_list("cts_phases_completed", run.cts_phases_completed),
+            *yaml_list("checkpoints", [checkpoint.step for checkpoint in run.checkpoints]),
+            *yaml_list("gates_cleared", [gate.name for gate in passed_gates]),
+            *yaml_list("gates_blocked", [f"{gate.name}: {gate.reason}" for gate in blocked_gates]),
             "bypasses_observed: []",
             "timeouts_observed: []",
             "fallbacks_invoked: []",
             "fallback_invocations: []",
-            "teammates:",
-            *[f"  - {worktree.agent}" for worktree in run.worktrees],
-            "teammate_reliability:",
-            *[f"  {worktree.agent}: primary" for worktree in run.worktrees],
-            "worktrees:",
-            *[
-                f"  - agent: {worktree.agent}\n"
-                f"    path: {worktree.worktree_path}\n"
-                f"    branch: {worktree.branch}\n"
-                f"    status: {worktree.status}\n"
-                f"    merged: {str(worktree.merged).lower()}\n"
-                f"    commits_ahead: {worktree.commits_ahead}"
-                for worktree in run.worktrees
-            ],
+            *yaml_list("teammates", [worktree.agent for worktree in run.worktrees]),
+            *yaml_map("teammate_reliability", [f"  {worktree.agent}: primary" for worktree in run.worktrees]),
+            *yaml_list(
+                "worktrees",
+                [
+                    (
+                        f"agent: {worktree.agent}\n"
+                        f"    path: {worktree.worktree_path}\n"
+                        f"    branch: {worktree.branch}\n"
+                        f"    status: {worktree.status}\n"
+                        f"    merged: {str(worktree.merged).lower()}\n"
+                        f"    commits_ahead: {worktree.commits_ahead}"
+                    )
+                    for worktree in run.worktrees
+                ],
+            ),
             f"events_count: {len(run.events)}",
             f"gates_count: {len(run.gates)}",
             f"tokens_input: {tokens_in}",
