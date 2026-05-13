@@ -146,6 +146,7 @@ def start_run(
     policy_version: str = "",
     execution_mode: str = "inline",
 ) -> tuple[GovernanceRun, Path]:
+    plugin_root = plugin_root.resolve()
     quick_start = [
         f"Use `run spawn` for each agent you want to govern under `{skill}`.",
         "Use `run event` to record commands and evidence as they happen.",
@@ -177,6 +178,34 @@ def start_run(
     run.execution_mode = resolved_mode
     run.resolved_team_mode = resolved_mode
     return run, run.save(state_dir)
+
+
+def resolve_team_mode(*, plugin_root: Path) -> dict[str, Any]:
+    plugin_root = plugin_root.resolve()
+    detect_mode = plugin_root / "bin" / "detect-team-mode.sh"
+    helper_result = run_helper(
+        name="detect-team-mode",
+        command=["bash", str(detect_mode)],
+        cwd=plugin_root,
+        allow_failure=True,
+    )
+    parsed = _parse_key_values(helper_result.get("stdout", ""))
+    mode = parsed.get("mode", "inline")
+    checks = {
+        "tmux_binary": parsed.get("tmux") == "1",
+        "inside_tmux": parsed.get("inside_tmux") == "1",
+        "agent_teams_env": parsed.get("flag") == "1",
+        "claude_version": parsed.get("version", "unknown"),
+    }
+    reason = _mode_reason(mode, checks)
+    return {
+        "status": "resolved",
+        "mode": mode,
+        "reason": reason,
+        "checks": checks,
+        "raw": parsed,
+        "helper_execution": helper_result,
+    }
 
 
 def record_event(
@@ -224,6 +253,8 @@ def record_spawn(
     plugin_root: Path | None = None,
 ) -> GovernanceRun:
     run = load_run(state_dir, run_id)
+    if plugin_root is not None:
+        plugin_root = plugin_root.resolve()
     resolved_peers = peers or []
     if auto_create_worktree and (not worktree_path or not branch or not base_commit):
         if plugin_root is None:
@@ -298,6 +329,7 @@ def build_spawn_prompt(
     peers: list[str],
 ) -> str:
     peer_lines = "\n".join(f"- {peer}" for peer in peers) if peers else "- none"
+    role_guidance = _role_guidance(agent=agent, subagent_type=subagent_type, peers=peers)
     return "\n".join(
         [
             "POLITICA DE IDIOMA:",
@@ -325,6 +357,9 @@ def build_spawn_prompt(
             "CROSS-TALK:",
             "Fale diretamente com os peers quando houver dependencia de entendimento, teste, contrato ou revisao. Use pt-BR nessas mensagens.",
             "Se precisar entregar arquivos entre worktrees, envie from_branch, commit_sha e file_paths para o peer.",
+            "",
+            "INSTRUCOES DO PAPEL:",
+            role_guidance,
             "",
             "RESULTADO:",
             "Retorne result_contract e verification_checklist. Inclua evidencias objetivas de testes, arquivos tocados, bloqueios e proxima acao.",
@@ -527,6 +562,54 @@ def prompt_requirements() -> list[str]:
         "cross_talk.pt_br_only",
         "sep_log.lifecycle_required",
     ]
+
+
+def _role_guidance(*, agent: str, subagent_type: str, peers: list[str]) -> str:
+    role = f"{agent} {subagent_type}".lower()
+    peer_hint = ", ".join(peers) if peers else "nenhum peer obrigatorio"
+    if "tdd" in role:
+        return "\n".join(
+            [
+                "Escreva o teste falhando antes de qualquer implementacao.",
+                f"Envie ao dev/peer ({peer_hint}) a assinatura do teste, asserts principais e arquivos afetados antes de finalizar.",
+                "Comite o teste falhando no seu worktree quando fizer handoff de arquivo.",
+            ]
+        )
+    if "review" in role or "reviewer" in role:
+        return "\n".join(
+            [
+                "Revise o diff e as evidencias produzidas pelos agentes anteriores.",
+                "Nao implemente novas funcionalidades. Foque em riscos, regressao, cobertura, seguranca e aderencia ao escopo.",
+                "Classifique achados como BLOCKING, WARNING ou INFO.",
+            ]
+        )
+    if any(token in role for token in ("dev", "developer", "backend", "frontend", "python", "typescript", "django", "react", "vue")):
+        return "\n".join(
+            [
+                "Implemente apenas o minimo necessario para satisfazer o teste/contrato aprovado.",
+                f"Converse com os peers ({peer_hint}) antes de alterar contratos compartilhados.",
+                "Rode os testes relevantes e registre o comando exato no result_contract.",
+            ]
+        )
+    return "\n".join(
+        [
+            "Execute somente o escopo do seu papel.",
+            f"Use cross-talk direto com peers quando necessario ({peer_hint}).",
+            "Registre evidencias objetivas no result_contract.",
+        ]
+    )
+
+
+def _mode_reason(mode: str, checks: dict[str, Any]) -> str:
+    if mode == "teammate":
+        return "Claude Code is running inside tmux with Agent Teams enabled."
+    if not checks["tmux_binary"]:
+        return "tmux is not installed; inline mode is the default."
+    if not checks["inside_tmux"]:
+        return "Claude Code is not running inside tmux; inline mode is the default."
+    if not checks["agent_teams_env"]:
+        return "Agent Teams environment flags are not enabled; inline mode is the default."
+    return "Claude Code version is unavailable or below the teammate-mode minimum; inline mode is the default."
 
 
 def parse_bool(value: str) -> bool:

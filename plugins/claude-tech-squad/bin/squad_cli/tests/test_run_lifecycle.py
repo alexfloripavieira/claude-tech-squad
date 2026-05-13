@@ -6,7 +6,7 @@ from pathlib import Path
 from click.testing import CliRunner
 
 from squad_cli.cli import main
-from squad_cli.run_lifecycle import record_spawn, start_run
+from squad_cli.run_lifecycle import build_spawn_prompt, record_spawn, start_run
 
 
 def invoke(args):
@@ -321,3 +321,119 @@ def test_detect_team_mode_stays_inline_outside_tmux(tmp_path):
     assert result.stdout.startswith("mode=inline ")
     assert "tmux=1" in result.stdout
     assert "inside_tmux=0" in result.stdout
+
+
+def test_run_mode_reports_inline_reason():
+    output = invoke(["run", "mode"])
+
+    assert output["status"] == "resolved"
+    assert output["mode"] in {"inline", "teammate"}
+    assert "reason" in output
+    assert output["checks"]["tmux_binary"] in {True, False}
+    assert output["checks"]["inside_tmux"] in {True, False}
+
+
+def test_spawn_prompt_is_role_specific(tmp_path):
+    run, _ = start_run(
+        skill="mini-squad",
+        task="entregar feature pequena",
+        state_dir=tmp_path / "state",
+        plugin_root=Path("plugins/claude-tech-squad"),
+        run_id="role-test",
+    )
+
+    tdd_prompt = build_spawn_prompt(
+        run=run,
+        agent="tdd-specialist",
+        subagent_type="claude-tech-squad:tdd-specialist",
+        skill_branch="cts/skill/mini",
+        worktree_path="/tmp/cts-tdd",
+        branch="cts/mini/tdd",
+        base_commit="abc123",
+        peers=["dev"],
+    )
+    reviewer_prompt = build_spawn_prompt(
+        run=run,
+        agent="reviewer",
+        subagent_type="claude-tech-squad:reviewer",
+        skill_branch="cts/skill/mini",
+        worktree_path="/tmp/cts-reviewer",
+        branch="cts/mini/reviewer",
+        base_commit="abc123",
+        peers=[],
+    )
+
+    assert "Escreva o teste falhando antes" in tdd_prompt
+    assert "Envie ao dev" in tdd_prompt
+    assert "Revise o diff" in reviewer_prompt
+    assert "Nao implemente novas funcionalidades" in reviewer_prompt
+
+
+def test_mini_squad_e2e_governance_flow_without_agents(tmp_path):
+    state_dir = tmp_path / "state"
+    log_dir = tmp_path / "logs"
+
+    started = invoke(
+        [
+            "run",
+            "start",
+            "--skill",
+            "mini-squad",
+            "--task",
+            "feature pequena",
+            "--run-id",
+            "mini-e2e",
+            "--state-dir",
+            str(state_dir),
+            "--log-dir",
+            str(log_dir),
+        ]
+    )
+    assert started["execution_mode"] == "inline"
+
+    spawn = invoke(
+        [
+            "run",
+            "spawn",
+            "--run-id",
+            "mini-e2e",
+            "--agent",
+            "tdd-specialist",
+            "--subagent-type",
+            "claude-tech-squad:tdd-specialist",
+            "--manual-worktree",
+            "--worktree-path",
+            "/tmp/cts-tdd",
+            "--branch",
+            "cts/mini-squad/tdd",
+            "--base-commit",
+            "abc123",
+            "--skill-branch",
+            "cts/skill/mini-squad",
+            "--peer",
+            "dev",
+            "--state-dir",
+            str(state_dir),
+        ]
+    )
+    assert "spawn_prompt" in spawn
+    assert "PEERS:\n- dev" in spawn["spawn_prompt"]
+
+    finished = invoke(
+        [
+            "run",
+            "finish",
+            "--run-id",
+            "mini-e2e",
+            "--status",
+            "passed",
+            "--state-dir",
+            str(state_dir),
+            "--log-dir",
+            str(log_dir),
+        ]
+    )
+    assert finished["sep_validation"]["status"] == "passed"
+    sep_text = Path(finished["sep_log"]).read_text()
+    assert "skill: mini-squad" in sep_text
+    assert "mode=inline" not in sep_text

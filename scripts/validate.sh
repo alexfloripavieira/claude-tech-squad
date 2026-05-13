@@ -181,6 +181,16 @@ grep -q '@main.group("run")' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
   exit 1
 }
 
+grep -q '@run_group.command("mode")' "$PLUGIN_DIR/bin/squad_cli/cli.py" || {
+  echo "squad-cli missing run mode diagnostic"
+  exit 1
+}
+
+grep -q 'spawn_prompt' "$PLUGIN_DIR/bin/squad_cli/run_lifecycle.py" || {
+  echo "squad-cli run spawn must generate spawn_prompt"
+  exit 1
+}
+
 for skill_file in "$SKILLS_DIR"/*/SKILL.md; do
   if grep -q 'adversarial_review' "$skill_file"; then
     if ! grep -q 'Advogado do diabo' "$skill_file"; then

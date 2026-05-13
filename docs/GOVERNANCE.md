@@ -33,6 +33,8 @@ O runtime de governança automática vive em
   executa `detect-team-mode.sh`, registra `execution_mode`, aplica
   `language_policy_applied: pt-BR`, persiste o estado e emite os helpers que
   devem ser usados pela execução.
+- `squad-cli run mode` diagnostica o modo atual (`inline` ou `teammate`) e
+  explica o motivo com checks de tmux, sessão, envs e versão do Claude Code.
 - `squad-cli run event --run-id <id> --type <tipo> --value <valor>` registra
   comandos, decisões e evidências operacionais.
 - `squad-cli run gate --run-id <id> --name <gate> --status <status>` registra
@@ -40,9 +42,9 @@ O runtime de governança automática vive em
 - `squad-cli run checkpoint --run-id <id> --step <fase>` registra fases e
   artefatos associados.
 - `squad-cli run spawn --run-id <id> --agent <nome> ...` registra agente,
-  subagent type, worktree, branch e base commit. A resposta inclui requisitos de
-  prompt como `language_policy.spawn_prompt_preamble`, cross-talk em pt-BR e
-  ciclo de vida SEP.
+  subagent type, worktree, branch, base commit e peers. A resposta inclui um
+  `spawn_prompt` pronto para usar no primeiro bloco do Agent, com pt-BR,
+  worktree, cross-talk, SEP e orientações específicas do papel.
 - `squad-cli run agent-done --run-id <id> --agent <nome> ...` fecha a
   participação do agente com status, confiança, tokens, merge e commits
   pendentes.

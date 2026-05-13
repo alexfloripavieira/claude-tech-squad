@@ -151,6 +151,13 @@ Each pane shows the specialist working independently. The orchestrator (your mai
 
 If you run the commands without tmux mode, the workflows still work correctly — agents run inline as subagents. You get the same outputs and gates, but no separate panes and no manual tmux gate.
 
+To inspect what the runtime will do in the current shell:
+
+```bash
+PYTHONPATH=plugins/claude-tech-squad/bin \
+  python3 -m squad_cli.cli run mode
+```
+
 ### SEP logs in teammate mode
 
 When running in teammate mode, each specialist runs in its own Claude Code instance. The **Squad Execution Protocol (SEP)** ensures observability regardless of mode: every skill writes a structured log to `ai-docs/.squad-log/` before the pane exits. This means `/factory-retrospective` always has a persistent trace of what ran, even when there is no shared conversation history to inspect. See MANUAL.md section 13 for the full SEP reference.
@@ -560,6 +567,13 @@ claude
 ```
 
 > **Note:** Inline mode is fully functional. Tmux panes are a visibility enhancement, not a requirement. If you are new, start with inline mode.
+
+To see the current mode and reason, run:
+
+```bash
+PYTHONPATH=plugins/claude-tech-squad/bin \
+  python3 -m squad_cli.cli run mode
+```
 
 ---
 

@@ -148,6 +148,41 @@ greps each dev-flow SKILL.md for the phase tags `CTS-PHASE: skill-init`,
 `CTS-PHASE: agent-spawn`, `CTS-PHASE: agent-monitor`, `CTS-PHASE: agent-cleanup`,
 and `CTS-PHASE: skill-finalize` to enforce wiring.
 
+### Automatic Governance Runtime
+
+The lead MUST operate this skill through `squad-cli run` and record the
+runtime state mechanically:
+
+```bash
+RUN_OUT=$(python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli run start \
+  --skill mini-squad \
+  --task "<feature_request>" \
+  --execution-mode auto)
+# parse: run_id, execution_mode, resolved_team_mode, helper_executions
+
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli run mode
+```
+
+For every Agent spawn, the lead MUST call `run spawn` first and use the
+returned `spawn_prompt` as the first block of the Agent prompt:
+
+```bash
+SPAWN_JSON=$(python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli run spawn \
+  --run-id "$run_id" \
+  --agent "<agent_name>" \
+  --subagent-type "claude-tech-squad:<agent_slug>" \
+  --skill-branch "$skill_branch" \
+  --peer "<peer_name>")
+# Use .spawn_prompt before the role-specific prompt body.
+```
+
+At completion, the lead MUST close the run mechanically:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli run finish --run-id "$run_id" --status passed
+python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli run report --run-id "$run_id"
+```
+
 ### Phase A — Skill Branch Init (CTS-PHASE: skill-init)
 
 Run BEFORE any `Agent(...)` call:
@@ -173,16 +208,32 @@ SPAWN_OUT=$(bash ${CLAUDE_PLUGIN_ROOT}/bin/spawn-agent-worktree.sh mini-squad <a
 # parse: path=<...> branch=<...> base=<...> spawned_at=<epoch>
 ```
 
+Prefer the governance wrapper:
+
+```bash
+SPAWN_JSON=$(python3 ${CLAUDE_PLUGIN_ROOT}/bin/squad-cli run spawn \
+  --run-id "$run_id" \
+  --agent "<agent_name>" \
+  --subagent-type "claude-tech-squad:<agent_slug>" \
+  --skill-branch "$skill_branch" \
+  --peer "<peer_name>")
+```
+
 The Agent spawn `prompt` MUST begin with, in this exact order:
 
-1. `language_policy.spawn_prompt_preamble` — literal text from `runtime-policy.yaml::language_policy.spawn_prompt_preamble` (pt-BR mandate).
-2. The five worktree fields from `runtime-policy.yaml::agent_worktrees.spawn_prompt_inject.fields_appended_to_every_prompt`:
+1. The `spawn_prompt` returned by `squad-cli run spawn`, which includes
+   the language policy, governance context, worktree fields, peers,
+   cross-talk instructions, and role-specific guidance.
+2. If `squad-cli run spawn` is unavailable, fallback to
+   `language_policy.spawn_prompt_preamble` — literal text from
+   `runtime-policy.yaml::language_policy.spawn_prompt_preamble` (pt-BR mandate).
+3. The five worktree fields from `runtime-policy.yaml::agent_worktrees.spawn_prompt_inject.fields_appended_to_every_prompt`:
    - `skill_branch: <...>`
    - `worktree_path: <path>`
    - `branch: <branch>`
    - `base_commit: <base>`
    - `instruction: cd into worktree_path before any Read/Edit/Write/Bash. ...`
-3. The role-specific spawn prompt body that this SKILL.md defines below.
+4. The role-specific spawn prompt body that this SKILL.md defines below.
 
 Emit `[Worktree Spawned] agent=<...> | path=<...> | branch=<...> | spawned_at=<epoch>`.
 Record `spawned_at` per agent — Phase B.1 needs it.

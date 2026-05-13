@@ -156,6 +156,12 @@ With teammate mode active, each `/discovery`, `/implement`, and `/squad`:
 
 Without tmux mode, the same workflows run correctly as inline subagents — same outputs, same gates, no visual panes, no manual tmux prompt.
 
+Diagnostic:
+
+```bash
+PYTHONPATH=plugins/claude-tech-squad/bin python3 -m squad_cli.cli run mode
+```
+
 ---
 
 ## 5. Available skills and when to use each

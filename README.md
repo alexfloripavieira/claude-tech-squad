@@ -202,6 +202,12 @@ claude
 
 With teammate mode active, each `/discovery`, `/implement`, and `/squad` call creates a team and spawns every specialist in a separate pane. Without tmux mode, the same workflows run correctly as inline subagents and do not stop to ask for a tmux choice.
 
+Check the current mode with:
+
+```bash
+PYTHONPATH=plugins/claude-tech-squad/bin python3 -m squad_cli.cli run mode
+```
+
 ## Visible Orchestration
 
 The workflows expose squad execution in the Claude output.

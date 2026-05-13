@@ -552,6 +552,18 @@ def run_start(
     )
 
 
+@run_group.command("mode")
+@click.option(
+    "--plugin-root",
+    default="plugins/claude-tech-squad",
+    type=click.Path(),
+)
+def run_mode(plugin_root: str):
+    from squad_cli.run_lifecycle import resolve_team_mode
+
+    _output(resolve_team_mode(plugin_root=Path(plugin_root)))
+
+
 @run_group.command("event")
 @click.option("--run-id", required=True)
 @click.option("--type", "event_type", required=True)
