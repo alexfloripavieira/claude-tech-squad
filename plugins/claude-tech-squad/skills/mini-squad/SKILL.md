@@ -112,7 +112,9 @@ Required by `runtime-policy.yaml::agent_teams.cross_talk_protocol`. Enforcement 
 
 This produces a single canonical version of the test file in the dev's branch. Copying the test by hand creates a duplicate that conflicts on the `--no-ff` merge into the skill branch, which has caused real merge-conflict cleanup work in past runs. The `git checkout` path keeps git aware that the file came from tdd's commit, so the later merge is a fast-forward of one and a no-op of the other.
 
-**Audit:** lead dumps mailbox to `sep_log.mailbox[]`. Zero outbound `SendMessage` between tdd↔dev triggers Teammate Failure Protocol with `reason: cross-talk-missing` and opens `[Gate] Cross-Talk Missing | pair: tdd-specialist↔<dev> | [R]espawn / [A]ccept / [X]Abort`.
+**Sequential-spawn reality:** in mini-squad the lead spawns tdd-specialist and dev sequentially (tdd returns before dev starts), so `SendMessage(to=peer_name)` from tdd→dev cannot reach a live peer — dev is not yet spawned. The git-based file handoff (steps 1+3 above) is therefore the **canonical, mandatory** channel for the test contract. `SendMessage` is best-effort and only required when peers run concurrently (teammate mode with parallel spawn). Mailbox audit records both delivery attempts and successful handoffs.
+
+**Audit:** lead dumps mailbox to `sep_log.mailbox[]`. A pair counts as satisfied when EITHER (a) at least one `SendMessage` was delivered, OR (b) the receiver successfully fetched the sender's commit via `git checkout <from_branch> -- <paths>` (recorded as `git_handoff_completed: true`). Only if BOTH are missing does the Teammate Failure Protocol fire with `reason: cross-talk-missing` and open `[Gate] Cross-Talk Missing | pair: tdd-specialist↔<dev> | [R]espawn / [A]ccept / [X]Abort`.
 
 Reviewer is single-lens by design — no cross-talk required for `code-reviewer`.
 
