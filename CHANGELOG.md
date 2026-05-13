@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.75.4] - 2026-05-13 — Automated maintenance release
+
+### Fixed
+
+- Correct team mode parsing and clarify cross-talk protocol (#59)
 ## [5.75.3] - 2026-05-13 — Automated maintenance release
 
 ### Fixed
