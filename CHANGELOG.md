@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.73.1] - 2026-05-13 — Automated maintenance release
+
+### Fixed
+
+- Remove manual tmux gate for dev flows
 ## [5.73.0] - 2026-05-13 — Automated feature release
 
 ### Added
