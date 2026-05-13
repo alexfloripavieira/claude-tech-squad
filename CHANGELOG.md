@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.71.0] - 2026-05-13 — Automated feature release
+
+### Added
+
+- Automate governance and simplify public surface
 ## [5.70.0] - 2026-05-11 — Automated feature release
 
 ### Added
