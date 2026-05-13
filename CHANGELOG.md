@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.75.2] - 2026-05-13 — Automated maintenance release
+
+### Fixed
+
+- Show mini-squad merge next step
 ## [5.75.1] - 2026-05-13 — Automated maintenance release
 
 ### Fixed
