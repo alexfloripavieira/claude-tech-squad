@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.73.0] - 2026-05-13 — Automated feature release
+
+### Added
+
+- Automate public surface docs and worktree spawn
 ## [5.72.0] - 2026-05-13 — Automated feature release
 
 ### Added
