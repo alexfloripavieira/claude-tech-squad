@@ -623,3 +623,11 @@ bash scripts/dogfood-report.sh --schema-only # golden run schema validation
 - Validation script: [validate.sh](scripts/validate.sh)
 - Release process: [RELEASING.md](docs/RELEASING.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
+
+## CTS Teammate Mode Smoke Test
+
+O mini-squad validou teammate mode com governanca automatica via squad-cli run start/spawn/finish, preflight, SEP log e cleanup.
+
+## Claude Tech Squad Tmux Smoke Test
+
+O mini-squad rodou em teammate mode com tmux e registrou governanca automatica via squad-cli run start/spawn/finish, validando preflight, SEP log e cleanup pós-release v5.75.3.
