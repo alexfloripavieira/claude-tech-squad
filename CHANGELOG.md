@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.76.0] - 2026-05-17 — Automated feature release
+
+### Added
+
+- Centraliza custo de tokens em pricing.py
+
+### Changed
+
+- Merge pull request #60 from alexfloripavieira/squad-saude/p0.1-pricing
 ## [5.75.4] - 2026-05-13 — Automated maintenance release
 
 ### Fixed
