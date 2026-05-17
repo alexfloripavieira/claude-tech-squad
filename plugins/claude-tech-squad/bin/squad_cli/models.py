@@ -5,6 +5,8 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any
 
+from squad_cli.pricing import estimate_cost
+
 
 @dataclass
 class TeammateState:
@@ -39,7 +41,7 @@ class TokenBudget:
         return (self.used_total / self.max_tokens) * 100
 
     def estimate_cost_usd(self) -> float:
-        return (self.used_in * 15 + self.used_out * 75) / 1_000_000
+        return estimate_cost(self.used_in, self.used_out)
 
 
 @dataclass

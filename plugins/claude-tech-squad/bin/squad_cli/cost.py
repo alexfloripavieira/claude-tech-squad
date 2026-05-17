@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 
 from squad_cli.models import RunState
 from squad_cli.policy import RuntimePolicy
+from squad_cli.pricing import estimate_cost
 
 
 @dataclass
@@ -33,7 +34,7 @@ def compute_cost(state: RunState, policy: RuntimePolicy) -> CostReport:
     for name, tm in state.teammates.items():
         report.tokens_in += tm.tokens_in
         report.tokens_out += tm.tokens_out
-        tm_cost = (tm.tokens_in * 15 + tm.tokens_out * 75) / 1_000_000
+        tm_cost = estimate_cost(tm.tokens_in, tm.tokens_out)
         report.per_teammate[name] = {
             "tokens_in": tm.tokens_in,
             "tokens_out": tm.tokens_out,
@@ -42,7 +43,7 @@ def compute_cost(state: RunState, policy: RuntimePolicy) -> CostReport:
         }
 
     report.tokens_total = report.tokens_in + report.tokens_out
-    report.estimated_cost_usd = round((report.tokens_in * 15 + report.tokens_out * 75) / 1_000_000, 4)
+    report.estimated_cost_usd = round(estimate_cost(report.tokens_in, report.tokens_out), 4)
 
     if report.budget_max > 0:
         report.budget_percent = (report.tokens_total / report.budget_max) * 100
