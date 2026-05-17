@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from squad_cli.pricing import estimate_cost
+
 
 SCHEMA_VERSION = 1
 LANGUAGE_POLICY = "pt-BR"
@@ -485,7 +487,7 @@ def write_sep_log(run: GovernanceRun, log_dir: Path) -> Path:
     path = _sep_log_path(run, log_dir)
     tokens_in = sum(worktree.tokens_in for worktree in run.worktrees)
     tokens_out = sum(worktree.tokens_out for worktree in run.worktrees)
-    cost_usd = round((tokens_in * 15 + tokens_out * 75) / 1_000_000, 4)
+    cost_usd = round(estimate_cost(tokens_in, tokens_out), 4)
     duration_ms = _duration_ms(run.started_at, run.ended_at)
     passed_gates = [gate for gate in run.gates if gate.status == "passed"]
     blocked_gates = [gate for gate in run.gates if gate.status != "passed"]
